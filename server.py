@@ -26,7 +26,9 @@ if not BOT_TOKEN:
     except Exception:
         pass
 PORT = int(os.environ.get("PORT", "3000"))
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(APP_DIR, "data")
+DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -161,10 +163,42 @@ UPGRADE_EFFECT_DEFAULTS = {
     "energy_leech": 1,
 }
 
+def load_default_json(filename):
+    path = os.path.join(DEFAULT_DATA_DIR, filename)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        log_warn(f"Ошибка загрузки default_data/{filename}: {e}")
+        return None
+
 def load_config():
-    config = load_json("config.json")
-    if not isinstance(config, dict):
-        config = {}
+    stored = load_json("config.json")
+    defaults = load_default_json("config.json")
+    config = dict(defaults) if isinstance(defaults, dict) else {}
+    if isinstance(stored, dict):
+        for key, value in stored.items():
+            if key == "game" and isinstance(value, dict):
+                merged = dict(config.get("game", {}))
+                merged.update(value)
+                config["game"] = merged
+            elif key == "upgrades" and isinstance(value, dict):
+                merged = dict(config.get("upgrades", {}))
+                for upgrade_key, upgrade_value in value.items():
+                    if isinstance(upgrade_value, dict) and isinstance(merged.get(upgrade_key), dict):
+                        definition = dict(merged[upgrade_key])
+                        definition.update(upgrade_value)
+                        merged[upgrade_key] = definition
+                    else:
+                        merged[upgrade_key] = upgrade_value
+                config["upgrades"] = merged
+            elif key in ("levels", "boosts") and not value and config.get(key):
+                continue
+            else:
+                config[key] = value
+
     stored_game = config.get("game")
     game = dict(GAME_DEFAULTS)
     if isinstance(stored_game, dict):
@@ -183,13 +217,25 @@ def get_upgrade_effect(config, upgrade_key):
     return upgrade.get("effect_per_level", UPGRADE_EFFECT_DEFAULTS.get(upgrade_key, 0))
 
 def load_backgrounds():
-    return load_json("backgrounds.json")
+    data = load_json("backgrounds.json")
+    if isinstance(data, list) and data:
+        return data
+    defaults = load_default_json("backgrounds.json")
+    return defaults if isinstance(defaults, list) else []
 
 def load_cases():
-    return load_json("cases.json")
+    data = load_json("cases.json")
+    if isinstance(data, list) and data:
+        return data
+    defaults = load_default_json("cases.json")
+    return defaults if isinstance(defaults, list) else []
 
 def load_tasks():
-    return load_json("tasks.json")
+    data = load_json("tasks.json")
+    if isinstance(data, list) and data:
+        return data
+    defaults = load_default_json("tasks.json")
+    return defaults if isinstance(defaults, list) else []
 
 def load_vouchers():
     return load_json("vouchers.json")

@@ -1994,6 +1994,10 @@ const App = {
 
     // --- EXCHANGE SCREEN ---
     // "Обмены сегодня" reset countdown (resets at local midnight)
+    _exchangeLimit() {
+        if (Auth.user && Auth.user.exchange_limit) return Auth.user.exchange_limit;
+        return (Auth.config && Auth.config.game && Auth.config.game.max_exchange_per_day) || 5;
+    },
     _updateExchangeReset() {
         const el = document.getElementById('exchange-reset');
         if (!el) return;
@@ -2009,7 +2013,7 @@ const App = {
         const pad = (n) => String(n).padStart(2, '0');
         timeEl.textContent = diff >= 3600 ? `${h} ч. ${pad(m)} м.` : diff >= 60 ? `${pad(m)} мин. ${pad(s)} с.` : `${pad(s)} с.`;
         // Warm amber while few exchanges left, muted otherwise
-        const maxPerDay = (Auth.config && Auth.config.game && Auth.config.game.max_exchange_per_day) || 5;
+        const maxPerDay = this._exchangeLimit();
         const used = (Auth.user && Auth.user.exchange_count_today) || 0;
         el.classList.toggle('no-warn', used >= maxPerDay);
     },
@@ -2019,8 +2023,9 @@ const App = {
         if (!Auth.user) return;
 
         // User info
+        const exchangeLimit = this._exchangeLimit();
         document.getElementById('exchange-balance').textContent = Auth.formatNumber(Auth.user.coins || 0);
-        document.getElementById('exchange-today').textContent = `${Auth.user.exchange_count_today || 0}/${Auth.config.game.max_exchange_per_day || 5}`;
+        document.getElementById('exchange-today').textContent = `${Auth.user.exchange_count_today || 0}/${exchangeLimit}`;
         document.getElementById('exchange-total').textContent = Auth.formatNumber(Auth.user.total_exchanged || 0);
 
         this._updateExchangeReset();
@@ -2040,7 +2045,7 @@ const App = {
         options.forEach(opt => {
             const canAfford = Auth.user.coins >= opt.price_coins;
             const hasStock = opt.available > 0;
-            const canExchange = canAfford && hasStock && (Auth.user.exchange_count_today || 0) < (Auth.config.game.max_exchange_per_day || 5);
+            const canExchange = canAfford && hasStock && (Auth.user.exchange_count_today || 0) < exchangeLimit;
 
             const card = document.createElement('div');
             card.className = 'exchange-card';

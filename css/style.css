@@ -897,6 +897,11 @@ body::before {
     font-variant-numeric: tabular-nums;
 }
 
+/* Line: "обмены сегодня" value + reset countdown in one row (top-right) */
+.exchange-today-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+}
+
 .stat-card .stat-label {
     font-size: 11px; color: var(--text-secondary); font-weight: 500;
 }
@@ -922,20 +927,21 @@ body::before {
 
 .section-title .icon { color: var(--accent); filter: drop-shadow(0 0 12px rgba(59,130,246,0.5)); }
 
-/* Linebelow: countdown to daily exchange reset (00:00) */
+/* Countdown to daily exchange reset (top-right of exchange stat card) */
 .exchange-reset {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 10px;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 7px;
     border-radius: 999px;
-    background: rgba(245,196,81,0.1);
-    border: 1px solid rgba(245,196,81,0.2);
+    background: rgba(245,196,81,0.12);
+    border: 1px solid rgba(245,196,81,0.22);
     color: var(--gold);
-    font-size: 12px; font-weight: 700;
+    font-size: 10px; font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
+    line-height: 1.2;
 }
-.exchange-reset .icon { width: 14px; height: 14px; }
-.exchange-reset.no-warn { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); color: var(--text-muted); }
+.exchange-reset .icon { width: 11px; height: 11px; }
+.exchange-reset.no-warn { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: var(--text-muted); }
 
 .section-subtitle {
     font-size: 12px; color: var(--text-secondary);

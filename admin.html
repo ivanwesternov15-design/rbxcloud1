@@ -267,7 +267,7 @@
                     <div style="overflow-x:auto;">
                         <table class="admin-table">
                             <thead><tr>
-                                <th style="width:36px;"></th><th>ID</th><th>Имя</th><th>Username</th><th>Монеты</th><th>Robux</th><th>Уровень</th><th>Рефералы</th><th>Обмен сег.</th><th>Титул</th><th>Действия</th>
+                                <th style="width:36px;"></th><th>ID</th><th>Имя</th><th>Username</th><th>Монеты</th><th>Robux</th><th>Уровень</th><th>Рефералы</th><th>Обмен сег.</th><th>Лимит</th><th>Титул</th><th>Действия</th>
                             </tr></thead>
                             <tbody id="admin-users-body"></tbody>
                         </table>
@@ -308,17 +308,17 @@
                     <button class="admin-btn success" id="save-config-btn" style="margin-top:16px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить настройки</button>
                 </div>
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg> Править обмены пользователя</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg> Лимит обменов пользователя</div>
                     <div class="admin-flex" style="margin-bottom:8px;">
                         <select class="admin-input" id="exc-user-select" style="width:100%;"></select>
                     </div>
                     <div class="admin-flex">
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <input class="admin-input" id="exc-count" type="number" value="0" style="width:90px;" placeholder="Обменов сегодня">
+                            <input class="admin-input" id="exc-count" type="number" value="0" style="width:90px;" placeholder="Лимит обменов">
                             <button class="admin-btn success" id="exc-set-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Задать</button>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Меняет счётчик обменов на сегодня у выбранного пользователя (для сброса лимита поставь 0).</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Задаёт суточный лимит обменов у выбранного пользователя (переопределяет глобальный). Поставь 0 — чтобы использовать глобальный лимит.</div>
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
@@ -623,8 +623,8 @@
                 const uid = document.getElementById('exc-user-select').value;
                 if (!uid) { toast('Выберите пользователя', 'error'); return; }
                 const count = parseInt(document.getElementById('exc-count').value) || 0;
-                await API.adminSetUserFields(uid, { exchange_count_today: count });
-                toast(`Обмены сегодня для ${uid}: ${count}`, 'success');
+                await API.adminSetUserFields(uid, { exchange_limit: count });
+                toast(`Лимит обменов для ${uid}: ${count}`, 'success');
             });
 
             // Refresh all button
@@ -1132,6 +1132,7 @@
                     <td><strong style="color:var(--gold);">${u.level || 1}</strong></td>
                     <td><strong>${u.referral_count || 0}</strong></td>
                     <td><input class="admin-input" value="${u.exchange_count_today || 0}" style="width:60px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_count_today"></td>
+                    <td><input class="admin-input" value="${u.exchange_limit || 0}" style="width:70px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_limit" placeholder="глобал"></td>
                     <td>${u.custom_title ? '<span style="color:var(--gold);font-size:11px;">'+u.custom_title.replace('.png','')+'</span>' : '-'}</td>
                     <td>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start;">
@@ -1158,7 +1159,8 @@
                     const balance = get('balance');
                     const robux = get('robux_balance');
                     const exc = get('exchange_count_today');
-                    await API.adminSetUserFields(btn.dataset.uid, { balance, robux_balance: robux, exchange_count_today: exc });
+                    const limit = get('exchange_limit');
+                    await API.adminSetUserFields(btn.dataset.uid, { balance, robux_balance: robux, exchange_count_today: exc, exchange_limit: limit });
                     toast('Данные пользователя обновлены', 'success');
                 });
             });

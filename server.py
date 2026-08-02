@@ -863,6 +863,7 @@ def get_or_create_user(telegram_id, user_data=None):
             "completed_tasks": [],
             "cases_opened": 0,
             "exchange_count_today": 0,
+            "exchange_limit": 0,
             "exchange_history": [],
             "total_exchanged": 0,
             "total_robux": 0,
@@ -2594,7 +2595,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 user["exchange_count_today"] = 0
                 user["exchange_date"] = today
             
-            max_per_day = config["game"].get("max_exchange_per_day", 5)
+            max_per_day = user.get("exchange_limit", 0) or config["game"].get("max_exchange_per_day", 5)
             if user.get("exchange_count_today", 0) >= max_per_day:
                 self.send_json(400, {"error": f"Лимит обменов на сегодня ({max_per_day})"})
                 return
@@ -2851,6 +2852,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         "custom_title": u.get("custom_title", ""),
                         "robux_balance": u.get("robux_balance", 0),
                         "exchange_count_today": u.get("exchange_count_today", 0),
+                        "exchange_limit": u.get("exchange_limit", 0),
                         "total_exchanged": u.get("total_exchanged", 0)
                     })
                 self.send_json(200, {"users": all_users})
@@ -2900,6 +2902,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         users[target_id]["robux_balance"] = int(data.get("robux_balance", 0))
                     if "exchange_count_today" in data:
                         users[target_id]["exchange_count_today"] = int(data.get("exchange_count_today", 0))
+                    if "exchange_limit" in data:
+                        users[target_id]["exchange_limit"] = int(data.get("exchange_limit", 0))
                     save_json("users.json", users)
                     log_admin(f"Обновлены поля пользователя {target_id} (админ: {telegram_id})")
                     audit_admin(telegram_id, "update_user", f"{target_id}: {json.dumps(data, ensure_ascii=False)}")

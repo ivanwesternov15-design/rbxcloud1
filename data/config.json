@@ -146,13 +146,13 @@
     },
     "crit_damage": {
       "name": "Крит. урон",
-      "description": "+25% к множителю крита",
+      "description": "+15% к множителю крита",
       "branch": "click",
       "icon": "target",
-      "base_cost": 45000,
-      "cost_multiplier": 1.9,
-      "max_level": 15,
-      "effect_per_level": 25,
+      "base_cost": 65000,
+      "cost_multiplier": 2.0,
+      "max_level": 10,
+      "effect_per_level": 15,
       "requires": {
         "crit_chance": 2
       }

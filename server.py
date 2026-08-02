@@ -566,13 +566,21 @@ def save_user(telegram_id, user_data):
     users[str(telegram_id)] = user_data
     save_json("users.json", users)
 
-def send_telegram_message(chat_id, text, parse_mode="HTML"):
-    """Send a message via Telegram Bot API."""
+def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True):
+    """Send a message via Telegram Bot API. Optionally attach a Mini App button."""
     import urllib.request
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": parse_mode}).encode()
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
+    if web_app_button and BASE_URL:
+        payload["reply_markup"] = {
+            "inline_keyboard": [[{
+                "text": "🚀 Открыть игру",
+                "web_app": {"url": BASE_URL}
+            }]]
+        }
+    data = json.dumps(payload).encode()
     try:
-        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
         urllib.request.urlopen(req, timeout=5)
     except:
         pass
@@ -1154,9 +1162,9 @@ f"👉 <a href='{BASE_URL}'>Открыть игру</a>"
                             )
                             send_telegram_message(chat_id, welcome_text)
                     else:
-                        send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nПереходи по ссылке и начинай зарабатывать монеты!")
+                        send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
                 else:
-                    send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nПереходи по ссылке и начинай зарабатывать монеты!")
+                    send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
             
             self.send_json(200, {"ok": True})
         except Exception as e:

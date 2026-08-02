@@ -239,6 +239,7 @@ GAME_DEFAULTS = {
     "max_clicks_per_second": 12,
     "passive_income_interval": 1000,
     "offline_cap_seconds": 28800,
+    "auto_click_per_sec": 5,
 }
 
 UPGRADE_EFFECT_DEFAULTS = {
@@ -1161,25 +1162,70 @@ def get_passive_income_per_sec(user, config, backgrounds=None):
     return rate
 
 def accrue_passive_income(user, config, backgrounds=None):
-    """Accrue offline/elapsed passive income + energy regen since last check."""
+    """Accrue offline/elapsed passive income + auto-clicks + energy regen since
+    last check. Returns a dict describing what was earned while away, so the
+    client can show a "вы не заходили" screen (like the Roblox-withdrawal popup)."""
     now = time.time()
     last = user.get("last_passive", 0)
+    report = {"offline_seconds": 0, "passive_gained": 0, "auto_clicks": 0, "auto_gained": 0, "total_gained": 0}
     if not last:
         user["last_passive"] = now
-        return
+        return report
     elapsed = now - last
     cap = config["game"].get("offline_cap_seconds", 28800)
     elapsed = min(elapsed, cap)
     if elapsed >= 1:
+        report["offline_seconds"] = int(elapsed)
+        # Passive income (already scaled by upgrades / level / background %)
         rate = get_passive_income_per_sec(user, config, backgrounds)
         gained = int(rate * elapsed)
         if gained > 0:
             user["coins"] = user.get("coins", 0) + gained
             user["total_earned"] = user.get("total_earned", 0) + gained
+            report["passive_gained"] = gained
+        # Auto-clicker: convert "auto clicks" into coin income that scales with
+        # the user's click power / multipliers, so a purchased auto-clicker
+        # actually pays out (server-authoritative, no energy consumed).
+        auto_clicks = 0
+        auto_gained = 0
+        boost_mult = calculate_boost_multiplier(user)
+        for boost in user.get("active_boosts", []):
+            if boost.get("boost_id") == "auto_clicker" and boost.get("expires_at", 0) > now:
+                rate_clicks = config["game"].get("auto_click_per_sec", 5)
+                eff_secs = min(elapsed, max(0, boost.get("expires_at", 0) - last))
+                eff_secs = min(eff_secs, elapsed)
+                auto_clicks = int(rate_clicks * eff_secs)
+                if auto_clicks > 0:
+                    click_rate = get_click_reward(user, config, backgrounds)
+                    auto_gained = int(click_rate * auto_clicks * boost_mult)
+                    if auto_gained > 0:
+                        user["coins"] = user.get("coins", 0) + auto_gained
+                        user["total_clicks"] = user.get("total_clicks", 0) + auto_clicks
+                        user["total_earned"] = user.get("total_earned", 0) + auto_gained
+                        report["auto_clicks"] = auto_clicks
+                        report["auto_gained"] = auto_gained
+        report["total_gained"] = report["passive_gained"] + report["auto_gained"]
+        # Energy regen (full on return)
         regen = user.get("energy_regen", 0) or 0
         if regen > 0:
             user["energy"] = min(user.get("energy", 0) + regen * elapsed, user.get("max_energy", 1000))
     user["last_passive"] = now
+    return report
+
+def get_click_reward(user, config, backgrounds=None):
+    """Server-side single click reward value (used to price auto-clicker income)."""
+    import random
+    base_reward = config["game"]["base_click_reward"]
+    click_power_bonus = user["upgrades"].get("click_power", 0) * get_upgrade_effect(config, "click_power")
+    surge_level = user["upgrades"].get("click_surge", 0)
+    surge_mult = 1 + surge_level * get_upgrade_effect(config, "click_surge") / 100
+    profit_mult = 1 + user["upgrades"].get("profit_mult", 0) * get_upgrade_effect(config, "profit_mult") / 100
+    level_mult = 1.0
+    for lvl in config["levels"]:
+        if user["total_earned"] >= lvl["coins_needed"]:
+            level_mult = lvl["bonus"]
+    bg_bonus = apply_background_bonus(user, backgrounds) if backgrounds else 0
+    return int(base_reward * (1 + click_power_bonus) * surge_mult * profit_mult * level_mult * (1 + bg_bonus / 100))
 
 def check_anti_cheat(user):
     """Reject only genuinely abusive click rates.
@@ -1901,13 +1947,20 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["last_active"] = int(time.time())
             config = load_config()
             backgrounds = load_backgrounds()
-            accrue_passive_income(user, config, backgrounds)
+            _accrue = accrue_passive_income(user, config, backgrounds)
             save_user(telegram_id, user)
             record_login(telegram_id)
             
             safe_user = {k: v for k, v in user.items() if k not in ["suspicious_activity"]}
             if safe_user.get("photo_path"):
                 safe_user["photo_path"] = safe_user["photo_path"].replace("\\", "/")
+            # Report offline earnings so the client can show a welcome-back popup
+            # only on the first fetch after a gap (not every 10s poll).
+            safe_user["offline_earned"] = _accrue.get("total_gained", 0)
+            safe_user["offline_seconds"] = _accrue.get("offline_seconds", 0)
+            safe_user["offline_passive"] = _accrue.get("passive_gained", 0)
+            safe_user["offline_auto_clicks"] = _accrue.get("auto_clicks", 0)
+            safe_user["offline_auto_gained"] = _accrue.get("auto_gained", 0)
             
             level_data = get_user_level(user["total_earned"], config)
             safe_user["calculated_level"] = level_data
@@ -1949,13 +2002,27 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     "id": uid,
                     "username": u.get("username", u.get("first_name", "Unknown")),
                     "first_name": u.get("first_name", ""),
-                    "photo_url": u.get("photo_url", ""),
-                    "photo_path": (u.get("photo_path", "") or "").replace("\\", "/"),
+                    "photo_url": "",
+                    "photo_path": "",
                     "custom_title": u.get("custom_title", ""),
                     "is_admin": u.get("is_admin", False),
                     "total_earned": u.get("total_earned", 0),
                     "referral_count": u.get("referral_active_count", 0)
                 })
+                # Avatar: use the local synced file if it exists, otherwise the
+                # cached remote URL, otherwise empty (client shows a placeholder).
+                _pp = (u.get("photo_path", "") or "").replace("\\", "/")
+                if _pp:
+                    _disk = os.path.join(os.path.dirname(os.path.abspath(__file__)), _pp.replace("/", os.sep))
+                    if os.path.exists(_disk):
+                        sorted_users[-1]["photo_path"] = _pp
+                        sorted_users[-1]["photo_url"] = ""
+                    else:
+                        sorted_users[-1]["photo_path"] = ""
+                        sorted_users[-1]["photo_url"] = u.get("photo_url", "")
+                else:
+                    sorted_users[-1]["photo_path"] = ""
+                    sorted_users[-1]["photo_url"] = u.get("photo_url", "")
             
             if sort_by == "referral_count":
                 sorted_users.sort(key=lambda x: x["referral_count"], reverse=True)
@@ -2899,6 +2966,65 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     audit_admin(telegram_id, "set_balance", f"{target_id}: {old_balance} -> {new_balance}")
                     self.send_json(200, {"success": True, "new_balance": new_balance})
                     return
+            
+            if endpoint == "reset_stats":
+                import shutil
+                backup_path = os.path.join(DATA_DIR, "users_backup_before_reset.json")
+                try:
+                    os.makedirs(DATA_DIR, exist_ok=True)
+                    shutil.copyfile(os.path.join(DATA_DIR, "users.json"), backup_path)
+                    log_admin(f"Бэкап пользователей перед сбросом: {backup_path}")
+                except Exception as e:
+                    log_error(f"Не удалось создать бэкап users.json: {e}")
+
+                config = load_config()
+                game = config.get("game", {})
+                preserved_keys = [
+                    "id", "first_name", "last_name", "username", "photo_url", "photo_path",
+                    "registered_at", "referral_code", "is_admin", "is_blocked",
+                    "custom_title", "bio", "host", "music", "photo_file_id",
+                    "referred_by", "referrals", "referral_count", "referral_active_count",
+                    "referral_earned"
+                ]
+                now = int(time.time())
+                for uid in list(users.keys()):
+                    u = users[uid]
+                    preserved = {k: u.get(k) for k in preserved_keys if k in u}
+                    preserved["id"] = uid
+                    preserved["last_active"] = now
+                    preserved["coins"] = 0
+                    preserved["total_earned"] = 0
+                    preserved["energy"] = game.get("base_max_energy", 1000)
+                    preserved["max_energy"] = game.get("base_max_energy", 1000)
+                    preserved["energy_regen"] = game.get("base_energy_regen", 2)
+                    preserved["click_power"] = game.get("base_click_reward", 1)
+                    preserved["passive_income"] = 0
+                    preserved["level"] = 1
+                    preserved["total_clicks"] = 0
+                    preserved["upgrades"] = {key: 0 for key in config.get("upgrades", {})}
+                    preserved["last_passive"] = now
+                    preserved["backgrounds"] = []
+                    preserved["active_background"] = None
+                    preserved["active_boosts"] = []
+                    preserved["completed_tasks"] = []
+                    preserved["cases_opened"] = 0
+                    preserved["exchange_count_today"] = 0
+                    preserved["exchange_limit"] = 0
+                    preserved["exchange_history"] = []
+                    preserved["total_exchanged"] = 0
+                    preserved["total_robux"] = 0
+                    preserved["robux_balance"] = 0
+                    preserved["withdrawals"] = []
+                    preserved["inbox"] = []
+                    preserved["last_daily"] = 0
+                    preserved["daily_streak"] = 0
+                    preserved["suspicious_activity"] = []
+                    users[uid] = preserved
+                save_json("users.json", users)
+                audit_admin(telegram_id, "reset_stats", f"reset {len(users)} users")
+                log_admin(f"Статистика всех пользователей сброшена (админ: {telegram_id})")
+                self.send_json(200, {"success": True, "reseted": len(users), "backup": "users_backup_before_reset.json"})
+                return
             
             if endpoint == "set_user_fields":
                 target_id = data.get("user_id")

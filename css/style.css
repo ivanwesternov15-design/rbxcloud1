@@ -115,6 +115,16 @@ body::before {
     .dock { backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); }
     .click-button { box-shadow: 0 0 0 10px rgba(59,130,246,0.03), 0 0 45px rgba(59,130,246,0.08), var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -24px 48px rgba(0,0,0,0.45); }
     .coin-big-img { filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(255,215,0,0.3)); }
+    /* Lightweight mobile: cap backdrop-blur so the page doesn't repaint the
+       whole layer every frame, and stop the few remaining loop animations. */
+    .app-shell, .glass, .header, .stat-card, .card, .admin-section,
+    .more-sheet, .modal, .modal-content, [class*="sheet"] {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    .click-button::before { animation: none; }
+    .click-button .click-glow-ring { display: none; }
+    .card-shine, [class*="shine"] { animation: none !important; }
 }
 
 ::selection { background: rgba(59,130,246,0.35); color: #fff; }
@@ -1699,6 +1709,8 @@ body::before {
 .task-action-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 .task-action-btn.done { background: var(--success); border-color: var(--success); color: #fff; }
 .task-action-btn.verify { background: var(--accent); border-color: var(--accent); color: #fff; }
+.task-action-btn.expired { background: var(--danger, #ef4444); border-color: var(--danger, #ef4444); color: #fff; }
+.task-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .task-status { font-size: 11px; color: var(--text-secondary); }
 
 /* --- Referrals --- */
@@ -2361,9 +2373,12 @@ body::before {
 .wd-detail .wd-ok { width: 100%; margin-top: 4px; }
 
 /* Admin message card */
-.msg-card { text-align: center; }
+.msg-card { text-align: left; }
 .msg-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .msg-admin { flex-shrink: 0; }
+.msg-from { display: flex; flex-direction: column; min-width: 0; }
+.msg-from-name { font-size: 15px; }
+.msg-from-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
 .msg-body {
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--glass-border);
@@ -2371,10 +2386,17 @@ body::before {
     padding: 14px;
     font-size: 14px;
     line-height: 1.5;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     text-align: left;
 }
-.msg-card .msg-ok { width: 100%; }
+.msg-card .msg-ok {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.msg-card .msg-ok .icon { width: 16px; height: 16px; }
 
 /* --- Case Opening Animation NEW --- */
 .case-wheel-overlay {

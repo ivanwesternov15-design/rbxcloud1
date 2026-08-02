@@ -22,9 +22,9 @@ class ConfigDefaultsTests(unittest.TestCase):
                 config = server.load_config()
 
         self.assertEqual(config["game"]["energy_per_click"], 1)
-        self.assertEqual(config["game"]["base_click_reward"], 1)
+        self.assertEqual(config["game"]["base_click_reward"], 2)
         self.assertEqual(config["game"]["base_max_energy"], 1000)
-        self.assertEqual(server.get_upgrade_effect(config, "click_power"), 1)
+        self.assertEqual(server.get_upgrade_effect(config, "click_power"), 2)
 
     def test_saved_values_override_defaults(self):
         with tempfile.TemporaryDirectory() as data_dir:

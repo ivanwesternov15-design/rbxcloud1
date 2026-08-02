@@ -36,6 +36,10 @@ const App = {
     clickCooldown: false,
     lastClickTime: 0,
 
+    isMobile() {
+        return window.innerWidth <= 768 || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    },
+
     async init() {
         // Check force relogin - only if no token exists
         if (localStorage.getItem('force_relogin') && !localStorage.getItem('session_token')) {
@@ -74,6 +78,7 @@ const App = {
         this.applyBackground();
         this.showScreen('home');
         this.startIntervals();
+        this.showOfflineEarned();
         this.updateAllUI();
         this.checkAdminMessages();
         
@@ -355,6 +360,11 @@ const App = {
             });
         }, 10000);
 
+        // Auto-clicker: send live clicks while the boost is active so coins
+        // actually tick up on screen (server also prices offline auto-clicks).
+        if (this._autoClickTimer) clearInterval(this._autoClickTimer);
+        this._autoClickTimer = setInterval(() => this.tickAutoClicker(), 1000);
+
         // Real-time refresh: pick up admin edits/adds (tasks/levels/economy) live.
         if (this._cfgPoll) clearInterval(this._cfgPoll);
         this._cfgPoll = setInterval(() => this._refreshConfigLive(), 8000);
@@ -385,6 +395,21 @@ const App = {
         this.updateOnlineCount();
         setInterval(() => this.updateOnlineCount(), 5000);
     },
+
+    // Auto-clicker live ticker: send real clicks while the auto_clicker boost
+    // is active so coins visibly increase (server also prices offline auto-clicks).
+    async tickAutoClicker() {
+        if (!Auth.user) return;
+        if (this.currentScreen === 'exchange') return;
+        if (this._clickPending || this._clickQueue > 0) return;
+        const now = Date.now() / 1000;
+        const boost = (Auth.user.active_boosts || []).find(b => b.boost_id === 'auto_clicker' && b.expires_at > now);
+        if (!boost) return;
+        const energyPerClick = (Auth.config && Auth.config.game && Auth.config.game.energy_per_click) || 1;
+        if ((Auth.user.energy || 0) < energyPerClick * 5) return;
+        this.doClick(5);
+    },
+
     async _syncFromServer() {
         if (!Auth.user) return;
         // Snapshot the optimistic totals BEFORE refreshUser replaces Auth.user,
@@ -494,6 +519,41 @@ const App = {
             document.getElementById('confirm-yes').onclick = () => { overlay.classList.remove('active'); resolve(true); };
             document.getElementById('confirm-no').onclick = () => { overlay.classList.remove('active'); resolve(false); };
         });
+    },
+
+    // Welcome-back popup, styled like the Roblox-withdrawal notification. Shown
+    // once when the user returns after a meaningful offline gap and earned coins.
+    showOfflineEarned() {
+        const u = Auth.user;
+        if (!u) return;
+        const earned = u.offline_earned || 0;
+        const secs = u.offline_seconds || 0;
+        if (earned <= 0 || secs < 60) return;
+        const mins = Math.floor(secs / 60);
+        const passive = u.offline_passive || 0;
+        const autoClicks = u.offline_auto_clicks || 0;
+        const autoGained = u.offline_auto_gained || 0;
+        const overlay = document.getElementById('modal-overlay');
+        const body = document.getElementById('modal-body');
+        if (!overlay || !body) return;
+        body.innerHTML = `
+            <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕</button>
+            <div style="text-align:center;">
+                <div style="width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(135deg,#00FF88,#3DFFB0);display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px rgba(0,255,136,0.4);">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:34px;height:34px;color:#07140e;"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">Вы не заходили</div>
+                <div style="font-size:30px;font-weight:900;color:var(--gold);">${Auth.formatNumber(earned)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 14px;">заработано за ${mins} мин</div>
+                <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:12px;padding:10px 14px;margin-bottom:18px;text-align:left;">
+                    ${passive}${autoClicks ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Автокликер · ${autoClicks} кликов → <strong style="color:var(--gold);">+${Auth.formatNumber(autoGained)}</strong></div>` : ''}
+                </div>
+                <button class="exchange-btn" style="width:100%;padding:14px;font-size:14px;background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;" onclick="document.getElementById('modal-overlay').classList.remove('active')">Забрать</button>
+            </div>
+        `;
+        overlay.classList.add('active');
+        // Don't nag every 10s poll — mark as seen.
+        u.offline_earned = 0;
     },
 
     // --- Update UI ---
@@ -731,6 +791,7 @@ const App = {
             coins_x2: 'icon-lightning',
             coins_x3: 'icon-lightning',
             coins_x5: 'icon-lightning',
+            coins_x10: 'icon-lightning',
             energy_full: 'icon-battery',
             auto_clicker: 'icon-click'
         };
@@ -805,7 +866,9 @@ const App = {
         this._offlineUntil = 0;
         this._confirmedCoins = 0;
         this._confirmedClicks = 0;
-        this._fxOn = true;
+        // Phones stutter badly if a burst+ripple+fly-text DOM node is added on
+        // EVERY tap. Keep only the button scale feedback on touch devices.
+        this._fxOn = !this.isMobile();
 
         const stopHold = () => {
             isHolding = false;
@@ -1727,8 +1790,10 @@ const App = {
             `;
 
             if (!isCompleted) {
-                const btn = card.querySelector('.task-action-btn');
-                btn.addEventListener('click', () => this.taskAction(task));
+                const btn = card.querySelector('.task-action-btn.verify');
+                if (btn) btn.addEventListener('click', () => this.taskAction(task));
+                const exp = card.querySelector('.task-action-btn.expired');
+                if (exp) exp.addEventListener('click', () => this.expireTask(task));
             }
 
             container.appendChild(card);
@@ -1746,9 +1811,13 @@ const App = {
     taskActionHtml(task) {
         if (task.type === 'telegram') {
             const started = this.isTaskStarted(task.id);
-            return started
-                ? '<button class="task-action-btn verify" data-task-id="' + task.id + '">Проверить</button>'
-                : '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
+            if (started) {
+                return '<div class="task-actions">' +
+                    '<button class="task-action-btn verify" data-task-id="' + task.id + '">Проверить</button>' +
+                    '<button class="task-action-btn expired" data-task-id="' + task.id + '">Истекло</button>' +
+                    '</div>';
+            }
+            return '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
         }
         return '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
     },
@@ -1778,6 +1847,20 @@ const App = {
             return;
         }
         await this.completeTask(task.id);
+    },
+
+    // Reset a Telegram task that got stuck (couldn't verify / never redirected
+    // to the channel) back to "Выполнить" so the user can retry cleanly.
+    expireTask(task) {
+        try {
+            let arr = JSON.parse(localStorage.getItem('started_tasks') || '[]');
+            if (Array.isArray(arr)) {
+                arr = arr.filter(id => id !== task.id);
+                localStorage.setItem('started_tasks', JSON.stringify(arr));
+            }
+        } catch (e) {}
+        this.renderTasks();
+        this.showToast('Задание сброшено, попробуй ещё раз', 'info');
     },
 
     navigateTaskLink(link) {
@@ -1965,7 +2048,7 @@ const App = {
             const rankImg = rank === 1 ? '/assets/ranks/top1.png' : rank === 2 ? '/assets/ranks/top2.png' : rank === 3 ? '/assets/ranks/top3.png' : null;
             const avatarSrc = entry.photo_path || entry.photo_url || '';
             const avatarEl = avatarSrc
-                ? `<img src="${avatarSrc}" alt="">`
+                ? `<img src="${avatarSrc}" alt="" onerror="this.outerHTML='<span style=&quot;font-size:20px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;&quot;>👤</span>'">`
                 : '<span style="font-size:20px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">👤</span>';
             const adminBadge = entry.is_admin
                 ? ' <img src="/assets/icons/admin.png" style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-left:4px;position:relative;top:-1px;">'
@@ -2313,15 +2396,16 @@ const App = {
             <div class="msg-card">
                 <div class="msg-head">
                     <div class="msg-admin">${adminAvatar}</div>
-                    <div>
-                        <div style="font-size:12px;color:var(--text-secondary);">Админ <b style="color:var(--accent);">@${m.from_name}</b><br>отправил вам сообщение</div>
+                    <div class="msg-from">
+                        <div class="msg-from-name"><b style="color:var(--accent);">@${m.from_name}</b></div>
+                        <div class="msg-from-label">отправил вам сообщение</div>
                     </div>
                 </div>
                 <div class="msg-body">
-                    <div style="font-size:14px;line-height:1.5;">${m.text}</div>
+                    <div style="font-size:14px;line-height:1.5;word-break:break-word;">${m.text}</div>
                     ${m.title_img ? `<img src="/assets/title/${m.title_img}" style="width:26px;height:26px;display:inline-block;margin-top:6px;" alt="">` : ''}
                 </div>
-                <button class="exchange-btn msg-ok" id="msg-ok">Прочитал</button>
+                <button class="exchange-btn msg-ok" id="msg-ok"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Прочитал</button>
             </div>`);
         document.getElementById('msg-ok').addEventListener('click', async () => {
             await API.readAdminMessage(m.id);
@@ -2526,7 +2610,7 @@ const Particles = {
     createParticles() {
         this.particles = [];
         const isMobile = window.innerWidth <= 768;
-        const count = isMobile ? 16 : Math.min(60, Math.floor(window.innerWidth * 0.05));
+        const count = isMobile ? 8 : Math.min(60, Math.floor(window.innerWidth * 0.05));
         for (let i = 0; i < count; i++) {
             this.particles.push({
                 x: Math.random() * this.canvas.width,

@@ -155,6 +155,7 @@
                 <div style="display:flex;align-items:center;gap:10px;">
                     <button class="admin-btn" id="admin-refresh-all-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить всё</button>
                     <button class="admin-btn" id="admin-set-webhook-btn" style="padding:6px 12px;font-size:11px;">🤖 Уст. вебхук</button>
+                    <button class="admin-btn danger" id="admin-reset-stats-btn" style="padding:6px 12px;font-size:11px;">♻️ Сбросить статистику</button>
                     <div class="admin-status" id="admin-online-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-online"/></svg> <span id="admin-online-count">0</span></div>
                     <div class="admin-status" id="admin-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Админ</div>
                 </div>
@@ -674,6 +675,20 @@
                 const res = await API.post('/api/admin/set_webhook', {});
                 if (res.success) {
                     toast('Вебхук установлен!', 'success');
+                } else {
+                    toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
+                }
+            });
+
+            // Reset statistics button
+            document.getElementById('admin-reset-stats-btn').addEventListener('click', async () => {
+                const ok = await customConfirm('Сбросить статистику ВСЕХ пользователей?<br><small>Монеты, уровни, клики, апгрейды, бусты, кейсы, выводы и обмены будут обнулены. Перед сбросом будет создан бэкап. Социальные данные (имя, аватар, рефералы) сохранятся.</small>');
+                if (!ok) return;
+                const res = await API.post('/api/admin/reset_stats', {});
+                if (res.success) {
+                    toast(`Статистика сброшена (${res.reseted} пользователей). Бэкап: ${res.backup}`, 'success');
+                    await loadDashboard();
+                    loadUsers();
                 } else {
                     toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
                 }

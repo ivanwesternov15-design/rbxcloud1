@@ -8,6 +8,7 @@ import time
 import uuid
 import threading
 import secrets
+import random
 import re
 import sys
 from urllib.parse import urlparse, parse_qs, unquote, urlencode
@@ -317,7 +318,13 @@ def normalize_task_reward(raw_reward):
             raise ValueError("Неизвестный тип награды")
         reward = {"type": reward_type}
         if reward_type == "coins":
-            reward["amount"] = max(0, int(float(raw_reward.get("amount", 0) or 0)))
+            rmin = raw_reward.get("min")
+            rmax = raw_reward.get("max")
+            if rmin is not None and rmax is not None and int(float(rmax)) > int(float(rmin)):
+                reward["min"] = max(0, int(float(rmin)))
+                reward["max"] = max(0, int(float(rmax)))
+            else:
+                reward["amount"] = max(0, int(float(raw_reward.get("amount", 0) or 0)))
         elif reward_type == "boost":
             reward["boost_id"] = str(raw_reward.get("boost_id", "")).strip()
             reward["duration"] = max(0, int(float(raw_reward.get("duration", 0) or 0)))
@@ -930,7 +937,10 @@ def apply_task_reward(telegram_id, user, reward, config):
     reward = normalize_task_reward(reward)
     reward_type = reward["type"]
     if reward_type == "coins":
-        amount = reward["amount"]
+        if "min" in reward and "max" in reward:
+            amount = random.randint(reward["min"], reward["max"])
+        else:
+            amount = reward["amount"]
         user["coins"] = user.get("coins", 0) + amount
         user["total_earned"] = user.get("total_earned", 0) + amount
         return {"type": "coins", "amount": amount}, None

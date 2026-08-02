@@ -1683,6 +1683,9 @@ const App = {
             if (type === 'voucher') {
                 return `🎟 Ваучер на ${Auth.formatNumber(r.amount)} Robux`;
             }
+            if (r.min !== undefined && r.max !== undefined && r.max > r.min) {
+                return `${Auth.formatNumber(r.min)}-${Auth.formatNumber(r.max)} монет`;
+            }
             return `${Auth.formatNumber(r.amount)} монет`;
         }
         return `${Auth.formatNumber(r)} монет`;
@@ -1714,36 +1717,80 @@ const App = {
                 <div class="task-info">
                     <div class="task-title">${task.title}</div>
                     <div class="task-desc">${task.description}</div>
+                    ${this.taskChannelNamesHtml(task)}
                     <div class="task-reward">+${this.formatTaskReward(task)}</div>
                 </div>
                 ${isCompleted ? '<span class="task-status">✓ Выполнено</span>' :
-                 '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>'}
+                 this.taskActionHtml(task)}
             `;
 
             if (!isCompleted) {
                 const btn = card.querySelector('.task-action-btn');
-                btn.addEventListener('click', () => this.completeTask(task.id));
+                btn.addEventListener('click', () => this.handleTaskAction(task));
             }
 
             container.appendChild(card);
         });
     },
 
+    taskChannelNamesHtml(task) {
+        if (task.type !== 'telegram' || !Array.isArray(task.channels)) return '';
+        const escH = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        const names = task.channels.map(c => c.label || 'Telegram-канал').filter(Boolean);
+        if (!names.length) return '';
+        return `<div class="task-channels">📢 ${names.map(escH).join(' • ')}</div>`;
+    },
+
+    taskActionHtml(task) {
+        if (task.type === 'telegram') {
+            const started = this.isTaskStarted(task.id);
+            return started
+                ? '<button class="task-action-btn verify" data-task-id="' + task.id + '">Проверить</button>'
+                : '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
+        }
+        return '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
+    },
+
+    isTaskStarted(taskId) {
+        try {
+            const arr = JSON.parse(localStorage.getItem('started_tasks') || '[]');
+            return Array.isArray(arr) && arr.includes(taskId);
+        } catch (e) { return false; }
+    },
+
+    setTaskStarted(taskId) {
+        try {
+            let arr = JSON.parse(localStorage.getItem('started_tasks') || '[]');
+            if (!Array.isArray(arr)) arr = [];
+            if (!arr.includes(taskId)) arr.push(taskId);
+            localStorage.setItem('started_tasks', JSON.stringify(arr));
+        } catch (e) {}
+    },
+
+    async taskAction(task) {
+        if (task.type === 'telegram' && !this.isTaskStarted(task.id)) {
+            this.setTaskStarted(task.id);
+            if (task.channels && task.channels.length) this.navigateTaskLink(task.channels[0].url);
+            this.renderTasks();
+            this.showToast('Подпишись на канал, затем нажми «Проверить»', 'info');
+            return;
+        }
+        await this.completeTask(task.id);
+    },
+
+    navigateTaskLink(link) {
+        if (!link) return;
+        const lg = window.Telegram && window.Telegram.WebApp;
+        if (lg && lg.openTelegramLink && (/t\.me\/|telegram\.me\//).test(link)) {
+            lg.openTelegramLink(link);
+        } else {
+            window.open(link, '_blank');
+        }
+    },
+
     async completeTask(taskId) {
         const task = Auth.tasks.find(t => t.id === taskId);
         if (!task) return;
-
-        // If it's a telegram task, open the link first.
-        // Use Telegram's openTelegramLink so a new tab doesn't take over and the
-        // Mini App is kept alive (just backgrounded) instead of closing.
-        if (task.type === 'telegram' && task.link) {
-            const lg = window.Telegram && window.Telegram.WebApp;
-            if (lg && lg.openTelegramLink) {
-                lg.openTelegramLink(task.link);
-            } else {
-                window.open(task.link, '_blank');
-            }
-        }
 
         const res = await API.completeTask(taskId);
         if (res.error) {

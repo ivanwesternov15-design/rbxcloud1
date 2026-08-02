@@ -1241,7 +1241,11 @@
             if (r.type === 'voucher') {
                 return { type: 'voucher', amount: Number(r.amount) || 0 };
             }
-            return { type: 'coins', coins: Number(r.coins) || Number(r.amount) || 0 };
+            const coins = Number(r.coins) || Number(r.amount) || 0;
+            const out = { type: 'coins', coins };
+            if (r.min !== undefined) out.min = Number(r.min) || 0;
+            if (r.max !== undefined) out.max = Number(r.max) || 0;
+            return out;
         }
         function normalizeTask(t) {
             const task = JSON.parse(JSON.stringify(t || {}));
@@ -1264,10 +1268,16 @@
                     <input class="admin-input" data-r="duration" type="number" value="${esc(task.reward.duration || 0)}" style="width:90px;" placeholder="сек">
                 `;
             }
-            if (rt === 'voucher') {
+            if (r.type === 'voucher') {
                 return `<input class="admin-input" data-r="amount" type="number" value="${esc(task.reward.amount || 0)}" style="width:110px;" placeholder="Robux">`;
             }
-            return `<input class="admin-input" data-r="coins" type="number" value="${esc(task.reward.coins || 0)}" style="width:110px;" placeholder="Монет">`;
+            return `
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">от</span>
+                <input class="admin-input" data-r="min" type="number" value="${esc(task.reward.min ?? task.reward.coins ?? 0)}" style="width:80px;" placeholder="5">
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">до</span>
+                <input class="admin-input" data-r="max" type="number" value="${esc(task.reward.max ?? task.reward.coins ?? 0)}" style="width:80px;" placeholder="500">
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">монет</span>
+            `;
         }
         function channelsHtml(task) {
             const rows = (task.channels || []).map((c, i) => `
@@ -1365,8 +1375,19 @@
             return adminTasks.map(t => {
                 const r = t.reward || { type: 'coins', coins: 0 };
                 const reward = { type: r.type };
-                if (r.type === 'coins') reward.amount = Math.max(0, Number(r.coins) || 0);
-                else if (r.type === 'boost') { reward.boost_id = r.boost_id || ''; reward.duration = Math.max(0, Number(r.duration) || 0); }
+                if (r.type === 'coins') {
+                    const hasMin = r.min !== undefined && r.min !== null;
+                    const hasMax = r.max !== undefined && r.max !== null;
+                    const minVal = Math.max(0, parseInt(r.min, 10) || 0);
+                    const maxVal = Math.max(0, parseInt(r.max, 10) || 0);
+                    if (hasMin && hasMax && maxVal > minVal) {
+                        reward.min = minVal;
+                        reward.max = maxVal;
+                        reward.amount = minVal;
+                    } else {
+                        reward.amount = hasMax ? maxVal : (hasMin ? minVal : (Number(r.coins) || 0));
+                    }
+                } else if (r.type === 'boost') { reward.boost_id = r.boost_id || ''; reward.duration = Math.max(0, Number(r.duration) || 0); }
                 else reward.amount = Math.max(1, Number(r.amount) || 1);
                 const clean = {
                     id: t.id, title: t.title, description: t.description,

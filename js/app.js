@@ -1703,7 +1703,7 @@ const App = {
         // Client-side fallback: build from bot username + referral code even if
         // the server response is slow or the field is missing.
         if (Auth.user && Auth.user.referral_code && Auth.config && Auth.config.bot_username) {
-            return `https://t.me/${Auth.config.bot_username}?start=${Auth.user.referral_code}`;
+            return `https://t.me/${Auth.config.bot_username}?startapp=${Auth.user.referral_code}`;
         }
         return '';
     },

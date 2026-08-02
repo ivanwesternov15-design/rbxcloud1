@@ -85,6 +85,19 @@
             padding: 14px;
             margin-top: 14px;
         }
+    @media (max-width: 640px) {
+            .admin-panel { padding: 14px 12px; }
+            .admin-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .admin-header > div { flex-wrap: wrap; }
+            .admin-tabs { flex-wrap: wrap; }
+            .admin-tabs .admin-tab { padding: 8px 10px; font-size: 12px; }
+            .admin-section { padding: 12px; }
+            .admin-section-title { font-size: 13px; }
+            .chart-pair { grid-template-columns: 1fr; }
+            .admin-table { font-size: 12px; }
+            .modal-overlay > div, .admin-content-inner .modal-overlay > div { padding: 14px; }
+            #title-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
     </style>
 </head>
 <body>
@@ -302,7 +315,11 @@
                         <button class="admin-btn" id="refresh-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                     </div>
                     <div id="admin-tasks-list"></div>
-                    <button class="admin-btn success" id="save-tasks-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить задания</button>
+                    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                        <button type="button" class="admin-btn" id="add-task-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить задание</button>
+                        <button type="button" class="admin-btn success" id="save-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить задания</button>
+                    </div>
+                    <datalist id="task-boost-list"></datalist>
                 </div>
             </div>
 
@@ -503,10 +520,7 @@
                 `;
                 list.appendChild(div);
             });
-            document.getElementById('save-tasks-btn').addEventListener('click', async () => {
-                await API.adminSaveTasks(adminTasks);
-                toast('Задания сохранены', 'success');
-            });
+            document.getElementById('save-tasks-btn').addEventListener('click', saveAdminTasks);
             document.getElementById('refresh-tasks-btn').addEventListener('click', loadTasksEdit);
             document.getElementById('save-cases-btn').addEventListener('click', async () => {
                 await API.adminSaveCases(adminCases);
@@ -1169,32 +1183,215 @@
             });
         }
 
-        async function loadTasksEdit() {
-            const configRes = await API.getConfig();
-            adminTasks = configRes.tasks || [];
+        const TASK_TYPES = ['telegram', 'referral', 'level', 'clicks', 'earn', 'purchase_case', 'upgrade_count', 'daily'];
+        const REWARD_TYPES = ['coins', 'boost', 'voucher'];
+
+        function el(markup) {
+            const t = document.createElement('template');
+            t.innerHTML = markup.trim();
+            return t.content.firstChild;
+        }
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function blankTask() {
+            return {
+                id: 'task_' + Date.now(),
+                title: 'Новое задание', description: '', type: 'telegram', enabled: true, icon: 'telegram',
+                reward: { type: 'coins', coins: 100 },
+                channels: [{ label: 'Telegram-канал', url: '', chat_id: '' }],
+                channel_mode: 'all'
+            };
+        }
+        function normalizeReward(r) {
+            if (!r || typeof r !== 'object' || !r.type) {
+                const v = Number(r) || 0;
+                return { type: 'coins', coins: v };
+            }
+            if (r.type === 'coalboost' || r.type === 'boost') {
+                return { type: 'boost', boost_id: r.boost_id || '', duration: Number(r.duration) || 0 };
+            }
+            if (r.type === 'voucher') {
+                return { type: 'voucher', amount: Number(r.amount) || 0 };
+            }
+            return { type: 'coins', coins: Number(r.coins) || Number(r.amount) || 0 };
+        }
+        function normalizeTask(t) {
+            const task = JSON.parse(JSON.stringify(t || {}));
+            task.reward = normalizeReward(task.reward);
+            if (task.type === 'telegram') {
+                if (!Array.isArray(task.channels) || !task.channels.length) {
+                    const u = task.link || '';
+                    task.channels = [{ label: 'Telegram-канал', url: u, chat_id: task.chat_id || '' }];
+                }
+                task.channel_mode = task.channel_mode || 'all';
+            }
+            return task;
+        }
+
+        function rewardFieldsHtml(task) {
+            const rt = task.reward.type;
+            if (rt === 'boost') {
+                return `
+                    <input class="admin-input" data-r="boost_id" list="task-boost-list" value="${esc(task.reward.boost_id)}" style="flex:1;min-width:130px;" placeholder="boost_id">
+                    <input class="admin-input" data-r="duration" type="number" value="${esc(task.reward.duration || 0)}" style="width:90px;" placeholder="сек">
+                `;
+            }
+            if (rt === 'voucher') {
+                return `<input class="admin-input" data-r="amount" type="number" value="${esc(task.reward.amount || 0)}" style="width:110px;" placeholder="Robux">`;
+            }
+            return `<input class="admin-input" data-r="coins" type="number" value="${esc(task.reward.coins || 0)}" style="width:110px;" placeholder="Монет">`;
+        }
+        function channelsHtml(task) {
+            const rows = (task.channels || []).map((c, i) => `
+                <div data-role="channel" data-ci="${i}" style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+                    <input class="admin-input" data-c="label" value="${esc(c.label)}" style="flex:1;min-width:90px;" placeholder="Название">
+                    <input class="admin-input" data-c="url" value="${esc(c.url)}" style="flex:1.4;min-width:130px;" placeholder="https://t.me/...">
+                    <input class="admin-input" data-c="chat_id" value="${esc(c.chat_id)}" style="flex:.8;min-width:80px;" placeholder="chat_id (опц.)">
+                    <button class="admin-btn danger" data-role="remch" style="padding:4px 8px;font-size:11px;">✕</button>
+                </div>`).join('');
+            return `
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы (type: telegram)</div>
+                <div data-role="channels">${rows || ''}</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button type="button" class="admin-btn" data-role="addch" style="padding:4px 10px;font-size:11px;">+ Канал</button>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
+                        Проверка:
+                        <select class="admin-input" data-f="channel_mode" style="width:70px;">
+                            <option value="all" ${task.channel_mode === 'all' ? 'selected' : ''}>all</option>
+                            <option value="any" ${task.channel_mode === 'any' ? 'selected' : ''}>any</option>
+                        </select>
+                    </label>
+                </div>`;
+        }
+        function requireFieldsHtml(task) {
+            let extra = '';
+            if (task.type === 'referral') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Рефералов">`;
+            else if (task.type === 'level') extra += `<input class="admin-input" data-f="required_level" type="number" value="${esc(task.required_level || 0)}" style="width:110px;" placeholder="Уровень">`;
+            else if (task.type === 'clicks') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Кликов">`;
+            else if (task.type === 'earn') extra += `<input class="admin-input" data-f="required_amount" type="number" value="${esc(task.required_amount || 0)}" style="width:110px;" placeholder="Заработано">`;
+            else if (task.type === 'upgrade_count') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Апгрейдов">`;
+            return extra ? `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">${extra}</div>` : '';
+        }
+
+        function renderTasksEdit() {
             const div = document.getElementById('admin-tasks-list');
+            if (!div) return;
             div.innerHTML = '';
             adminTasks.forEach((task, i) => {
-                const card = document.createElement('div');
-                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;';
-                card.innerHTML = `
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                        <input class="admin-input" value="${task.title}" data-idx="${i}" data-field="title" style="flex:2;min-width:120px;" placeholder="Название">
-                        <input class="admin-input" value="${task.reward}" data-idx="${i}" data-field="reward" style="width:80px;" placeholder="Награда">
-                        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
-                            <input type="checkbox" ${task.enabled ? 'checked' : ''} data-idx="${i}" data-field="enabled"> Вкл
-                        </label>
-                    </div>
-                    <input class="admin-input" value="${task.description}" data-idx="${i}" data-field="description" style="margin-top:6px;" placeholder="Описание">
-                `;
-                card.querySelectorAll('input:not([type=checkbox])').forEach(inp => {
-                    inp.addEventListener('change', () => { adminTasks[parseInt(inp.dataset.idx)][inp.dataset.field] = inp.value; });
+                const card = el(`
+                    <div data-idx="${i}" style="background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <input class="admin-input" data-f="title" value="${esc(task.title)}" style="flex:2;min-width:120px;" placeholder="Название">
+                            <select class="admin-input" data-f="type" style="width:130px;">
+                                ${TASK_TYPES.map(t => `<option value="${t}" ${task.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                            </select>
+                            <label style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
+                                <input type="checkbox" data-f="enabled" ${task.enabled ? 'checked' : ''}> Вкл
+                            </label>
+                            <button type="button" class="admin-btn danger" data-role="rm" style="padding:4px 8px;font-size:11px;">✕</button>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
+                            <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">Награда</span>
+                            <select class="admin-input" data-f="reward_type" style="width:110px;">
+                                ${REWARD_TYPES.map(t => `<option value="${t}" ${task.reward.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                            </select>
+                            <div data-role="reward" style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">${rewardFieldsHtml(task)}</div>
+                        </div>
+                        <div data-role="extra">${requireFieldsHtml(task)}${task.type === 'telegram' ? channelsHtml(task) : ''}</div>
+                        <input class="admin-input" data-f="description" value="${esc(task.description)}" style="margin-top:6px;" placeholder="Описание">
+                    </div>`);
+
+                card.querySelectorAll('[data-f]').forEach(el2 => {
+                    el2.addEventListener('change', () => {
+                        const idx = parseInt(card.dataset.idx);
+                        const f = el2.dataset.f;
+                        if (f === 'enabled') adminTasks[idx].enabled = el2.checked;
+                        else if (f === 'type') { adminTasks[idx].type = el2.value; adminTasks[idx].icon = el2.value; }
+                        else if (f === 'reward_type') { adminTasks[idx].reward.type = el2.value; }
+                        else if (f === 'channel_mode') { adminTasks[idx].channel_mode = el2.value; }
+                        else { adminTasks[idx][f] = el2.value; }
+                        renderTasksEdit();
+                    });
                 });
-                card.querySelectorAll('input[type=checkbox]').forEach(cb => {
-                    cb.addEventListener('change', () => { adminTasks[parseInt(cb.dataset.idx)].enabled = cb.checked; });
+                card.querySelectorAll('[data-r]').forEach(el2 => {
+                    el2.addEventListener('change', () => {
+                        const idx = parseInt(card.dataset.idx);
+                        const key = el2.dataset.r;
+                        adminTasks[idx].reward[key] = (key === 'boost_id') ? el2.value : (parseFloat(el2.value) || 0);
+                    });
+                });
+                card.querySelectorAll('[data-c]').forEach(el2 => {
+                    el2.addEventListener('change', () => {
+                        const idx = parseInt(card.dataset.idx);
+                        const ci = parseInt(el2.parentElement.dataset.ci);
+                        adminTasks[idx].channels[ci][el2.dataset.c] = el2.value;
+                    });
+                });
+                card.querySelector('[data-role="rm"]').addEventListener('click', () => {
+                    adminTasks.splice(parseInt(card.dataset.idx), 1);
+                    renderTasksEdit();
+                });
+                card.querySelector('[data-role="addch"]')?.addEventListener('click', () => {
+                    const idx = parseInt(card.dataset.idx);
+                    adminTasks[idx].channels.push({ label: '', url: '', chat_id: '' });
+                    renderTasksEdit();
+                });
+                card.querySelectorAll('[data-role="remch"]').forEach(b => {
+                    b.addEventListener('click', () => {
+                        const idx = parseInt(card.dataset.idx);
+                        const ci = parseInt(b.parentElement.dataset.ci);
+                        adminTasks[idx].channels.splice(ci, 1);
+                        renderTasksEdit();
+                    });
                 });
                 div.appendChild(card);
             });
+        }
+
+        function buildSaveTasksPayload() {
+            return adminTasks.map(t => {
+                const r = t.reward || { type: 'coins', coins: 0 };
+                const reward = { type: r.type };
+                if (r.type === 'coins') reward.amount = Math.max(0, Number(r.coins) || 0);
+                else if (r.type === 'boost') { reward.boost_id = r.boost_id || ''; reward.duration = Math.max(0, Number(r.duration) || 0); }
+                else reward.amount = Math.max(1, Number(r.amount) || 1);
+                const clean = {
+                    id: t.id, title: t.title, description: t.description,
+                    type: t.type, enabled: !!t.enabled, icon: t.icon || t.type,
+                    reward: reward
+                };
+                if (t.type === 'telegram') {
+                    clean.channels = (t.channels || []).map(c => ({ label: c.label, url: c.url, chat_id: c.chat_id || '' }));
+                    clean.channel_mode = t.channel_mode === 'any' ? 'any' : 'all';
+                    clean.link = (clean.channels[0] && clean.channels[0].url) || '';
+                } else if (t.type === 'referral' || t.type === 'clicks' || t.type === 'upgrade_count') {
+                    clean.required_count = Number(t.required_count) || 0;
+                } else if (t.type === 'level') {
+                    clean.required_level = Number(t.required_level) || 0;
+                } else if (t.type === 'earn') {
+                    clean.required_amount = Number(t.required_amount) || 0;
+                }
+                return clean;
+            });
+        }
+        async function saveAdminTasks() {
+            await API.adminSaveTasks(buildSaveTasksPayload());
+            toast('Задания сохранены', 'success');
+        }
+
+        async function loadTasksEdit() {
+            const configRes = await API.getConfig();
+            adminTasks = (configRes.tasks || []).map(normalizeTask);
+            const boosts = configRes.boosts || [];
+            const dl = document.getElementById('task-boost-list');
+            if (dl) dl.innerHTML = boosts.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+            const addBtn = document.getElementById('add-task-btn');
+            if (addBtn && !addBtn.dataset.bound) {
+                addBtn.dataset.bound = '1';
+                addBtn.addEventListener('click', () => { adminTasks.push(blankTask()); renderTasksEdit(); });
+            }
+            renderTasksEdit();
         }
 
         async function loadCasesEdit() {

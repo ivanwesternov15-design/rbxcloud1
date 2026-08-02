@@ -9,7 +9,7 @@ import uuid
 import threading
 import re
 import sys
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse, parse_qs, unquote, urlencode
 
 # Bot token. BotHost exposes the token under several possible env names depending
 # on template/settings. If no env var is set, fall back to the in-repo file
@@ -228,6 +228,95 @@ def get_upgrade_effect(config, upgrade_key):
     upgrade = config.get("upgrades", {}).get(upgrade_key, {})
     return upgrade.get("effect_per_level", UPGRADE_EFFECT_DEFAULTS.get(upgrade_key, 0))
 
+TASK_TYPES = {"telegram", "referral", "level", "clicks", "earn", "purchase_case", "upgrade_count", "daily"}
+TASK_REWARD_TYPES = {"coins", "boost", "voucher"}
+
+def telegram_chat_id_from_url(url):
+    try:
+        parsed = urlparse(str(url or ""))
+        if parsed.netloc.lower() not in ("t.me", "telegram.me", "www.t.me"):
+            return ""
+        name = parsed.path.strip("/").split("/")[0]
+        if not name or name.startswith("+") or name in ("joinchat", "s"):
+            return ""
+        return "@" + name.lstrip("@")
+    except Exception:
+        return ""
+
+def normalize_task_reward(raw_reward):
+    if isinstance(raw_reward, dict):
+        reward_type = str(raw_reward.get("type", "coins")).strip().lower()
+        if reward_type not in TASK_REWARD_TYPES:
+            raise ValueError("Неизвестный тип награды")
+        reward = {"type": reward_type}
+        if reward_type == "coins":
+            reward["amount"] = max(0, int(float(raw_reward.get("amount", 0) or 0)))
+        elif reward_type == "boost":
+            reward["boost_id"] = str(raw_reward.get("boost_id", "")).strip()
+            reward["duration"] = max(0, int(float(raw_reward.get("duration", 0) or 0)))
+            if not reward["boost_id"]:
+                raise ValueError("Для награды-бустa нужен boost_id")
+        else:
+            reward["amount"] = max(1, int(float(raw_reward.get("amount", 1) or 1)))
+        return reward
+    return {"type": "coins", "amount": max(0, int(float(raw_reward or 0)))}
+
+def normalize_task(task, index=0):
+    if not isinstance(task, dict):
+        raise ValueError("Задание должно быть объектом")
+    task_type = str(task.get("type", "daily")).strip().lower()
+    if task_type not in TASK_TYPES:
+        raise ValueError(f"Неизвестный тип задания: {task_type}")
+    task_id = re.sub(r"[^a-zA-Z0-9_-]", "_", str(task.get("id", "")).strip())
+    if not task_id:
+        task_id = f"task_{int(time.time())}_{index}"
+    result = {
+        "id": task_id,
+        "title": str(task.get("title", "Новое задание")).strip()[:120],
+        "description": str(task.get("description", "")).strip()[:500],
+        "type": task_type,
+        "enabled": bool(task.get("enabled", True)),
+        "expires": task.get("expires") or None,
+        "icon": str(task.get("icon", task_type)).strip()[:40],
+        "reward": normalize_task_reward(task.get("reward", 0)),
+    }
+    for key in ("required_count", "required_level", "required_amount"):
+        if key in task:
+            result[key] = max(0, int(float(task.get(key, 0) or 0)))
+    if task_type == "telegram":
+        channels = task.get("channels")
+        if not isinstance(channels, list):
+            channels = []
+        if not channels and task.get("link"):
+            channels = [{"label": "Telegram-канал", "url": task.get("link"), "chat_id": telegram_chat_id_from_url(task.get("link"))}]
+        normalized_channels = []
+        for channel in channels:
+            if isinstance(channel, str):
+                channel = {"url": channel}
+            if not isinstance(channel, dict):
+                continue
+            url = str(channel.get("url", "")).strip()
+            chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(url)
+            if url:
+                normalized_channels.append({
+                    "label": str(channel.get("label", "Telegram-канал")).strip()[:80] or "Telegram-канал",
+                    "url": url,
+                    "chat_id": chat_id,
+                })
+        result["channels"] = normalized_channels
+        result["channel_mode"] = "any" if task.get("channel_mode") == "any" else "all"
+        result["link"] = normalized_channels[0]["url"] if normalized_channels else ""
+    return result
+
+def normalize_tasks(tasks):
+    if not isinstance(tasks, list):
+        raise ValueError("Список заданий имеет неверный формат")
+    normalized = [normalize_task(task, index) for index, task in enumerate(tasks)]
+    ids = [task["id"] for task in normalized]
+    if len(ids) != len(set(ids)):
+        raise ValueError("ID заданий должны быть уникальными")
+    return normalized
+
 def load_backgrounds():
     data = load_json("backgrounds.json")
     if isinstance(data, list) and data:
@@ -245,9 +334,17 @@ def load_cases():
 def load_tasks():
     data = load_json("tasks.json")
     if isinstance(data, list) and data:
-        return data
+        try:
+            return normalize_tasks(data)
+        except ValueError as e:
+            log_warn(f"Ошибка заданий в volume: {e}")
     defaults = load_default_json("tasks.json")
-    return defaults if isinstance(defaults, list) else []
+    if isinstance(defaults, list):
+        try:
+            return normalize_tasks(defaults)
+        except ValueError as e:
+            log_warn(f"Ошибка default_data/tasks.json: {e}")
+    return []
 
 def load_vouchers():
     return load_json("vouchers.json")
@@ -594,6 +691,18 @@ def process_telegram_webapp_login(init_data):
 
                 PENDING_REFERRALS.pop(telegram_id, None)
 
+                try:
+                    ref_uname = users[telegram_id].get("username") or users[telegram_id].get("first_name") or telegram_id
+                    send_telegram_message(
+                        referrer_id,
+                        f"🎉 Твой реферал @{ref_uname} присоединился!\n"
+                        f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
+                        parse_mode="HTML",
+                        web_app_button=True,
+                    )
+                except Exception as e:
+                    log_warn(f"Не удалось уведомить реферера: {e}")
+
     save_json("users.json", users)
 
     token = generate_token()
@@ -721,6 +830,109 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True)
         urllib.request.urlopen(req, timeout=5)
     except:
         pass
+
+def verify_telegram_task_channels(task, telegram_id):
+    channels = task.get("channels", [])
+    if not channels:
+        return False, "В задании не настроены Telegram-каналы"
+    results = []
+    for channel in channels:
+        chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(channel.get("url", ""))
+        if not chat_id:
+            return False, f"Для канала «{channel.get('label', 'Telegram')}» не указан chat_id"
+        try:
+            import urllib.request
+            query = urlencode({"chat_id": chat_id, "user_id": str(telegram_id)})
+            with urllib.request.urlopen(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember?{query}", timeout=8
+            ) as response:
+                payload = json.loads(response.read().decode())
+            member = payload.get("result", {})
+            status = member.get("status", "")
+            joined = status in ("creator", "administrator", "member") or (
+                status == "restricted" and member.get("is_member") is True
+            )
+            results.append(joined)
+        except Exception as e:
+            log_warn(f"Не удалось проверить подписку {chat_id} для {telegram_id}: {e}")
+            return False, f"Не удалось проверить канал «{channel.get('label', chat_id)}». Добавьте бота администратором канала."
+    passed = any(results) if task.get("channel_mode") == "any" else all(results)
+    return (True, "") if passed else (False, "Подпишитесь на указанные каналы и попробуйте снова")
+
+def apply_task_reward(telegram_id, user, reward, config):
+    reward = normalize_task_reward(reward)
+    reward_type = reward["type"]
+    if reward_type == "coins":
+        amount = reward["amount"]
+        user["coins"] = user.get("coins", 0) + amount
+        user["total_earned"] = user.get("total_earned", 0) + amount
+        return {"type": "coins", "amount": amount}, None
+
+    if reward_type == "boost":
+        boost_id = reward["boost_id"]
+        boost_def = next((item for item in config.get("boosts", []) if item.get("id") == boost_id), None)
+        if not boost_def:
+            return None, "Указанный буст не найден"
+        if boost_id == "energy_full":
+            user["energy"] = user.get("max_energy", 1000)
+            return {"type": "boost", "boost_id": boost_id, "name": boost_def.get("name", boost_id), "duration": 0}, None
+        duration = reward.get("duration", 0) or int(boost_def.get("duration", 0) or 0)
+        if duration <= 0:
+            return None, "Для буста не указана длительность"
+        now = time.time()
+        active_boosts = user.setdefault("active_boosts", [])
+        existing = next((item for item in active_boosts if item.get("boost_id") == boost_id), None)
+        starts_at = max(now, existing.get("expires_at", now)) if existing else now
+        user["active_boosts"] = [item for item in active_boosts if item.get("boost_id") != boost_id]
+        user["active_boosts"].append({"boost_id": boost_id, "started_at": now, "expires_at": starts_at + duration})
+        return {"type": "boost", "boost_id": boost_id, "name": boost_def.get("name", boost_id), "duration": duration}, None
+
+    amount = reward["amount"]
+    vouchers = load_vouchers()
+    voucher = next(
+        (item for item in vouchers if item.get("status") == "available" and int(item.get("amount", 0)) == amount),
+        None,
+    )
+    if not voucher:
+        return None, f"Нет доступного ваучера номиналом {amount} Robux"
+    voucher["status"] = "claimed"
+    voucher["claimed_by"] = str(telegram_id)
+    voucher["claim_date"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    save_json("vouchers.json", vouchers)
+    return {
+        "type": "voucher",
+        "amount": amount,
+        "voucher_id": voucher.get("id"),
+        "voucher_code": voucher.get("code"),
+    }, None
+
+def notify_task_completed(telegram_id, task, reward_result):
+    """Send a Telegram notification to the player after a task reward is granted."""
+    if not reward_result or not isinstance(reward_result, dict):
+        return
+    rtype = reward_result.get("type")
+    if rtype == "coins":
+        reward_text = f"<b>+{int(reward_result.get('amount', 0))} монет</b>"
+    elif rtype == "boost":
+        name = reward_result.get("name") or reward_result.get("boost_id") or "буст"
+        dur = reward_result.get("duration", 0)
+        if dur:
+            mins = max(1, round(dur / 60))
+            reward_text = f"<b>Буст «{name}» на {mins} мин</b>"
+        else:
+            reward_text = f"<b>Буст «{name}»</b>"
+    elif rtype == "voucher":
+        reward_text = (
+            f"🎟 <b>Ваучер на {int(reward_result.get('amount', 0))} Robux</b>\n"
+            f"<code>{str(reward_result.get('voucher_code', ''))}</code>"
+        )
+    else:
+        return
+    text = (
+        f"⭐ <b>Задание выполнено:</b> {str(task.get('title', '')).strip()}\n"
+        f"Награда: {reward_text}"
+    )
+    send_telegram_message(str(telegram_id), text, parse_mode="HTML", web_app_button=True)
 
 def sync_profile_from_telegram(telegram_id):
     """Fetch and update name/username/bio from Telegram in a background thread."""
@@ -1663,7 +1875,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             config_data = load_config()
             bot_uname = config_data.get("bot_username", "YourBot")
-            ref_link = f"https://t.me/{bot_uname}?start={user.get('referral_code', '')}"
+            ref_link = f"https://t.me/{bot_uname}?startapp={user.get('referral_code', '')}"
             
             self.send_json(200, {
                 "referral_code": user.get("referral_code", ""),
@@ -2196,12 +2408,20 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if "completed_tasks" not in user:
                 user["completed_tasks"] = []
             user["completed_tasks"].append(task_id)
-            user["coins"] += task_def["reward"]
-            user["total_earned"] += task_def["reward"]
             user["last_active"] = int(time.time())
-            
+
+            config = load_config()
+            reward_result, reward_error = apply_task_reward(str(telegram_id), user, task_def.get("reward", 0), config)
+            if reward_error:
+                return self.send_json(400, {"error": reward_error})
+
             save_user(telegram_id, user)
-            
+
+            try:
+                notify_task_completed(str(telegram_id), task_def, reward_result)
+            except Exception as e:
+                log_warn(f"Не удалось отправить уведомление о задании: {e}")
+
             self.send_json(200, {
                 "coins": user["coins"],
                 "completed_tasks": user["completed_tasks"]
@@ -2448,15 +2668,23 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if "upgrades" in new_config:
                     current["upgrades"] = new_config["upgrades"]
                 if "boosts" in new_config:
-                    current["boosts"] = new_config["boosts"]
+                    try:
+                        current["boosts"] = normalize_boosts(new_config["boosts"])
+                    except ValueError as e:
+                        self.send_json(400, {"error": str(e)})
+                        return
                 save_json("config.json", current)
                 self.send_json(200, {"success": True})
                 return
             
             if endpoint == "save_tasks":
-                new_tasks = data.get("tasks", [])
+                try:
+                    new_tasks = normalize_tasks(data.get("tasks", []))
+                except (ValueError, TypeError) as e:
+                    self.send_json(400, {"error": str(e)})
+                    return
                 save_json("tasks.json", new_tasks)
-                self.send_json(200, {"success": True})
+                self.send_json(200, {"success": True, "tasks": new_tasks})
                 return
             
             if endpoint == "save_cases":

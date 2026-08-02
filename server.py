@@ -1590,13 +1590,14 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 send_telegram_message(
                                     new_user_id,
                                     f"🎉 <b>Добро пожаловать!</b>\n\n"
-                                    f"Ты перешел по реферальной ссылке <b>{ref_name}</b> и получил <b>+{bonus} монет</b>! 🚀\n\n"
-f"👉 <a href='{BASE_URL}'>Открыть игру</a>"
+                                    f"Ты перешел по реферальной ссылке <b>{ref_name}</b> и получил <b>+{bonus} монет</b>! 🚀",
+                                    web_app_button=True,
                                 )
                                 send_telegram_message(
                                     referrer_id,
                                     f"🎉 Твой реферал @{new_user.get('username') or new_user.get('first_name') or new_user_id} присоединился!\n"
-                                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰"
+                                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
+                                    web_app_button=True,
                                 )
                         
                         if not granted:
@@ -1604,10 +1605,9 @@ f"👉 <a href='{BASE_URL}'>Открыть игру</a>"
                             welcome_text = (
                                 f"🎉 <b>Добро пожаловать!</b>\n\n"
                                 f"Ты перешел по реферальной ссылке! 🚀\n"
-                                f"После авторизации в игре ты получишь бонус.\n\n"
-                                f"👉 <a href='{BASE_URL}'>Открыть игру</a>"
+                                f"После авторизации в игре ты получишь бонус."
                             )
-                            send_telegram_message(chat_id, welcome_text)
+                            send_telegram_message(chat_id, welcome_text, web_app_button=True)
                     else:
                         send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
                 else:

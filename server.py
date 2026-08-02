@@ -1067,6 +1067,11 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
             if not chat_id or not text:
                 self.send_json(200, {"ok": True})
                 return
+
+            if text.startswith("/start"):
+                log_bot(f"Получен /start от {chat_id}")
+            else:
+                log_bot(f"Сообщение от {chat_id}: {text[:40]}")
             
             # Process /start command
             if text.startswith("/start"):
@@ -2430,6 +2435,24 @@ if __name__ == "__main__":
     log_success(f"Сервер запущен на http://localhost:{PORT}")
     log_info("Откройте в браузере: http://localhost:" + str(PORT))
     log_info("Нажмите CTRL+C чтобы остановить сервер")
+    print("")
+
+    # Diagnostic: confirm the bot token is configured and reachable.
+    if not BOT_TOKEN:
+        log_error("BOT_TOKEN не задан! Добавьте переменную окружения BOT_TOKEN в панели BotHost.")
+    else:
+        try:
+            import urllib.request
+            me_req = urllib.request.Request(f"https://api.telegram.org/bot{BOT_TOKEN}/getMe")
+            me_resp = urllib.request.urlopen(me_req, timeout=8)
+            me_data = json.loads(me_resp.read().decode())
+            if me_data.get("ok"):
+                bot = me_data["result"]
+                log_ok(f"Бот @{bot.get('username')} авторизован в Telegram.")
+            else:
+                log_error(f"Неверный BOT_TOKEN: {me_data}")
+        except Exception as e:
+            log_warn(f"Не удалось проверить токен бота: {e}")
     print("")
     
     def online_reporter():

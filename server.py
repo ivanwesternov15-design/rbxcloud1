@@ -386,17 +386,34 @@ def check_telegram_webapp_auth(init_data, bot_token):
             return False
         check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
         secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-        computed_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
-        if computed_hash != received_hash:
+        check_strings = [("standard", check_string)]
+        escaped_check_string = check_string.replace("/", r"\/")
+        if escaped_check_string != check_string:
+            check_strings.append(("escaped-slashes", escaped_check_string))
+
+        computed_hashes = {
+            name: hmac.new(secret_key, value.encode(), hashlib.sha256).hexdigest()
+            for name, value in check_strings
+        }
+        matched_variant = next(
+            (name for name, value in computed_hashes.items() if hmac.compare_digest(value, received_hash)),
+            None,
+        )
+        if not matched_variant:
             auth_date_raw = params.get("auth_date", "?")
             age_sec = (time.time() - int(auth_date_raw)) if str(auth_date_raw).isdigit() else "?"
             masked_token = (bot_token[:8] + "..." + bot_token[-3:]) if len(bot_token) > 11 else "(empty)"
+            computed_suffixes = ", ".join(
+                f"{name}=(...){value[-6:]}" for name, value in computed_hashes.items()
+            )
             log_error(
                 f"WebAuth подпись не сошлась: получ=(...){received_hash[-6:]} "
-                f"вычисл=(...){computed_hash[-6:]}, auth_date={auth_date_raw} (возраст={age_sec}c), "
+                f"вычисл=[{computed_suffixes}], auth_date={auth_date_raw} (возраст={age_sec}c), "
                 f"ключи={sorted(params.keys())}, токен={masked_token}"
             )
             return False
+        if matched_variant != "standard":
+            log_info(f"WebAuth принят через вариант {matched_variant}")
         auth_date = int(params.get("auth_date", 0))
         if time.time() - auth_date > 86400:
             log_error(f"WebAuth auth_date просрочен: {auth_date}, возраст={int(time.time()-auth_date)}c (>86400)")
@@ -1354,8 +1371,6 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             self.send_json(400, {"error": "Нет данных авторизации Telegram"})
             return
         if not check_telegram_webapp_auth(init_data, BOT_TOKEN):
-            masked = (BOT_TOKEN[:8] + "..." + BOT_TOKEN[-3:]) if len(BOT_TOKEN) > 11 else "(empty)"
-            log_error(f"Отказ подписи Mini App: используется токен {masked}")
             self.send_json(403, {"error": "Неверная подпись данных Telegram"})
             return
         token, telegram_id = process_telegram_webapp_login(init_data)

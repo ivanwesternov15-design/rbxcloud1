@@ -122,6 +122,7 @@ const App = {
                     window.location.reload();
                     return;
                 }
+                document.getElementById('loading-screen').classList.add('hidden');
                 retry.disabled = false;
                 retry.textContent = 'Повторить вход';
             });

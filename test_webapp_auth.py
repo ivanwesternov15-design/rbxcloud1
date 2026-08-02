@@ -11,18 +11,25 @@ from server import check_telegram_webapp_auth
 BOT_TOKEN = "123456789:telegram-test-token"
 
 
-def signed_init_data(**overrides):
+def signed_init_data(escape_slashes=False, **overrides):
     params = {
         "auth_date": str(int(time.time())),
         "query_id": "AAHdF6IQAAAAAN0XohDhrOrc",
-        "signature": "test-signature+with/symbols=",
+        "signature": "test-signature_with-symbols",
         "user": json.dumps(
-            {"id": 123456789, "first_name": "Test", "username": "test_user"},
+            {
+                "id": 123456789,
+                "first_name": "Test",
+                "username": "test_user",
+                "photo_url": "https://t.me/i/userpic/320/test.svg",
+            },
             separators=(",", ":"),
         ),
     }
     params.update(overrides)
     check_string = "\n".join(f"{key}={value}" for key, value in sorted(params.items()))
+    if escape_slashes:
+        check_string = check_string.replace("/", r"\/")
     secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
     params["hash"] = hmac.new(
         secret_key, check_string.encode(), hashlib.sha256
@@ -33,6 +40,13 @@ def signed_init_data(**overrides):
 class TelegramWebAppAuthTests(unittest.TestCase):
     def test_accepts_valid_init_data_with_signature(self):
         self.assertTrue(check_telegram_webapp_auth(signed_init_data(), BOT_TOKEN))
+
+    def test_accepts_telegram_escaped_photo_url(self):
+        self.assertTrue(
+            check_telegram_webapp_auth(
+                signed_init_data(escape_slashes=True), BOT_TOKEN
+            )
+        )
 
     def test_rejects_tampered_init_data(self):
         init_data = signed_init_data().replace("test_user", "attacker")

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест в телефоне</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: #05050a;
+        color: #e6e6ef;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: #0d0d16;
+        border-bottom: 1px solid #1d1d2e;
+        flex-wrap: wrap;
+    }
+    .toolbar h1 { font-size: 15px; font-weight: 800; margin-right: 6px; white-space: nowrap; }
+    .toolbar select, .toolbar button {
+        background: #171728;
+        color: #e6e6ef;
+        border: 1px solid #2a2a44;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .toolbar button:hover { border-color: #4f8fff; }
+    .toolbar button.active { background: #2E8EFF; border-color: #2E8EFF; color: #fff; }
+    .toolbar .hint { font-size: 11px; color: #7a7a94; margin-left: auto; white-space: nowrap; }
+    .stage {
+        flex: 1;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 16px;
+        background: radial-gradient(ellipse at top, #0b0b16, #05050a);
+        overflow: auto;
+    }
+    .phone {
+        background: #000;
+        border-radius: 40px;
+        border: 6px solid #1a1a2a;
+        box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 0 1px #2a2a44;
+        padding: 10px;
+        transition: width .3s ease, height .3s ease;
+    }
+    .phone .screen {
+        width: 100%;
+        height: 100%;
+        border-radius: 30px;
+        overflow: hidden;
+        background: #0B0B10;
+        position: relative;
+    }
+    .phone .screen iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        pointer-events: auto;
+    }
+    .phone .screen.touch-emulated { cursor: pointer; }
+    .notch {
+        position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+        width: 90px; height: 22px; background: #000; border-radius: 12px; z-index: 5;
+        pointer-events: none;
+    }
+    .status { font-size: 12px; color: #5c5c76; padding: 0 14px 10px; text-align: center; }
+    .status b { color: #4f8fff; }
+</style>
+</head>
+<body>
+    <div class="toolbar">
+        <h1>📱 Телефонный режим</h1>
+        <select id="device">
+            <option value="390x844">iPhone (390×844)</option>
+            <option value="412x915">Android (412×915)</option>
+            <option value="360x800">Маленький (360×800)</option>
+            <option value="320x640">Очень маленький (320×640)</option>
+            <option value="768x1024">Планшет (768×1024)</option>
+        </select>
+        <button id="touchMode" class="active">👆 Тач-эмуляция</button>
+        <button id="reload">🔄 Перезагрузить</button>
+        <button id="openLogs">📋 Логи</button>
+        <span class="hint">Нажми на монету и держи — тестируй клики</span>
+    </div>
+
+    <div class="status">Эмуляция <b>свайпа/тапа</b>: клик мышью = касание пальцем. Сессия та же, что и в игре.</div>
+
+    <div class="stage">
+        <div class="phone" id="phone">
+            <div class="notch"></div>
+            <div class="screen" id="screen">
+                <iframe id="frame" src="/"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const phone = document.getElementById('phone');
+        const screen = document.getElementById('screen');
+        const frame = document.getElementById('frame');
+        const device = document.getElementById('device');
+        const touchBtn = document.getElementById('touchMode');
+        const reloadBtn = document.getElementById('reload');
+        const openLogsBtn = document.getElementById('openLogs');
+
+        function applySize() {
+            const [w, h] = device.value.split('x').map(Number);
+            phone.style.width = (w + 40) + 'px';
+            phone.style.height = (h + 40) + 'px';
+        }
+        applySize();
+        device.addEventListener('change', applySize);
+
+        // Touch emulation: forward pointer events into the iframe as touch events
+        // so mobile-only handlers (touchstart, preventDefault, hold) work on PC.
+        let touchModeOn = true;
+        function setTouchMode(on) {
+            touchModeOn = on;
+            touchBtn.classList.toggle('active', on);
+            screen.classList.toggle('touch-emulated', on);
+        }
+        touchBtn.addEventListener('click', () => setTouchMode(!touchModeOn));
+
+        function makeTouch(e, type) {
+            const rect = frame.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const touch = new Touch({
+                identifier: Date.now(),
+                target: frame.contentDocument.elementFromPoint(x, y) || frame.contentDocument.body,
+                clientX: e.clientX, clientY: e.clientY,
+                screenX: e.screenX, screenY: e.screenY,
+                pageX: e.pageX, pageY: e.pageY
+            });
+            return new TouchEvent(type, {
+                touches: type === 'touchend' ? [] : [touch],
+                targetTouches: type === 'touchend' ? [] : [touch],
+                changedTouches: [touch],
+                bubbles: true, cancelable: true
+            });
+        }
+
+        if (touchModeOn) {
+            let downId = null;
+            screen.addEventListener('mousedown', (e) => {
+                if (!touchModeOn || !frame.contentDocument) return;
+                e.preventDefault();
+                const te = makeTouch(e, 'touchstart');
+                frame.contentDocument.dispatchEvent(te);
+                downId = te.changedTouches[0].identifier;
+            });
+            screen.addEventListener('mouseup', (e) => {
+                if (!touchModeOn || !frame.contentDocument || downId === null) return;
+                const te = makeTouch(e, 'touchend');
+                frame.contentDocument.dispatchEvent(te);
+                downId = null;
+            });
+            screen.addEventListener('mouseleave', (e) => {
+                if (!touchModeOn || !frame.contentDocument || downId === null) return;
+                const te = makeTouch(e, 'touchend');
+                frame.contentDocument.dispatchEvent(te);
+                downId = null;
+            });
+        }
+
+        reloadBtn.addEventListener('click', () => frame.src = frame.src);
+        openLogsBtn.addEventListener('click', () => {
+            window.open('/logs.html', 'logs', 'width=560,height=640');
+        });
+    </script>
+</body>
+</html>

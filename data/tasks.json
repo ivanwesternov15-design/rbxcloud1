@@ -1,0 +1,165 @@
+[
+  {
+    "id": "task_telegram_subscribe",
+    "title": "Подпишись на канал",
+    "description": "Подпишись на наш Telegram-канал и получи бонус",
+    "reward": 500,
+    "type": "telegram",
+    "link": "https://t.me/your_channel",
+    "enabled": true,
+    "expires": null,
+    "icon": "telegram"
+  },
+  {
+    "id": "task_invite_1",
+    "title": "Пригласи 1 друга",
+    "description": "Пригласи первого друга в игру",
+    "reward": 300,
+    "type": "referral",
+    "required_count": 1,
+    "enabled": true,
+    "expires": null,
+    "icon": "users"
+  },
+  {
+    "id": "task_invite_3",
+    "title": "Пригласи 3 друзей",
+    "description": "Пригласи 3 друзей в игру",
+    "reward": 1000,
+    "type": "referral",
+    "required_count": 3,
+    "enabled": true,
+    "expires": null,
+    "icon": "users"
+  },
+  {
+    "id": "task_invite_5",
+    "title": "Пригласи 5 друзей",
+    "description": "Пригласи 5 друзей в игру",
+    "reward": 2500,
+    "type": "referral",
+    "required_count": 5,
+    "enabled": true,
+    "expires": null,
+    "icon": "users"
+  },
+  {
+    "id": "task_level_3",
+    "title": "Достигни 3 уровня",
+    "description": "Прокачай свой аккаунт до 3 уровня",
+    "reward": 500,
+    "type": "level",
+    "required_level": 3,
+    "enabled": true,
+    "expires": null,
+    "icon": "star"
+  },
+  {
+    "id": "task_level_5",
+    "title": "Достигни 5 уровня",
+    "description": "Прокачай свой аккаунт до 5 уровня",
+    "reward": 2000,
+    "type": "level",
+    "required_level": 5,
+    "enabled": true,
+    "expires": null,
+    "icon": "star"
+  },
+  {
+    "id": "task_level_8",
+    "title": "Достигни 8 уровня",
+    "description": "Прокачай свой аккаунт до 8 уровня",
+    "reward": 10000,
+    "type": "level",
+    "required_level": 8,
+    "enabled": true,
+    "expires": null,
+    "icon": "star"
+  },
+  {
+    "id": "task_clicks_1000",
+    "title": "1000 кликов",
+    "description": "Сделай 1000 кликов в игре",
+    "reward": 500,
+    "type": "clicks",
+    "required_count": 1000,
+    "enabled": true,
+    "expires": null,
+    "icon": "click"
+  },
+  {
+    "id": "task_clicks_10000",
+    "title": "10000 кликов",
+    "description": "Сделай 10000 кликов в игре",
+    "reward": 3000,
+    "type": "clicks",
+    "required_count": 10000,
+    "enabled": true,
+    "expires": null,
+    "icon": "click"
+  },
+  {
+    "id": "task_clicks_100000",
+    "title": "100000 кликов",
+    "description": "Сделай 100000 кликов в игре",
+    "reward": 15000,
+    "type": "clicks",
+    "required_count": 100000,
+    "enabled": true,
+    "expires": null,
+    "icon": "click"
+  },
+  {
+    "id": "task_earn_10000",
+    "title": "Заработай 10000 монет",
+    "description": "Заработай в сумме 10000 монет",
+    "reward": 1000,
+    "type": "earn",
+    "required_amount": 10000,
+    "enabled": true,
+    "expires": null,
+    "icon": "coin"
+  },
+  {
+    "id": "task_earn_100000",
+    "title": "Заработай 100000 монет",
+    "description": "Заработай в сумме 100000 монет",
+    "reward": 5000,
+    "type": "earn",
+    "required_amount": 100000,
+    "enabled": true,
+    "expires": null,
+    "icon": "coin"
+  },
+  {
+    "id": "task_buy_case",
+    "title": "Купи кейс",
+    "description": "Купи любой кейс в магазине",
+    "reward": 400,
+    "type": "purchase_case",
+    "enabled": true,
+    "expires": null,
+    "icon": "gift"
+  },
+  {
+    "id": "task_upgrade_5",
+    "title": "5 улучшений",
+    "description": "Купи 5 любых улучшений",
+    "reward": 600,
+    "type": "upgrade_count",
+    "required_count": 5,
+    "enabled": true,
+    "expires": null,
+    "icon": "arrow_up"
+  },
+  {
+    "id": "task_daily",
+    "title": "Ежедневный бонус",
+    "description": "Заходи в игру каждый день",
+    "reward": 200,
+    "type": "daily",
+    "enabled": true,
+    "expires": null,
+    "icon": "calendar"
+  }
+]

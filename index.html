@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#05070D">
+    <title>Clicker Farm</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .loading-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--bg-primary);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+            overflow: hidden;
+        }
+        .loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loading-logo { font-size: 64px; margin-bottom: 16px; animation: loadPulse 1.5s ease-in-out infinite; }
+        @keyframes loadPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .loading-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px; }
+        .loading-bar-wrap { width: 200px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+        .loading-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 2px; animation: loadBar 2s ease-in-out infinite; }
+        @keyframes loadBar { 0% { width: 0%; margin-left: 0; } 50% { width: 60%; margin-left: 20%; } 100% { width: 0%; margin-left: 100%; } }
+        .loading-text { margin-top: 16px; font-size: 12px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+<!-- SVG Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-people" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="icon-coin" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M12 7v10"/><path d="M15.5 9.5a3.5 3.5 0 0 0-3.5-2c-2 0-3.5 1.2-3.5 2.5s1.5 2.5 3.5 2.5 3.5 1.2 3.5 2.5-1.5 2.5-3.5 2.5a3.5 3.5 0 0 1-3.5-2"/></symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><rect x="5" y="12" width="14" height="9" rx="1.5"/><path d="M12 8v13"/><path d="M12 8H7.8a2.8 2.8 0 1 1 0-5.6C10 2.4 11.2 5 12 8z"/><path d="M12 8h4.2a2.8 2.8 0 0 0 0-5.6C14 2.4 12.8 5 12 8z"/></symbol>
+  <symbol id="icon-cycle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="icon-click" viewBox="0 0 24 24" fill="none" style="stroke:var(--click,#FB923C)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3l16 6.5-6.5 2.3L11 19.5 4 3z"/><path d="M13 13l6 6"/></symbol>
+  <symbol id="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="icon-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
+  <symbol id="icon-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-3.8 3.5H16a2 2 0 0 0-1.5 3.3c.4.5.2 1.2-.4 1.4-.7.3-1.4.6-2.1.8z"/><circle cx="7.5" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="7.5" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="11.5" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-battery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2.5"/><path d="M22 11v2"/><path d="M6 10.5v3M10.5 10.5v3M15 10.5v3" style="stroke:var(--success,#00E584)" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="icon-muscle" viewBox="0 0 24 24" fill="none" style="stroke:var(--click,#FB923C)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10"/><path d="M10 7v10"/><path d="M18 7v10"/><path d="M14 7v10"/><rect x="7" y="10.5" width="6" height="3" rx="1"/><path d="M16 12h3"/></symbol>
+  <symbol id="icon-scroll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-4-5z"/><path d="M15 3v5h4"/><path d="M8 13h8M8 17h5"/></symbol>
+  <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></symbol>
+  <symbol id="icon-explosion" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.5 9 21 9 16 13.5 18 20 12 16 6 20 8 13.5 3 9 9.5 9 12 3"/></symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.7 6.2.5-4.8 4 1.4 6.1L12 16.4 6.7 19.3 8.1 13.2 3.3 9.2l6.2-.5L12 3z"/></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 1 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5l-2 14"/></symbol>
+  <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+  <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></symbol>
+  <symbol id="icon-lightning" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 14H11l-1.5 8L18 10h-6l1-8z"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" style="stroke:var(--success,#00E584)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="icon-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-online" viewBox="0 0 24 24" fill="var(--success,#00E584)"><circle cx="12" cy="12" r="6"/></symbol>
+  <symbol id="icon-cash" viewBox="0 0 24 24" fill="none" style="stroke:var(--success,#00E584)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6.5 9.5h.01M17.5 14.5h.01"/></symbol>
+  <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 5 7 5"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 5 17 5"/><path d="M4 22h16"/><path d="M10 22V2l4 4"/><path d="M14 22V2l-4 4"/><path d="M12 11.5c-2 0-3.5-1.5-3.5-3.5h7c0 2-1.5 3.5-3.5 3.5z"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="icon-save" viewBox="0 0 24 24" fill="none" style="stroke:var(--success,#00E584)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+  <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" style="stroke:var(--danger,#FF5A5F)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><circle cx="12" cy="16" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-unlock" viewBox="0 0 24 24" fill="none" style="stroke:var(--success,#00E584)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 7.8-1"/><circle cx="12" cy="16" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="icon-crown" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l3-14 4 7 3-7 3 7 4-7 3 14H2z"/></symbol>
+  <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1.2"/></symbol>
+  <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
+  <symbol id="icon-sent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7l-10 7-10-7"/><path d="M2 7l10 7 10-7"/><path d="M2 7v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7"/></symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24" fill="none" style="stroke:var(--purple,#8B5CF6)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><path d="M21 15l-5-5-12 12"/></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" style="stroke:var(--danger,#FF5A5F)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol>
+  <symbol id="icon-music" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="icon-flame" viewBox="0 0 24 24" fill="none" style="stroke:var(--click,#FB923C)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 7.5-3 7.5-7.5 0-3-2-6-4-8-1-1-2-.8-2.5.5-.3.8-1.2 1-1.8.5C10 6 8 8 8 11c0 1-.2 2 .5 2.8.5-.5 1-1 1.5-2 .8 2 1.5 3.7 3 5-1.5 1.5-3 2.2-5 1.5-1.5-.5-2.5-2-2.5-3.8 0-1.8 1-3 1.5-4-.2 2.3.5 4 2 5.5-.8-1.8 0-4.5 1.5-6-.3 2.8 1 5.5 4 6.5-1-1.5-1.5-3-1-5 1.5-1.5 3-2.5 4.5-3.8 0 3 1 5 2.5 6.3C17 17.5 15.5 22 12 22z"/></symbol>
+  <symbol id="icon-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7H4a2 2 0 0 1 0-4h13v4"/><path d="M4 5v14a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H4"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 14H11l-1.5 8L18 10h-6l1-8z"/></symbol>
+  <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="none" style="stroke:var(--gold,#F5C451)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 14l.9 2.3 2.3.9-2.3.9L19 20.4l-.9-2.3-2.3-.9 2.3-.9L19 14zM5 16l.8 2.1 2.1.8-2.1.8L5 21.8l-.8-2.1-2.1-.8 2.1-.8L5 16z"/></symbol>
+  <symbol id="icon-shop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M3 9h18a3 3 0 0 1 0 6H3a3 3 0 0 1 0-6z"/><path d="M10 16h4"/></symbol>
+  <symbol id="icon-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2l-3-3z"/><path d="M9 13l-2-2c2-5 5-7 10-7 0 5-2 8-7 10l-1-1z"/><circle cx="14.5" cy="9.5" r="1.3" fill="currentColor" stroke="none"/><path d="M9 21l-2-2"/></symbol>
+</svg>
+<!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-glow"></div>
+        <img src="/assets/icons/coin.png" class="loading-logo-img" alt="">
+        <div class="loading-title">Clicker Farm</div>
+        <div class="loading-bar-wrap"><div class="loading-bar-fill"></div></div>
+        <div class="loading-text" id="loading-text">Загрузка данных...</div>
+    </div>
+
+    <!-- Auth Loading Overlay -->
+    <div id="auth-loading-overlay" class="auth-loading-overlay" style="display:none;">
+        <div class="auth-loading-box">
+            <img src="/assets/icons/coin.png" class="auth-loading-logo" alt="">
+            <div class="auth-loading-spinner"></div>
+            <div class="auth-loading-title">Загрузка Telegram...</div>
+            <div class="auth-loading-text">Пожалуйста, подождите</div>
+        </div>
+    </div>
+
+    <!-- Particle Background -->
+    <canvas id="particle-canvas"></canvas>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="auth-screen" style="display:none;">
+        <div class="auth-card">
+            <div class="auth-card-bg"></div>
+            <div class="auth-glow"></div>
+            <img src="/assets/icons/coin.png" class="auth-logo-img" alt="">
+            <h1 class="auth-title">Clicker Farm</h1>
+            <p class="auth-desc">Кликай, зарабатывай монеты<br>и получай реальные Robux-ваучеры!</p>
+            <div class="auth-telegram-wrap" id="auth-telegram-wrap">
+                <button id="auth-login-trigger" class="auth-trigger-btn">🔑 Войти через Telegram</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Shell -->
+    <div id="app-shell" class="app-container" style="display:none;">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left" id="header-profile-btn" style="cursor:pointer;">
+                <div class="header-avatar" id="header-avatar">
+                    <img id="header-avatar-img" src="" alt="" style="display:none;">
+                </div>
+                <div class="header-info">
+                    <div class="header-name" id="header-name">User</div>
+                    <div class="header-username" id="header-username"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <a id="log-btn" href="/logs.html" target="logs" title="Журнал событий" style="text-decoration:none;color:var(--text-secondary);font-size:18px;position:relative;transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-scroll"/></svg><span id="log-error-badge" style="display:none;position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;background:var(--danger,#ff5c5c);color:#fff;font-size:10px;font-weight:800;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;">0</span></a>
+                <a id="admin-gear-btn" href="/admin.html" style="display:none; text-decoration:none; color:var(--text-secondary); font-size:20px; transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg></a>
+                <div class="header-online" id="header-online" style="display:none;font-size:11px;color:var(--success);align-items:center;gap:4px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-online"/></svg> <span id="header-online-count">0</span></div>
+                <div class="header-coins">
+                    <img src="/assets/icons/coin.png" class="coin-icon-png" alt="">
+                    <span id="header-coins">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen: Home -->
+        <div id="screen-home" class="screen active">
+            <div class="balance-card">
+                <div class="balance-label">ТВОЙ БАЛАНС</div>
+                <div class="balance-amount" id="balance-amount">0</div>
+                <div class="balance-stats">
+                    <div class="balance-stat"><span class="stat-dot"></span> Уровень <span id="home-level">1</span></div>
+                    <div class="balance-stat"><span class="stat-dot" style="background:var(--gold);"></span> <span id="home-level-name">Новичок</span></div>
+                </div>
+            </div>
+
+            <div class="click-area">
+                <div class="click-button" id="click-button">
+                    <img src="/assets/icons/coin.png" class="coin-big-img" alt="Click!" id="coin-click-img">
+                    <div class="click-glow-ring"></div>
+                </div>
+                <div class="click-power-window" id="click-power-window">
+                    <span class="cpw-cell cpw-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg></span>
+                    <span class="cpw-cell cpw-value" id="home-click-power">+1</span>
+                </div>
+            </div>
+
+            <div class="energy-bar-container">
+                <div class="energy-header">
+                    <span class="energy-label"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Энергия</span>
+                    <span class="energy-numbers" id="energy-text">0 / 1000</span>
+                </div>
+                <div class="energy-bar-bg">
+                    <div class="energy-bar-fill" id="energy-fill" style="width:100%;"></div>
+                </div>
+            </div>
+
+            <!-- Bonuses display -->
+            <div id="home-bg-bonus" class="bonus-display"></div>
+            <div id="home-boosts" class="bonus-display"></div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-click"/></svg></div>
+                    <div class="stat-value" id="home-clicks">0</div>
+                    <div class="stat-label">Всего кликов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-cash"/></svg></div>
+                    <div class="stat-value" id="home-passive">0</div>
+                    <div class="stat-label">Пассивный доход</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trophy"/></svg></div>
+                    <div class="stat-value" id="home-total-earned">0</div>
+                    <div class="stat-label">Всего заработано</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg></div>
+                    <div class="stat-value" id="home-referrals">0</div>
+                    <div class="stat-label">Рефералы</div>
+                </div>
+            </div>
+
+            <!-- Level Progress -->
+            <div class="level-progress-card">
+                <div class="level-progress-header">
+                    <span>Прогресс уровня</span>
+                    <span id="home-level-name2"></span>
+                </div>
+                <div class="level-progress-bar">
+                    <div id="home-level-progress" class="level-progress-fill" style="width:0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen: Upgrade -->
+        <div id="screen-upgrade" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Прокачка</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Улучшай свои характеристики за монеты
+            </div>
+            <div id="upgrade-list" class="upgrade-grid"></div>
+        </div>
+
+        <!-- Screen: Backgrounds -->
+        <div id="screen-backgrounds" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-palette"/></svg> Фоны</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Покупай фоны с бонусами к доходу
+            </div>
+            <div id="backgrounds-list" class="backgrounds-grid"></div>
+        </div>
+
+        <!-- Screen: Boosts -->
+        <div id="screen-boosts" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Бусты</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Усиливай доход и энергию на время
+            </div>
+            <div id="boosts-list" class="boosts-grid"></div>
+        </div>
+
+        <!-- Screen: Cases -->
+        <div id="screen-cases" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Открывай кейсы и получай ценные призы
+            </div>
+            <div id="cases-list" class="cases-grid"></div>
+        </div>
+
+        <!-- Screen: Tasks -->
+        <div id="screen-tasks" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-target"/></svg> Задания</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Выполняй задания и получай монеты
+            </div>
+            <div id="tasks-list" class="task-list"></div>
+        </div>
+
+        <!-- Screen: Referrals -->
+        <div id="screen-referrals" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Рефералы</div>
+            
+            <div class="ref-card">
+                <div style="font-size:36px;margin-bottom:8px;">🔗</div>
+                <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Твоя реферальная ссылка</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+                    Приглашай друзей и получай бонусы
+                </div>
+                <div class="ref-link-box" id="ref-link">Загрузка...</div>
+                <div class="ref-actions">
+                    <button id="ref-copy-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-scroll"/></svg> Копировать</button>
+                    <button id="ref-share-btn" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Поделиться</button>
+                </div>
+            </div>
+
+            <div class="ref-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg></div>
+                    <div class="stat-value" id="ref-count">0</div>
+                    <div class="stat-label">Всего рефералов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></div>
+                    <div class="stat-value" id="ref-active">0</div>
+                    <div class="stat-label">Активных</div>
+                </div>
+                <div class="stat-card" style="grid-column:1/-1;">
+                    <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
+                    <div class="stat-value" id="ref-earned">0</div>
+                    <div class="stat-label">Заработано с рефералов</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen: Leaderboard -->
+        <div id="screen-leaderboard" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trophy"/></svg> Лидерборд</div>
+            
+            <div class="lb-tabs">
+                <button class="lb-tab active" data-sort="total_earned">По монетам</button>
+                <button class="lb-tab" data-sort="referral_count">По рефералам</button>
+            </div>
+
+            <div id="leaderboard-list" class="leaderboard-list"></div>
+        </div>
+
+        <!-- Screen: Exchange -->
+        <div id="screen-exchange" class="screen">
+            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Обмен на Robux</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+                Обменивай монеты на реальные Robux-ваучеры
+            </div>
+
+            <div class="stats-grid" style="margin-bottom:16px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="exchange-balance">0</div>
+                    <div class="stat-label">Твои монеты</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="exchange-today">0/5</div>
+                    <div class="stat-label">Обменов сегодня</div>
+                </div>
+                <div class="stat-card" style="grid-column:1/-1;">
+                    <div class="stat-value" id="exchange-total">0</div>
+                    <div class="stat-label">Всего Robux получено</div>
+                </div>
+            </div>
+
+            <div id="exchange-options" class="exchange-options"></div>
+        </div>
+
+        <!-- Screen: Profile -->
+        <div id="screen-profile" class="screen">
+            <div class="profile-header-card">
+                <div class="profile-header-bg"></div>
+                <div class="profile-header-glow"></div>
+                <div class="profile-header-content" style="display:flex;gap:16px;align-items:flex-start;padding:22px 20px 18px;">
+                    <div class="profile-avatar-section" style="position:relative;flex-shrink:0;">
+                        <div class="profile-avatar-ring">
+                            <div class="profile-avatar">
+                                <img id="profile-avatar-img" src="" alt="">
+                            </div>
+                            <img class="profile-rank-badge" id="profile-rank-badge" src="" alt="">
+                        </div>
+                        <div class="profile-avatar-ring-spin"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;padding-top:6px;">
+                        <h2 class="profile-name" id="profile-name" style="font-size:20px;font-weight:800;margin-bottom:3px;display:flex;align-items:center;">User</h2>
+                        <div id="profile-username-list" style="font-size:12px;color:var(--accent);margin-bottom:3px;"></div>
+                        <div id="profile-bio" style="font-size:12px;color:var(--text-secondary);line-height:1.4;margin-bottom:4px;"></div>
+                        <div id="profile-track" style="font-size:11px;color:var(--text-muted);display:none;align-items:center;gap:4px;margin-bottom:2px;"></div>
+                        <div id="profile-music" style="font-size:11px;color:var(--gold);display:none;align-items:center;gap:4px;"></div>
+                        <div class="profile-level-progress">
+                            <div class="plp-track"><div class="plp-fill" id="profile-level-fill" style="width:0%;"></div></div>
+                            <span class="plp-label" id="profile-level-progress-text">0% до следующего уровня</span>
+                        </div>
+                    </div>
+                    <a id="profile-admin-gear" href="/admin.html" style="display:none;" class="profile-admin-link"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg></a>
+                </div>
+            </div>
+
+            <div class="glass-card profile-rank-panel">
+                <div class="profile-rank-left">
+                    <div class="profile-rank-label"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trophy"/></svg> ТВОЙ РАНГ</div>
+                    <div class="profile-rank-level">
+                        <span class="profile-rank-level-num" id="profile-rank-level-num">1</span>
+                        <span class="profile-rank-level-label">Уровень</span>
+                    </div>
+                    <div class="profile-rank-name" id="profile-rank-name">Новичок</div>
+                    <div class="profile-rank-progress">
+                        <div class="prp-track"><div class="prp-fill" id="profile-rank-fill" style="width:0%;"></div></div>
+                        <div class="prp-meta">
+                            <span id="profile-rank-earned">0</span> / <span id="profile-rank-needed">0</span> монет
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-rank-right">
+                    <img src="/assets/ranks/levels/novice.png" class="profile-rank-img" id="profile-rank-img" alt="">
+                </div>
+            </div>
+
+            <div class="glass-card profile-balance-row">
+                <div class="profile-balance-item">
+                    <div class="pbi-icon-wrap" style="background:rgba(255,228,77,0.1);border-color:rgba(255,228,77,0.18);"><span class="profile-balance-icon" style="color:var(--gold);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></span></div>
+                    <span class="profile-balance-label">Баланс</span>
+                    <span class="profile-balance-value" id="profile-total-earned">0</span>
+                </div>
+                <div class="profile-balance-item">
+                    <div class="pbi-icon-wrap" style="background:rgba(79,143,255,0.1);border-color:rgba(79,143,255,0.18);"><span class="profile-balance-icon" style="color:var(--accent);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-click"/></svg></span></div>
+                    <span class="profile-balance-label">Клики</span>
+                    <span class="profile-balance-value" id="profile-total-clicks">0</span>
+                </div>
+                <div class="profile-balance-item">
+                    <div class="pbi-icon-wrap" style="background:rgba(251,146,60,0.12);border-color:rgba(251,146,60,0.2);"><span class="profile-balance-icon" style="color:var(--click);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-muscle"/></svg></span></div>
+                    <span class="profile-balance-label">Сила</span>
+                    <span class="profile-balance-value" id="profile-click-power">1</span>
+                </div>
+                <div class="profile-balance-item">
+                    <div class="pbi-icon-wrap" style="background:rgba(34,211,238,0.1);border-color:rgba(34,211,238,0.18);"><span class="profile-balance-icon" style="color:var(--cyan);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg></span></div>
+                    <span class="profile-balance-label">Энергия</span>
+                    <span class="profile-balance-value" id="profile-energy-max">1000</span>
+                </div>
+            </div>
+
+            <div class="glass-card profile-stats-block">
+                <div class="profile-stats-title">
+                    <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Статистика</span>
+                    <span class="pst-divider"></span>
+                </div>
+                <div class="profile-stats-row">
+                    <div class="profile-stat-item">
+                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg></span>
+                        <span class="stat-dark-label">Рефералы</span>
+                        <span class="stat-dark-value" id="profile-referrals">0</span>
+                    </div>
+                    <div class="profile-stat-item">
+                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></span>
+                        <span class="stat-dark-label">С рефералов</span>
+                        <span class="stat-dark-value" id="profile-referral-earned">0</span>
+                    </div>
+                    <div class="profile-stat-item">
+                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg></span>
+                        <span class="stat-dark-label">Кейсов</span>
+                        <span class="stat-dark-value" id="profile-cases">0</span>
+                    </div>
+                    <div class="profile-stat-item">
+                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg></span>
+                        <span class="stat-dark-label">Robux</span>
+                        <span class="stat-dark-value" id="profile-exchanged">0</span>
+                    </div>
+                    <div class="profile-stat-item">
+                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></span>
+                        <span class="stat-dark-label">Заданий</span>
+                        <span class="stat-dark-value" id="profile-tasks">0/0</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="glass-card profile-history-block">
+                <div class="profile-stats-title">
+                    <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-scroll"/></svg> История обменов</span>
+                    <span class="pst-divider"></span>
+                </div>
+                <div id="profile-exchange-history" class="profile-history-list"></div>
+            </div>
+
+            <div class="profile-actions">
+                <button id="profile-logout-btn" class="profile-logout-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-logout"/></svg> Выйти из аккаунта</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Dock -->
+    <nav id="dock" class="dock" style="display:none;">
+        <button class="dock-item active" data-screen="home">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>
+            <span class="dock-label">Главная</span>
+        </button>
+        <button class="dock-item" data-screen="cases">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+            <span class="dock-label">Кейсы</span>
+        </button>
+        <button class="dock-item" data-screen="upgrade">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+            <span class="dock-label">Прокачка</span>
+        </button>
+        <button class="dock-item" data-screen="tasks">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+            <span class="dock-label">Задания</span>
+        </button>
+        <button class="dock-item" data-screen="profile">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <span class="dock-label">Профиль</span>
+        </button>
+        <button class="dock-more" id="dock-more" aria-label="Ещё">
+            <span class="dock-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg></span>
+        </button>
+    </nav>
+
+    <!-- More Sheet -->
+    <div id="more-sheet" class="more-sheet">
+        <div class="more-sheet-backdrop"></div>
+        <div class="more-sheet-panel">
+            <div class="more-sheet-grabber"></div>
+            <div class="more-sheet-title">Ещё</div>
+            <div class="more-grid">
+                <button class="more-item" data-screen="backgrounds">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 22 9 8 17 18 23 4 23 22 1 22"/><circle cx="7" cy="6" r="2.5"/></svg></span>
+                    <span class="more-label">Фоны</span>
+                </button>
+                <button class="more-item" data-screen="referrals">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    <span class="more-label">Друзья</span>
+                </button>
+                <button class="more-item" data-screen="leaderboard">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 5 7 5"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 5 17 5"/><path d="M4 22h16"/><path d="M10 22V2l4 4"/><path d="M14 22V2l-4 4"/></svg></span>
+                    <span class="more-label">Топ</span>
+                </button>
+                <button class="more-item" data-screen="exchange">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M12 7v10"/><path d="M12 7H7a2 2 0 0 1 0-4h10a2 2 0 0 1 0 4z"/></svg></span>
+                    <span class="more-label">Обмен</span>
+                </button>
+                <button class="more-item" data-screen="boosts">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+                    <span class="more-label">Бусты</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content" id="modal-body">
+            <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕</button>
+            <div class="modal-title">Модальное окно</div>
+        </div>
+    </div>
+
+    <!-- Case Animation Overlay -->
+    <div id="case-animation" class="case-animation-overlay"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Журнал событий</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: #0a0a12;
+        color: #d6d6e6;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px;
+        background: #0f0f1c;
+        border-bottom: 1px solid #20203a;
+    }
+    .header h1 { font-size: 13px; font-weight: 800; flex: 1; }
+    .header button {
+        background: #171728; color: #e6e6ef;
+        border: 1px solid #2a2a44; border-radius: 6px;
+        padding: 4px 8px; font-size: 12px; cursor: pointer;
+    }
+    .header button:hover { border-color: #4f8fff; }
+    .filter {
+        display: flex; gap: 6px; padding: 6px 12px;
+        background: #0d0d18; border-bottom: 1px solid #1d1d2e;
+        flex-wrap: wrap;
+    }
+    .filter label { font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    #logs {
+        flex: 1; overflow-y: auto;
+        padding: 8px 12px;
+        font-family: Consolas, 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+    .log-line { display: flex; gap: 8px; border-bottom: 1px solid #14141f; padding: 2px 0; word-break: break-word; }
+    .log-time { color: #5c5c76; flex-shrink: 0; }
+    .log-type { flex-shrink: 0; font-weight: 700; min-width: 58px; }
+    .log-msg { flex: 1; }
+    .t-info .log-type { color: #4f8fff; }
+    .t-click .log-type { color: #f0b554; }
+    .t-api .log-type { color: #7c5cff; }
+    .t-error .log-type { color: #ff5c5c; }
+    .t-warn .log-type { color: #ffb74d; }
+    .t-success .log-type { color: #4ade80; }
+    .empty { color: #5c5c76; text-align: center; padding: 40px 0; font-size: 13px; }
+    .footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 6px 12px; background: #0f0f1c; border-top: 1px solid #20203a;
+        font-size: 11px; color: #5c5c76;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Журнал событий</h1>
+        <button id="clearBtn">Очистить</button>
+    </div>
+    <div class="filter">
+        <label><input type="checkbox" class="ft" data-t="info" checked> Инфо</label>
+        <label><input type="checkbox" class="ft" data-t="click" checked> Клики</label>
+        <label><input type="checkbox" class="ft" data-t="api" checked> API</label>
+        <label><input type="checkbox" class="ft" data-t="warn" checked> Предупр.</label>
+        <label><input type="checkbox" class="ft" data-t="error" checked> Ошибки</label>
+        <label><input type="checkbox" class="ft" data-t="success" checked> Успех</label>
+    </div>
+    <div id="logs"><div class="empty">Ожидание событий…<br>Открой <b>index.html</b> или <b>mobile-test.html</b>, чтобы логи шли сюда.</div></div>
+    <div class="footer"><span id="count">Событий: 0</span><span>Живой журнал</span></div>
+
+    <script>
+        const logBox = document.getElementById('logs');
+        const countEl = document.getElementById('count');
+        let shown = 0;
+
+        const filterState = { info: true, click: true, api: true, warn: true, error: true, success: true };
+        document.querySelectorAll('.ft').forEach(cb => {
+            cb.addEventListener('change', () => {
+                filterState[cb.dataset.t] = cb.checked;
+            });
+        });
+
+        function fmtTime() {
+            const d = new Date();
+            return d.toLocaleTimeString('ru-RU', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+        }
+
+        function render() {
+            const lines = [...logBox.querySelectorAll('.log-line')];
+            let visible = 0;
+            lines.forEach(ln => {
+                const t = ln.dataset.type;
+                const show = filterState[t] !== false;
+                ln.style.display = show ? 'flex' : 'none';
+                if (show) visible++;
+            });
+            countEl.textContent = 'Видно: ' + visible + ' / ' + lines.length;
+        }
+
+        function addLine(type, msg) {
+            if (logBox.querySelector('.empty')) logBox.querySelector('.empty').remove();
+            const div = document.createElement('div');
+            div.className = 'log-line t-' + type;
+            div.dataset.type = type;
+            div.innerHTML = `<span class="log-time">${fmtTime()}</span><span class="log-type">${type.toUpperCase()}</span><span class="log-msg"></span>`;
+            div.querySelector('.log-msg').textContent = msg;
+            logBox.appendChild(div);
+            // keep max 500 lines
+            while (logBox.children.length > 500) logBox.removeChild(logBox.firstChild);
+            const show = filterState[type] !== false;
+            div.style.display = show ? 'flex' : 'none';
+            shown++;
+            countEl.textContent = 'Видно: ' + visibleCount();
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function visibleCount() {
+            let n = 0;
+            [...logBox.querySelectorAll('.log-line')].forEach(ln => {
+                if (ln.style.display !== 'none') n++;
+            });
+            return n;
+        }
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            logBox.innerHTML = '<div class="empty">Журнал очищен</div>';
+            shown = 0;
+            countEl.textContent = 'Событий: 0';
+        });
+
+        // Receive events from the game via BroadcastChannel (same-origin, works with iframes/tabs)
+        const chan = new BroadcastChannel('game_logs');
+        chan.onmessage = (ev) => {
+            const d = ev.data || {};
+            addLine(d.type || 'info', d.msg || String(d));
+        };
+
+        // Also catch window errors in this page itself
+        window.addEventListener('error', (e) => addLine('error', 'JS: ' + (e.message || e)));
+        window.addEventListener('unhandledrejection', (e) => addLine('error', 'Promise: ' + (e.reason && e.reason.message || e.reason)));
+
+        // Fallback: also receive via window 'message' (if a page opened us via window.open)
+        window.addEventListener('message', (ev) => {
+            if (ev.data && ev.data.__log) addLine(ev.data.__log.type || 'info', ev.data.__log.msg || '');
+        });
+
+        setInterval(render, 400);
+    </script>
+</body>
+</html>

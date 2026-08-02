@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="cyber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d0110"/><stop offset="50%" stop-color="#1a0322"/><stop offset="100%" stop-color="#240a30"/></linearGradient>
+<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff2060" stop-opacity="0.4"/><stop offset="100%" stop-color="#ff2060" stop-opacity="0"/></radialGradient>
+<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="35"/></filter>
+<pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0 L0 0 0 60" fill="none" stroke="#ff2060" stroke-width="0.5" opacity="0.15"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#cyber)"/>
+<circle cx="1150" cy="280" r="260" fill="url(#glow)"><animate attributeName="opacity" values="0.6;1;0.6" dur="5s" repeatCount="indefinite"/></circle>
+<circle cx="350" cy="640" r="220" fill="url(#glow)" opacity="0.5"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="7s" repeatCount="indefinite"/></circle>
+<g filter="url(#blur)"><path d="M-100 700 L1700 420 L1700 900 L-100 900 Z" fill="#ff2060" opacity="0.05"><animate attributeName="opacity" values="0.03;0.09;0.03" dur="6s" repeatCount="indefinite"/></path></g>
+<rect width="1600" height="900" fill="url(#grid)">
+  <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
+</rect>
+<path d="M0 600 L1600 460" stroke="#ff2060" stroke-width="2" opacity="0.3"><animate attributeName="stroke-dashoffset" from="0" to="1200" dur="20s" repeatCount="indefinite" stroke-dasharray="40 60"/></path>
+<path d="M0 700 L1600 560" stroke="#ff2060" stroke-width="1" opacity="0.15"><animate attributeName="stroke-dashoffset" from="0" to="1600" dur="30s" repeatCount="indefinite" stroke-dasharray="60 80"/></path>
+<path d="M200 900 L320 400 L440 900" fill="none" stroke="#ff2060" stroke-width="1.5" opacity="0.4"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="5s" repeatCount="indefinite"/></path>
+<path d="M500 900 L560 350 L620 900" fill="none" stroke="#ff2060" stroke-width="1" opacity="0.25"><animate attributeName="opacity" values="0.1;0.4;0.1" dur="7s" repeatCount="indefinite"/></path>
+<path d="M1250 900 L1330 380 L1410 900" fill="none" stroke="#ff2060" stroke-width="1.5" opacity="0.35"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="6s" repeatCount="indefinite"/></path>
+<g fill="#ffffff">
+<circle cx="120" cy="140" r="1.3"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="3s" repeatCount="indefinite"/></circle>
+<circle cx="320" cy="90" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.5s" begin="1s" repeatCount="indefinite"/></circle>
+<circle cx="560" cy="160" r="1.4"><animate attributeName="opacity" values="0.7;0.15;0.7" dur="3.6s" begin="0.5s" repeatCount="indefinite"/></circle>
+<circle cx="760" cy="80" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.8s" begin="2s" repeatCount="indefinite"/></circle>
+<circle cx="980" cy="130" r="1.2"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="3.2s" begin="1.4s" repeatCount="indefinite"/></circle>
+<circle cx="1320" cy="100" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="5.2s" begin="2.6s" repeatCount="indefinite"/></circle>
+<circle cx="80" cy="400" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.4s" begin="3s" repeatCount="indefinite"/></circle>
+<circle cx="1490" cy="320" r="1.2"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.9s" begin="0.8s" repeatCount="indefinite"/></circle>
+</g>
+<g>
+<circle cx="1150" cy="280" r="6" fill="#ff2060" opacity="0.9"><animate attributeName="r" values="5;8;5" dur="3s" repeatCount="indefinite"/></circle>
+<circle cx="1150" cy="280" r="18" fill="none" stroke="#ff2060" stroke-width="1" opacity="0.5"><animate attributeName="r" values="16;24;16" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="1150" cy="280" r="34" fill="none" stroke="#ff2060" stroke-width="0.5" opacity="0.3"><animate attributeName="r" values="30;46;30" dur="6s" repeatCount="indefinite"/></circle>
+</g>
+</svg>

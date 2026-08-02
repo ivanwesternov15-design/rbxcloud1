@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#021018"/><stop offset="45%" stop-color="#032436"/><stop offset="100%" stop-color="#063a55"/></linearGradient>
+<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00d4ff" stop-opacity="0.35"/><stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/></radialGradient>
+<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#ocean)"/>
+<circle cx="400" cy="260" r="300" fill="url(#glow)"><animate attributeName="opacity" values="0.6;1;0.6" dur="7s" repeatCount="indefinite"/></circle>
+<circle cx="1280" cy="620" r="260" fill="url(#glow)" opacity="0.6"><animate attributeName="opacity" values="0.4;0.8;0.4" dur="9s" repeatCount="indefinite"/></circle>
+<g filter="url(#blur)"><path d="M0 750 Q400 620 800 730 T1600 700 V900 H0 Z" fill="#00d4ff" opacity="0.12"><animate attributeName="d" values="M0 750 Q400 620 800 730 T1600 700 V900 H0 Z;M0 770 Q400 650 800 740 T1600 720 V900 H0 Z;M0 750 Q400 620 800 730 T1600 700 V900 H0 Z" dur="9s" repeatCount="indefinite"/></path></g>
+<g fill="#00d4ff" opacity="0.55">
+<g><circle cx="220" cy="320" r="7" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="420;200;420" dur="7s" repeatCount="indefinite"/></circle><circle cx="220" cy="320" r="11" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.6"><animate attributeName="cy" values="420;200;420" dur="7s" repeatCount="indefinite"/></circle></g>
+<g><circle cx="540" cy="180" r="5" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="300;120;300" dur="6s" begin="1s" repeatCount="indefinite"/></circle><circle cx="540" cy="180" r="9" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.6"><animate attributeName="cy" values="300;120;300" dur="6s" begin="1s" repeatCount="indefinite"/></circle></g>
+<g><circle cx="900" cy="300" r="8" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="420;180;420" dur="8s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="900" cy="300" r="13" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.6"><animate attributeName="cy" values="420;180;420" dur="8s" begin="0.5s" repeatCount="indefinite"/></circle></g>
+<g><circle cx="1200" cy="220" r="6" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="340;120;340" dur="6.5s" begin="2s" repeatCount="indefinite"/></circle><circle cx="1200" cy="220" r="10" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.6"><animate attributeName="cy" values="340;120;340" dur="6.5s" begin="2s" repeatCount="indefinite"/></circle></g>
+<circle cx="1420" cy="420" r="5" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="520;300;520" dur="7.5s" begin="1.5s" repeatCount="indefinite"/></circle>
+<circle cx="330" cy="560" r="6" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="660;440;660" dur="8.5s" begin="3s" repeatCount="indefinite"/></circle>
+<g><circle cx="1080" cy="520" r="7" fill="none" stroke="#00d4ff" stroke-width="1.5"><animate attributeName="cy" values="620;400;620" dur="7s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="1080" cy="520" r="11" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.6"><animate attributeName="cy" values="620;400;620" dur="7s" begin="0.8s" repeatCount="indefinite"/></circle></g>
+</g>
+<g fill="#ffffff">
+<circle cx="150" cy="200" r="1.2"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="620" cy="120" r="1"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="5s" begin="1.5s" repeatCount="indefinite"/></circle>
+<circle cx="780" cy="240" r="1.3"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.5s" begin="0.5s" repeatCount="indefinite"/></circle>
+<circle cx="1050" cy="150" r="1"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="4.5s" begin="2.5s" repeatCount="indefinite"/></circle>
+<circle cx="1350" cy="160" r="1.2"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.2s" begin="1s" repeatCount="indefinite"/></circle>
+<circle cx="300" cy="700" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="5.5s" begin="3s" repeatCount="indefinite"/></circle>
+<circle cx="1500" cy="700" r="1.3"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.8s" begin="2s" repeatCount="indefinite"/></circle>
+</g>
+<g stroke="#00d4ff" stroke-width="1.5" fill="none" opacity="0.5">
+<path d="M150 620 q20 -12 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"><animate attributeName="d" values="M150 620 q20 -12 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0;M150 628 q20 -6 40 6 t40 -6 t40 6 t40 -6 t40 6 t40 -6 t40 6;M150 620 q20 -12 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" dur="6s" repeatCount="indefinite"/></path>
+<path d="M800 650 q20 -10 40 0 t40 0 t40 0 t40 0 t40 0" opacity="0.6"><animate attributeName="d" values="M800 650 q20 -10 40 0 t40 0 t40 0 t40 0 t40 0;M800 658 q20 -4 40 4 t40 -4 t40 4 t40 -4 t40 4;M800 650 q20 -10 40 0 t40 0 t40 0 t40 0 t40 0" dur="8s" repeatCount="indefinite"/></path>
+</g>
+</svg>

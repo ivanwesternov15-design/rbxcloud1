@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Runtime data (secrets & user-bound state) - push these to hosting via env/deploy instead
+data/users.json
+data/sessions.json
+data/stats.json
+data/vouchers.json
+data/users_backup_before_reset.json
+
+# Server logs
+server_out.log
+server_err.log
+server.log
+
+# Environment / secrets
+.env
+.env.local

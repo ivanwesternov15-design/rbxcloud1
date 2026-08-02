@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — Clicker Farm</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { min-height: 100vh; background: var(--bg-primary); }
+        .admin-panel { max-width: 960px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .admin-back { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
+        .admin-back:hover { color: var(--accent); }
+        .admin-status { font-size: 12px; color: var(--success); display: flex; align-items: center; gap: 6px; }
+        .admin-content-inner { display: none; }
+        .admin-content-inner.active { display: block; }
+        .admin-section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .admin-flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .chart-box {
+            background: rgba(9, 12, 17, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .chart-box::after {
+            content: '';
+            position: absolute;
+            top: -40%; right: -20%;
+            width: 60%; height: 130%;
+            background: radial-gradient(ellipse, rgba(0, 255, 136, 0.05), transparent 70%);
+            pointer-events: none;
+        }
+        .chart-range {
+            display: flex; gap: 4px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .chart-range-btn {
+            padding: 3px 10px;
+            font-size: 11px; font-weight: 600;
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all 0.2s;
+        }
+        .chart-range-btn.active {
+            background: rgba(0, 255, 136, 0.12);
+            color: #00FF88;
+        }
+        .chart-value {
+            font-size: 22px; font-weight: 800;
+            color: #00FF88;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        .admin-icon-btn {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .admin-icon-btn:hover { border-color: var(--glass-border-hover); transform: translateY(-1px); }
+        .admin-icon-btn.gold { color: var(--gold); border-color: rgba(255, 228, 77, 0.25); background: rgba(255, 228, 77, 0.06); }
+        .admin-icon-btn.green { color: var(--success); border-color: rgba(0, 255, 136, 0.22); background: rgba(0, 255, 136, 0.05); }
+        .admin-icon-btn.pink { color: #FF8CFF; border-color: rgba(255, 140, 255, 0.25); background: rgba(255, 140, 255, 0.06); }
+        .admin-icon-btn.danger { color: #EF4444; border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.06); }
+        .user-modal-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .user-chart-panel {
+            background: rgba(9, 12, 17, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 14px;
+        }
+    </style>
+</head>
+<body>
+<!-- SVG Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-people" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="icon-coin" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M16 8.5C16 7.12 14.21 6 12 6s-4 1.12-4 2.5 1.79 2.5 4 2.5 4 1.12 4 2.5-1.79 2.5-4 2.5-4-1.12-4-2.5"/></symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="#6AB0FF"/><circle cx="16" cy="8" r="1.5" fill="#6AB0FF"/><circle cx="8" cy="16" r="1.5" fill="#6AB0FF"/><circle cx="16" cy="16" r="1.5" fill="#6AB0FF"/><circle cx="12" cy="12" r="1.5" fill="#6AB0FF"/></symbol>
+  <symbol id="icon-gift" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
+  <symbol id="icon-cycle" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="icon-click" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l16 6-7 2.5L11 18z"/><path d="M13 13l4 4"/></symbol>
+  <symbol id="icon-gear" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="icon-logout" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
+  <symbol id="icon-palette" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/></symbol>
+  <symbol id="icon-battery" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><line x1="6" y1="11" x2="6" y2="13" stroke="#00FF88" stroke-width="2"/><line x1="10" y1="11" x2="10" y2="13" stroke="#00FF88" stroke-width="2"/><line x1="14" y1="11" x2="14" y2="13" stroke="#00FF88" stroke-width="2"/></symbol>
+  <symbol id="icon-muscle" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2.83 2.83 0 0 0-4-4L9 12H3v6h6l6-6a2.83 2.83 0 0 0 4-4z"/><circle cx="17" cy="7" r="0.5" fill="#6AB0FF"/></symbol>
+  <symbol id="icon-scroll" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></symbol>
+  <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+  <symbol id="icon-explosion" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16 14 18 22 12 17 6 22 8 14 2 9 9 9 12 2"/></symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16 14 18 22 12 17 6 22 8 14 2 9 9 9 12 2"/></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="0.5" fill="#6AB0FF"/></symbol>
+  <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5l-2 14"/></symbol>
+  <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+  <symbol id="icon-arrow-up" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+  <symbol id="icon-lightning" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="icon-target" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="#6AB0FF"/></symbol>
+  <symbol id="icon-online" viewBox="0 0 24 24" fill="#00FF88"><circle cx="12" cy="12" r="6"/></symbol>
+  <symbol id="icon-cash" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v1H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3v1a3 3 0 0 0 6 0V8h3a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-3V1a3 3 0 0 0-3-3z"/><path d="M8 14v4"/><path d="M16 14v4"/></symbol>
+  <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 5 7 5"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 5 17 5"/><path d="M4 22h16"/><path d="M10 22V2l4 4"/><path d="M14 22V2l-4 4"/></symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="icon-save" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+  <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="icon-crown" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l3-14 4 7 3-7 3 7 4-7 3 14H2z"/></symbol>
+  <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></symbol>
+  <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 15.01a9 9 0 0 0 16.47-3.01"/><path d="M20.49 8.99a9 9 0 0 0-16.47 3.01"/></symbol>
+  <symbol id="icon-sent" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 6 12 13 2 6"/><path d="M2 6l10 7 10-7"/><path d="M2 6v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6"/></symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="#FF8CFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="icon-music" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+</svg>
+    <div id="toast-container" class="toast-container"></div>
+    <canvas id="particle-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+
+    <div class="admin-panel">
+            <div class="admin-header">
+                <div>
+                    <a href="/" class="admin-back">← На сайт</a>
+                    <div class="admin-page-title" style="margin-top:4px;">🛠 Админ-панель</div>
+                    <div class="admin-page-sub" id="admin-status" style="margin-bottom:0;margin-top:4px;">Проверка доступа...</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <button class="admin-btn" id="admin-refresh-all-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить всё</button>
+                    <button class="admin-btn" id="admin-set-webhook-btn" style="padding:6px 12px;font-size:11px;">🤖 Уст. вебхук</button>
+                    <div class="admin-status" id="admin-online-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-online"/></svg> <span id="admin-online-count">0</span></div>
+                    <div class="admin-status" id="admin-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Админ</div>
+                </div>
+            </div>
+
+        <div id="admin-content" style="display:none;">
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="dashboard"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Дашборд</button>
+                <button class="admin-tab" data-tab="users"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Пользователи</button>
+                <button class="admin-tab" data-tab="vouchers"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Ваучеры</button>
+                <button class="admin-tab" data-tab="config"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Экономика</button>
+                <button class="admin-tab" data-tab="tasks"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Задания</button>
+                <button class="admin-tab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</button>
+            </div>
+
+            <div class="admin-content-inner active" data-content="dashboard">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Общая статистика</div>
+                    <div class="admin-grid" id="admin-dashboard-stats">
+                        <div class="admin-stat"><div class="num" id="dash-users">0</div><div class="label">Пользователей</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-online">0</div><div class="label">Онлайн (5 мин)</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-coins">0</div><div class="label">Всего монет <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-clicks">0</div><div class="label">Всего кликов <svg class="icon" viewBox="0 0 24 24"><use href="#icon-click"/></svg></div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-earned">0</div><div class="label">Всего заработано</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-avg-level">0</div><div class="label">Средний уровень</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers">0</div><div class="label">Всего ваучеров</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers-avail">0</div><div class="label">Доступно</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers-claimed">0</div><div class="label">Выдано</div></div>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Графики активности</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="chart-pair">
+                        <div class="chart-box">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-people"/></svg> Заходы</div>
+                                <div class="chart-range">
+                                    <button class="chart-range-btn active" data-chart="logins" data-range="day">День</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="week">Неделя</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="month">Месяц</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="all">Все время</button>
+                                </div>
+                            </div>
+                            <div class="chart-value" id="chart-logins-value">0</div>
+                            <canvas id="chart-logins" height="140"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-online"/></svg> Онлайн</div>
+                                <div class="chart-range">
+                                    <button class="chart-range-btn active" data-chart="online" data-range="day">День</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="week">Неделя</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="month">Месяц</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="all">Все время</button>
+                                </div>
+                            </div>
+                            <div class="chart-value" id="chart-online-value">0</div>
+                            <canvas id="chart-online" height="140"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Нагрузка сервера</span>
+                        <button class="admin-btn" id="refresh-load-btn" style="padding:4px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
+                    </div>
+                    <div class="admin-grid" id="server-load-stats">
+                        <div class="admin-stat"><div class="num" id="load-cpu-process">0%</div><div class="label">CPU (процесс)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-cpu-system">0%</div><div class="label">CPU (система)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-process">0 MB</div><div class="label">RAM (процесс)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-used">0%</div><div class="label">RAM (система)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-online">0</div><div class="label">Онлайн (1 мин)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-requests-min">0</div><div class="label">Запросов/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-avg-response">0 ms</div><div class="label">Средний ответ</div></div>
+                        <div class="admin-stat"><div class="num" id="load-threads">0</div><div class="label">Потоков</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-reads">0</div><div class="label">Чтений БД/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-writes">0</div><div class="label">Записей БД/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-uptime">0</div><div class="label">Аптайм</div></div>
+                        <div class="admin-stat"><div class="num" id="load-users-file">0 KB</div><div class="label">users.json</div></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;" class="chart-pair">
+                        <div class="chart-box">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);">CPU %</div>
+                            </div>
+                            <canvas id="chart-cpu" height="140"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);">RAM (система, %)</div>
+                            </div>
+                            <canvas id="chart-ram" height="140"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="users">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Управление пользователями</div>
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table">
+                            <thead><tr>
+                                <th style="width:36px;"></th><th>ID</th><th>Имя</th><th>Username</th><th>Монеты</th><th>Уровень</th><th>Рефералы</th><th>Титул</th><th>Действия</th>
+                            </tr></thead>
+                            <tbody id="admin-users-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="vouchers">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Управление ваучерами</div>
+                    <div class="admin-flex" style="margin-bottom:16px;">
+                        <input class="admin-input" id="voucher-amount" type="number" placeholder="Номинал Robux" style="width:120px;">
+                        <input class="admin-input" id="voucher-code" placeholder="Код (необязательно)" style="width:200px;">
+                        <button class="admin-btn" id="add-voucher-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить ваучер</button>
+                        <input class="admin-input" id="bulk-count" type="number" placeholder="Кол-во" style="width:90px;">
+                        <input class="admin-input" id="bulk-amount" type="number" placeholder="Номинал" style="width:90px;">
+                        <button class="admin-btn success" id="bulk-add-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Массово</button>
+                    </div>
+                    <div class="admin-flex" style="margin-bottom:8px;">
+                        <button class="admin-btn danger" id="delete-vouchers-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Удалить выбранные</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table">
+                            <thead><tr>
+                                <th style="width:30px;"><input type="checkbox" id="voucher-select-all"></th>
+                                <th>ID</th><th>Код</th><th>Номинал</th><th>Статус</th><th>Получатель</th><th>Дата выдачи</th>
+                            </tr></thead>
+                            <tbody id="admin-vouchers-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="config">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Настройки экономики</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="admin-config-form"></div>
+                    <button class="admin-btn success" id="save-config-btn" style="margin-top:16px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить настройки</button>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Уровни</span>
+                        <button class="admin-btn" id="add-level-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
+                    </div>
+                    <div id="admin-levels-list"></div>
+                    <button class="admin-btn success" id="save-levels-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить уровни</button>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="tasks">
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Задания</span>
+                        <button class="admin-btn" id="refresh-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
+                    </div>
+                    <div id="admin-tasks-list"></div>
+                    <button class="admin-btn success" id="save-tasks-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить задания</button>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="cases">
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</span>
+                        <button class="admin-btn" id="refresh-cases-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
+                    </div>
+                    <div id="admin-cases-list"></div>
+                    <button class="admin-btn success" id="save-cases-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить кейсы</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-denied" style="display:none;text-align:center;padding:60px 20px;">
+            <div style="font-size:64px;margin-bottom:16px;">🚫</div>
+            <h2 style="font-size:24px;margin-bottom:8px;">Доступ запрещён</h2>
+            <p style="color:var(--text-secondary);">У вас нет прав администратора</p>
+            <a href="/" class="auth-btn" style="margin-top:24px;display:inline-flex;">← Вернуться на сайт</a>
+        </div>
+        </div>
+    
+    <!-- User Account Modal -->
+    <div id="user-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:rgba(12,16,22,0.97);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:24px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Профиль пользователя</div>
+                <button id="user-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div id="user-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Title Selection Modal -->
+    <div id="title-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:rgba(23,23,28,0.97);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Выбор титула</div>
+                <button id="title-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Выберите .png изображение для титула пользователя <strong id="title-modal-user">—</strong></div>
+            <div id="title-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;"></div>
+            <button id="title-remove-btn" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:var(--danger);font-weight:600;cursor:pointer;font-family:var(--font);font-size:13px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg> Убрать титул</button>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        let adminTasks = [];
+        let adminCases = [];
+        let adminUsersByName = {};
+
+        function customConfirm(msg) {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
+                overlay.innerHTML = `<div style="background:rgba(23,23,28,0.95);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">${msg}</div><div style="display:flex;gap:10px;justify-content:center;"><button id="custom-confirm-yes" style="padding:12px 28px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-family:var(--font);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Да</button><button id="custom-confirm-no" style="padding:12px 28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;font-family:var(--font);">❌ Нет</button></div></div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#custom-confirm-yes').onclick = () => { overlay.remove(); resolve(true); };
+                overlay.querySelector('#custom-confirm-no').onclick = () => { overlay.remove(); resolve(false); };
+            });
+        }
+
+        function toast(msg, type='info') {
+            const c = document.getElementById('toast-container');
+            if (!c) return;
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+        }
+
+        // Particle background
+        (function() {
+            const c = document.getElementById('particle-canvas');
+            const ctx = c.getContext('2d');
+            let particles = [];
+            function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
+            window.addEventListener('resize', resize);
+            resize();
+            for (let i = 0; i < 40; i++) particles.push({ x: Math.random()*c.width, y: Math.random()*c.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, r: Math.random()*2+0.5, a: Math.random()*0.3+0.05, c: ['79,143,255','139,92,246','6,182,212','236,72,153'][Math.floor(Math.random()*4)] });
+            function anim() { ctx.clearRect(0,0,c.width,c.height); particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=c.width; if(p.x>c.width)p.x=0; if(p.y<0)p.y=c.height; if(p.y>c.height)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(${p.c},${p.a})`; ctx.fill(); }); requestAnimationFrame(anim); }
+            anim();
+        })();
+
+        async function initAdmin() {
+            API.init();
+            const token = API.getToken();
+            if (!token) {
+                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Не авторизован';
+                return;
+            }
+            const check = await API.adminCheck();
+            if (check.error || !check.is_admin) {
+                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Доступ запрещён';
+                document.getElementById('admin-denied').style.display = 'block';
+                return;
+            }
+            document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступ разрешён';
+            document.getElementById('admin-badge').style.display = 'flex';
+            document.getElementById('admin-content').style.display = 'block';
+
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.admin-content-inner').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelector(`[data-content="${tab.dataset.tab}"]`).classList.add('active');
+                    if (tab.dataset.tab === 'users') loadUsers();
+                    if (tab.dataset.tab === 'vouchers') loadVouchers();
+                    if (tab.dataset.tab === 'config') loadConfigEdit();
+                    if (tab.dataset.tab === 'tasks') loadTasksEdit();
+                    if (tab.dataset.tab === 'cases') loadCasesEdit();
+                    if (tab.dataset.tab === 'dashboard') loadDashboard();
+                });
+            });
+            loadDashboard();
+
+            document.querySelectorAll('.chart-range-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll(`.chart-range-btn[data-chart="${btn.dataset.chart}"]`).forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderCharts();
+                });
+            });
+            renderCharts();
+            setInterval(renderCharts, 5000);
+
+            document.getElementById('add-voucher-btn').addEventListener('click', async () => {
+                const amount = parseInt(document.getElementById('voucher-amount').value) || 10;
+                const code = document.getElementById('voucher-code').value || '';
+                await API.adminAddVoucher(amount, code);
+                toast('Ваучер добавлен', 'success');
+                loadVouchers();
+            });
+            document.getElementById('bulk-add-btn').addEventListener('click', async () => {
+                const count = parseInt(document.getElementById('bulk-count').value) || 10;
+                const amount = parseInt(document.getElementById('bulk-amount').value) || 10;
+                await API.adminAddVouchersBulk(count, amount);
+                toast(`Добавлено ${count} ваучеров`, 'success');
+                loadVouchers();
+            });
+            document.getElementById('delete-vouchers-btn').addEventListener('click', async () => {
+                const checks = document.querySelectorAll('#admin-vouchers-body input[type=checkbox]:checked');
+                const ids = Array.from(checks).map(c => c.value);
+                if (ids.length === 0) { toast('Нет выбранных ваучеров', 'error'); return; }
+                if (!await customConfirm(`Удалить ${ids.length} ваучер(ов)? Это действие нельзя отменить.`)) return;
+                const res = await API.post('/api/admin/delete_vouchers', { ids });
+                if (res.success) {
+                    toast(`Удалено ${res.deleted} ваучеров`, 'success');
+                    loadVouchers();
+                } else {
+                    toast('Ошибка удаления', 'error');
+                }
+            });
+            document.getElementById('voucher-select-all').addEventListener('change', function() {
+                document.querySelectorAll('#admin-vouchers-body input[type=checkbox]').forEach(c => c.checked = this.checked);
+            });
+            document.getElementById('save-config-btn').addEventListener('click', async () => {
+                const inputs = document.querySelectorAll('#admin-config-form input');
+                const newConfig = { game: {} };
+                inputs.forEach(inp => { const val = inp.value; newConfig.game[inp.dataset.key] = isNaN(val) ? val : Number(val); });
+                await API.adminUpdateConfig(newConfig);
+                toast('Конфиг сохранён', 'success');
+            });
+            document.getElementById('save-levels-btn').addEventListener('click', async () => {
+                const configRes = await API.getConfig();
+                const currentConfig = configRes.config;
+                const levelInputs = document.querySelectorAll('#admin-levels-list .level-entry');
+                const newLevels = [];
+                levelInputs.forEach(entry => {
+                    const lvl = {
+                        level: parseInt(entry.querySelector('[data-lfield="level"]').value) || 1,
+                        name: entry.querySelector('[data-lfield="name"]').value || '',
+                        coins_needed: parseInt(entry.querySelector('[data-lfield="coins_needed"]').value) || 0,
+                        bonus: parseFloat(entry.querySelector('[data-lfield="bonus"]').value) || 1
+                    };
+                    newLevels.push(lvl);
+                });
+                currentConfig.levels = newLevels;
+                await API.adminUpdateConfig({ game: currentConfig.game, levels: newLevels });
+                toast('Уровни сохранены', 'success');
+            });
+            document.getElementById('add-level-btn').addEventListener('click', () => {
+                const list = document.getElementById('admin-levels-list');
+                const idx = list.children.length;
+                const div = document.createElement('div');
+                div.className = 'level-entry';
+                div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;';
+                div.innerHTML = `
+                    <input class="admin-input" data-lfield="level" value="${idx + 1}" style="width:50px;" placeholder="LVL">
+                    <input class="admin-input" data-lfield="name" value="" style="flex:1;" placeholder="Название">
+                    <input class="admin-input" data-lfield="coins_needed" value="0" style="width:80px;" placeholder="Монет">
+                    <input class="admin-input" data-lfield="bonus" value="1" style="width:60px;" placeholder="x">
+                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
+                `;
+                list.appendChild(div);
+            });
+            document.getElementById('save-tasks-btn').addEventListener('click', async () => {
+                await API.adminSaveTasks(adminTasks);
+                toast('Задания сохранены', 'success');
+            });
+            document.getElementById('refresh-tasks-btn').addEventListener('click', loadTasksEdit);
+            document.getElementById('save-cases-btn').addEventListener('click', async () => {
+                await API.adminSaveCases(adminCases);
+                toast('Кейсы сохранены', 'success');
+                loadCasesEdit();
+            });
+            document.getElementById('refresh-cases-btn').addEventListener('click', loadCasesEdit);
+
+            // Refresh all button
+            document.getElementById('admin-refresh-all-btn').addEventListener('click', async () => {
+                await loadDashboard();
+                loadUsers();
+                loadVouchers();
+                loadConfigEdit();
+                loadTasksEdit();
+                loadCasesEdit();
+                toast('Все данные обновлены', 'success');
+            });
+
+            // User modal close
+            document.getElementById('user-modal-close').addEventListener('click', () => {
+                document.getElementById('user-modal').style.display = 'none';
+                if (userModalState.timer) { clearInterval(userModalState.timer); userModalState.timer = null; }
+            });
+            document.getElementById('user-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('user-modal').style.display = 'none';
+                    if (userModalState.timer) { clearInterval(userModalState.timer); userModalState.timer = null; }
+                }
+            });
+
+            // Title modal close
+            document.getElementById('title-modal-close').addEventListener('click', () => {
+                document.getElementById('title-modal').style.display = 'none';
+            });
+            document.getElementById('title-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) document.getElementById('title-modal').style.display = 'none';
+            });
+            document.getElementById('title-remove-btn').addEventListener('click', async () => {
+                const uid = document.getElementById('title-modal-user').textContent;
+                if (uid && uid !== '—') {
+                    await API.adminSetTitle(uid, '');
+                    toast('Титул убран', 'success');
+                    document.getElementById('title-modal').style.display = 'none';
+                    loadUsers();
+                }
+            });
+
+            // Set webhook button
+            document.getElementById('admin-set-webhook-btn').addEventListener('click', async () => {
+                const res = await API.post('/api/admin/set_webhook', {});
+                if (res.success) {
+                    toast('Вебхук установлен!', 'success');
+                } else {
+                    toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
+                }
+            });
+
+            // Load online count
+            async function loadOnlineCount() {
+                const res = await API.post('/api/admin/online_count', {});
+                if (res.online !== undefined) {
+                    document.getElementById('admin-online-count').textContent = res.online;
+                    document.getElementById('admin-online-badge').style.display = 'flex';
+                }
+            }
+            loadOnlineCount();
+            setInterval(loadOnlineCount, 10000);
+        }
+
+        async function loadDashboard() {
+            const usersRes = await API.adminGetUsers();
+            const vouchersRes = await API.adminGetVouchers();
+            const users = usersRes.users || [];
+            document.getElementById('dash-users').textContent = users.length;
+            if (users.length > 0) {
+                let totalCoins = 0, totalClicks = 0, totalEarned = 0, totalLevel = 0;
+                users.forEach(u => { totalCoins += u.coins || 0; totalClicks += u.total_clicks || 0; totalEarned += u.total_earned || 0; totalLevel += u.level || 1; });
+                document.getElementById('dash-total-coins').textContent = formatStat(totalCoins);
+                document.getElementById('dash-total-clicks').textContent = formatStat(totalClicks);
+                document.getElementById('dash-total-earned').textContent = formatStat(totalEarned);
+                document.getElementById('dash-avg-level').textContent = (totalLevel / users.length).toFixed(1);
+            }
+            if (vouchersRes.vouchers) {
+                document.getElementById('dash-vouchers').textContent = vouchersRes.vouchers.length;
+                document.getElementById('dash-vouchers-avail').textContent = vouchersRes.vouchers.filter(v => v.status === 'available').length;
+                document.getElementById('dash-vouchers-claimed').textContent = vouchersRes.vouchers.filter(v => v.status === 'claimed').length;
+            }
+            const onlineRes = await API.post('/api/admin/online_count', {});
+            if (onlineRes.online !== undefined) {
+                document.getElementById('dash-online').textContent = onlineRes.online;
+                document.getElementById('admin-online-count').textContent = onlineRes.online;
+                document.getElementById('admin-online-badge').style.display = 'flex';
+            }
+        }
+        function formatStat(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toString();
+        }
+
+        const CHART_RANGES = { day: 24, week: 7, month: 30, all: Infinity };
+        function currentChartRange(chart) {
+            const btn = document.querySelector(`.chart-range-btn[data-chart="${chart}"].active`);
+            return btn ? btn.dataset.range : 'day';
+        }
+        function chartSeries(data, series, range) {
+            const raw = range === 'all' ? data[series + '_all'] : (range === 'day' ? data[series + '_hourly'] : data[series + '_daily']);
+            return (raw || []).slice(-CHART_RANGES[range]).map(p => [chartLabel(p[0], range), p[1]]);
+        }
+        function chartLabel(key, range) {
+            if (!key) return '';
+            if (range === 'all') {
+                const parts = key.split('-');
+                return parts.length >= 3 ? parts[2] + '.' + parts[1] + '.' + parts[0].slice(2) : key;
+            }
+            if (range === 'day') return (key.split(' ')[1] || '') + ':00';
+            const parts = key.slice(5).split('-');
+            return parts[0] + '.' + parts[1];
+        }
+        function drawChart(canvas, data, valueElId, mode) {
+            const width = Math.max(canvas.parentElement.clientWidth - 2, 80);
+            const height = 150;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height);
+
+            const values = data.map(d => d[1]);
+            const max = Math.max.apply(null, values.concat([1]));
+            const padL = 8, padR = 8, padT = 14, padB = 22;
+            const innerW = width - padL - padR;
+            const innerH = height - padT - padB;
+            const n = values.length || 1;
+            const step = innerW / n;
+            const barW = Math.max(step * 0.35, 2);
+
+            // Subtle horizontal grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 3; i++) {
+                const y = padT + (innerH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padL, y);
+                ctx.lineTo(width - padR, y);
+                ctx.stroke();
+            }
+
+            // Thin semi-transparent bars
+            let sum = 0, peak = 0;
+            values.forEach(v => { sum += v; if (v > peak) peak = v; });
+            for (let i = 0; i < n; i++) {
+                const v = values[i];
+                const bh = Math.max((v / max) * innerH, v > 0 ? 1.5 : 0);
+                const x = padL + i * step + (step - barW) / 2;
+                const y = padT + innerH - bh;
+                ctx.fillStyle = 'rgba(0,255,136,0.16)';
+                ctx.fillRect(x, y, barW, bh);
+            }
+
+            // Smooth bright green line + gradient fill
+            const ptsX = [], ptsY = [];
+            for (let i = 0; i < n; i++) {
+                ptsX[i] = padL + i * step + step / 2;
+                ptsY[i] = padT + innerH - (values[i] / max) * innerH;
+            }
+            ctx.beginPath();
+            ctx.moveTo(ptsX[0], ptsY[0]);
+            for (let i = 0; i < n - 1; i++) {
+                const xc = (ptsX[i] + ptsX[i + 1]) / 2;
+                const yc = (ptsY[i] + ptsY[i + 1]) / 2;
+                ctx.quadraticCurveTo(ptsX[i], ptsY[i], xc, yc);
+            }
+            ctx.lineTo(ptsX[n - 1], ptsY[n - 1]);
+            ctx.strokeStyle = '#00FF88';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.shadowColor = 'rgba(0,255,136,0.45)';
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.lineTo(ptsX[n - 1], padT + innerH);
+            ctx.lineTo(ptsX[0], padT + innerH);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, padT, 0, padT + innerH);
+            grad.addColorStop(0, 'rgba(0,255,136,0.16)');
+            grad.addColorStop(1, 'rgba(0,255,136,0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Glow dot at the last point
+            ctx.beginPath();
+            ctx.arc(ptsX[n - 1], ptsY[n - 1], 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#00FF88';
+            ctx.shadowColor = 'rgba(0,255,136,0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Time / date labels
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            const labelStep = Math.max(1, Math.ceil(n / 7));
+            for (let i = 0; i < n; i += labelStep) {
+                const x = padL + i * step + step / 2;
+                ctx.fillText(String(data[i][0]), Math.min(x, width - padR), height - 6);
+            }
+
+            const el = document.getElementById(valueElId);
+            if (el) el.textContent = formatStat(mode === 'max' ? peak : sum);
+
+            // Hover tooltip on data points
+            const pts = { x: ptsX, y: ptsY, data: data };
+            canvas._chartPts = pts;
+            if (!canvas._chartHoverBound) {
+                canvas._chartHoverBound = true;
+                let tooltip = canvas._chartTooltip;
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'chart-tooltip';
+                    tooltip.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;display:none;background:rgba(12,16,22,0.95);border:1px solid rgba(0,255,136,0.25);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.45);white-space:nowrap;';
+                    document.body.appendChild(tooltip);
+                    canvas._chartTooltip = tooltip;
+                }
+                canvas.addEventListener('mousemove', (e) => {
+                    const p = canvas._chartPts;
+                    if (!p) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    let nearest = -1, best = Infinity;
+                    for (let i = 0; i < p.x.length; i++) {
+                        const d = Math.abs(mx - p.x[i]);
+                        if (d < best) { best = d; nearest = i; }
+                    }
+                    if (nearest < 0) { tooltip.style.display = 'none'; return; }
+                    const step = (canvas._chartPts.data.length || 1) ? width / Math.max(p.data.length, 1) : width;
+                    if (best > step * 0.7) { tooltip.style.display = 'none'; return; }
+                    const lbl = p.data[nearest][0];
+                    const val = p.data[nearest][1];
+                    tooltip.innerHTML = `<div style="font-size:10px;color:var(--text-secondary);">${lbl}</div><div style="color:#00FF88;font-size:14px;font-weight:800;">${formatStat(val)}</div>`;
+                    tooltip.style.display = 'block';
+                    let tx = rect.left + p.x[nearest];
+                    let ty = rect.top + p.y[nearest] - tooltip.offsetHeight - 10;
+                    if (ty < 4) ty = rect.top + p.y[nearest] + 12;
+                    tx = Math.min(Math.max(tx, 4), window.innerWidth - tooltip.offsetWidth - 8);
+                    ty = Math.min(Math.max(ty, 4), window.innerHeight - tooltip.offsetHeight - 8);
+                    tooltip.style.left = tx + 'px';
+                    tooltip.style.top = ty + 'px';
+                });
+                canvas.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+            }
+        }
+        async function renderCharts() {
+            const res = await API.post('/api/admin/stats', {});
+            if (!res.logins_hourly) return;
+            const lr = currentChartRange('logins');
+            const or = currentChartRange('online');
+            drawChart(document.getElementById('chart-logins'), chartSeries(res, 'logins', lr), 'chart-logins-value', 'sum');
+            drawChart(document.getElementById('chart-online'), chartSeries(res, 'online', or), 'chart-online-value', 'max');
+        }
+
+        // --- Server load ---
+        const loadHistory = { cpu: [], ram: [] };
+        function pushLoadSample(load) {
+            loadHistory.cpu.push(load.cpu_system || 0);
+            loadHistory.ram.push(load.ram_used_pct || 0);
+            if (loadHistory.cpu.length > 30) { loadHistory.cpu.shift(); loadHistory.ram.shift(); }
+        }
+        function drawLoadChart(id, data, label) {
+            const canvas = document.getElementById(id);
+            if (!canvas) return;
+            const points = data.map((v, i) => [i, v]);
+            drawChart(canvas, points, null, 'line');
+        }
+        async function loadServerLoad() {
+            const res = await API.post('/api/admin/server_load', {});
+            if (!res || res.error) return;
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+            set('load-cpu-process', (res.cpu_process ?? 0) + '%');
+            set('load-cpu-system', (res.cpu_system ?? 0) + '%');
+            set('load-ram-process', (res.ram_process_mb ?? 0) + ' MB');
+            set('load-ram-used', (res.ram_used_pct ?? 0) + '%');
+            set('load-online', res.online ?? 0);
+            set('load-requests-min', res.requests_min ?? 0);
+            set('load-avg-response', (res.avg_response_ms ?? 0) + ' ms');
+            set('load-threads', res.threads ?? 0);
+            set('load-db-reads', res.db_reads_min ?? 0);
+            set('load-db-writes', res.db_writes_min ?? 0);
+            set('load-users-file', (res.users_file_kb ?? 0) + ' KB');
+            const up = res.uptime_sec || 0;
+            const days = Math.floor(up / 86400), hours = Math.floor((up % 86400) / 3600), mins = Math.floor((up % 3600) / 60);
+            set('load-uptime', (days > 0 ? days + 'д ' : '') + (hours > 0 ? hours + 'ч ' : '') + mins + 'м');
+            pushLoadSample(res);
+            drawLoadChart('chart-cpu', loadHistory.cpu, 'CPU');
+            drawLoadChart('chart-ram', loadHistory.ram, 'RAM');
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const refreshBtn = document.getElementById('refresh-load-btn');
+            if (refreshBtn) refreshBtn.addEventListener('click', () => loadServerLoad());
+            loadServerLoad();
+            setInterval(loadServerLoad, 3000);
+        });
+
+        const userModalState = { uid: null, data: null, range: 'day', timer: null };
+
+        async function openUserModal(u) {
+            userModalState.uid = u.id;
+            userModalState.range = 'day';
+            const modal = document.getElementById('user-modal');
+            modal.style.display = 'flex';
+            const body = document.getElementById('user-modal-body');
+
+            let cfg = null;
+            try { cfg = await API.getConfig(); } catch (e) {}
+            const levels = (cfg && cfg.levels) || [];
+            const lvlDef = levels.find(l => l.level === (u.level || 1)) || {};
+            const lvlName = lvlDef.name || ('Уровень ' + (u.level || 1));
+            const titleImg = u.custom_title ? `<img src="/assets/title/${u.custom_title}" style="width:42px;height:42px;object-fit:contain;" alt="">` : '';
+            const regDate = u.registered_at ? new Date(u.registered_at * 1000).toLocaleDateString('ru-RU') : '-';
+            const adminBadge = u.is_admin ? '<span style="font-size:10px;color:var(--gold);border:1px solid rgba(255,228,77,0.3);padding:2px 8px;border-radius:10px;"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-crown"/></svg> АДМИН</span>' : '';
+            const blockedBadge = u.is_blocked ? '<span style="font-size:10px;color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:10px;">ЗАБЛОКИРОВАН</span>' : '';
+
+            body.innerHTML = `
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+                    <img src="${u.photo_url || '/assets/icons/coin.png'}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--glass-bg);border:2px solid rgba(255,255,255,0.08);" onerror="this.onerror=null;this.src='/assets/icons/coin.png'" alt="">
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <strong style="font-size:17px;">${u.first_name || u.id}</strong>
+                            ${adminBadge}${blockedBadge}
+                        </div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${u.username ? '@'+u.username : '—'} · ID ${u.id}</div>
+                        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                            ${titleImg || '<span style="color:var(--text-muted);font-size:12px;">Без титула</span>'}
+                        </div>
+                    </div>
+                    <div style="text-align:center;flex-shrink:0;">
+                        <div style="font-size:24px;font-weight:800;color:var(--gold);">${u.level || 1}</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">РАНГ · ${lvlName}</div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Монеты</div>
+                        <div id="um-coins" style="font-size:18px;font-weight:800;color:var(--gold);">${formatStat(u.coins || 0)}</div>
+                    </div>
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Всего заработано</div>
+                        <div id="um-total-earned" style="font-size:18px;font-weight:800;color:var(--gold);">${formatStat(u.total_earned || 0)}</div>
+                    </div>
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Рефералы (акт.)</div>
+                        <div id="um-ref-stats" style="font-size:18px;font-weight:800;color:var(--cyan);">${u.referral_count || 0} (${u.referral_active_count || 0})</div>
+                    </div>
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Заработано реф.</div>
+                        <div id="um-ref-earned" style="font-size:18px;font-weight:800;color:var(--cyan);">${formatStat(u.referral_earned || 0)}</div>
+                    </div>
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Всего кликов</div>
+                        <div id="um-total-clicks" style="font-size:18px;font-weight:800;color:var(--accent);">${formatStat(u.total_clicks || 0)}</div>
+                    </div>
+                    <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
+                        <div style="font-size:11px;color:var(--text-secondary);">Приглашён</div>
+                        <div id="um-referred-by" style="font-size:13px;font-weight:700;color:var(--text-primary);">${u.referred_by ? (adminUsersByName[String(u.referred_by)] ? adminUsersByName[String(u.referred_by)] + ' · ' + u.referred_by : u.referred_by) : '—'}</div>
+                        <div style="font-size:10px;color:var(--text-muted);">Регистрация: ${regDate}</div>
+                    </div>
+                </div>
+
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Редактирование</div>
+                <div class="user-modal-inputs">
+                    <div>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Баланс</label>
+                        <input class="admin-input" id="um-balance" type="number" value="${u.coins || 0}">
+                    </div>
+                    <div>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Уровень</label>
+                        <input class="admin-input" id="um-level" type="number" value="${u.level || 1}">
+                    </div>
+                    <div>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Рефералы</label>
+                        <input class="admin-input" id="um-referrals" type="number" value="${u.referral_count || 0}">
+                    </div>
+                    <div>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Активные рефералы</label>
+                        <input class="admin-input" id="um-referrals-active" type="number" value="${u.referral_active_count || 0}">
+                    </div>
+                </div>
+                <button class="admin-btn success" id="um-save-btn" style="width:100%;margin-top:10px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить изменения</button>
+
+                <div class="user-chart-panel">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                        <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-chart"/></svg> Активность (заходы)</div>
+                        <div class="chart-range">
+                            <button class="chart-range-btn active" data-uchart="user" data-range="day">День</button>
+                            <button class="chart-range-btn" data-uchart="user" data-range="week">Неделя</button>
+                            <button class="chart-range-btn" data-uchart="user" data-range="month">Месяц</button>
+                        </div>
+                    </div>
+                    <div class="chart-value" id="user-chart-value">0</div>
+                    <canvas id="user-chart-canvas" height="140"></canvas>
+                </div>
+            `;
+
+            document.getElementById('um-save-btn').addEventListener('click', async () => {
+                const res = await API.post('/api/admin/set_user_fields', {
+                    user_id: userModalState.uid,
+                    balance: parseInt(document.getElementById('um-balance').value) || 0,
+                    level: parseInt(document.getElementById('um-level').value) || 1,
+                    referral_count: parseInt(document.getElementById('um-referrals').value) || 0,
+                    referral_active_count: parseInt(document.getElementById('um-referrals-active').value) || 0
+                });
+                if (res.success) {
+                    toast('Данные пользователя обновлены', 'success');
+                    loadUsers();
+                } else {
+                    toast('Ошибка обновления: ' + (res.error || 'неизвестно'), 'error');
+                }
+            });
+
+            document.querySelectorAll('[data-uchart="user"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-uchart="user"]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    userModalState.range = btn.dataset.range;
+                    drawUserChart();
+                });
+            });
+
+            const statsRes = await API.post('/api/admin/user_stats', { user_id: userModalState.uid });
+            if (statsRes && statsRes.logins_daily) {
+                userModalState.data = statsRes;
+                drawUserChart();
+            }
+
+            if (userModalState.timer) clearInterval(userModalState.timer);
+            userModalState.timer = setInterval(async () => {
+                if (!userModalState.uid) return;
+                const usersRes = await API.adminGetUsers();
+                const fresh = (usersRes.users || []).find(x => String(x.id) === String(userModalState.uid));
+                if (!fresh) return;
+                const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+                set('um-coins', formatStat(fresh.coins || 0));
+                set('um-total-earned', formatStat(fresh.total_earned || 0));
+                set('um-ref-stats', `${fresh.referral_count || 0} (${fresh.referral_active_count || 0})`);
+                set('um-ref-earned', formatStat(fresh.referral_earned || 0));
+                set('um-total-clicks', formatStat(fresh.total_clicks || 0));
+                set('um-referred-by', fresh.referred_by ? (adminUsersByName[String(fresh.referred_by)] ? adminUsersByName[String(fresh.referred_by)] + ' · ' + fresh.referred_by : fresh.referred_by) : '—');
+                const st = await API.post('/api/admin/user_stats', { user_id: userModalState.uid });
+                if (st && st.logins_daily) {
+                    userModalState.data = st;
+                    drawUserChart();
+                }
+            }, 5000);
+        }
+
+        function drawUserChart() {
+            const canvas = document.getElementById('user-chart-canvas');
+            if (!canvas || !userModalState.data) return;
+            const series = userModalState.range === 'day' ? 'logins_hourly' : 'logins_daily';
+            const raw = userModalState.data[series] || [];
+            const data = raw.slice(-CHART_RANGES[userModalState.range]).map(p => [chartLabel(p[0], userModalState.range), p[1]]);
+            drawChart(canvas, data, 'user-chart-value', 'sum');
+        }
+
+        async function loadUsers() {
+            const res = await API.adminGetUsers();
+            if (res.error) return;
+            const tbody = document.getElementById('admin-users-body');
+            tbody.innerHTML = '';
+            adminUsersByName = {};
+            (res.users || []).forEach(u => { adminUsersByName[String(u.id)] = u.first_name || u.id; });
+            (res.users || []).forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="width:36px;"><img src="${u.photo_url || '/assets/icons/coin.png'}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--glass-bg);" onerror="this.style.display='none'" alt=""></td>
+                    <td style="color:var(--text-muted);font-size:11px;">${u.id}</td>
+                    <td><strong>${u.first_name || '-'}</strong>${u.is_admin ? ' <img src="/assets/icons/admin.png" style="width:16px;height:16px;vertical-align:middle;border-radius:4px;" alt="admin">' : ''}</td>
+                    <td style="color:var(--text-secondary);">${u.username ? '@'+u.username : '-'}</td>
+                    <td><input class="admin-input" value="${u.coins}" style="width:80px;padding:6px 10px;" data-uid="${u.id}" data-field="balance"></td>
+                    <td><strong style="color:var(--gold);">${u.level || 1}</strong></td>
+                    <td><strong>${u.referral_count || 0}</strong></td>
+                    <td>${u.custom_title ? '<span style="color:var(--gold);font-size:11px;">'+u.custom_title.replace('.png','')+'</span>' : '-'}</td>
+                    <td>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start;">
+                            <button class="admin-icon-btn gold" title="Профиль и активность" data-action="view-user" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-chart"/></svg></button>
+                            <button class="admin-icon-btn green" title="Сохранить баланс" data-action="save-balance" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-save"/></svg></button>
+                            <button class="admin-icon-btn gold" title="${u.is_admin ? 'Снять админа' : 'Дать админа'}" data-action="toggle-admin" data-uid="${u.id}">${u.is_admin ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-crown"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-user"/></svg>'}</button>
+                            <button class="admin-icon-btn pink" title="Установить титул" data-action="set-title" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-image"/></svg></button>
+                            <button class="admin-icon-btn ${u.is_blocked ? 'green' : 'danger'}" title="${u.is_blocked ? 'Разблокировать' : 'Заблокировать'}" data-action="toggle-block" data-uid="${u.id}">${u.is_blocked ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-unlock"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-lock"/></svg>'}</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('[data-action="toggle-block"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await API.adminToggleBlock(btn.dataset.uid);
+                    toast('Статус изменён', 'success');
+                    loadUsers();
+                });
+            });
+            tbody.querySelectorAll('[data-action="save-balance"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const input = document.querySelector(`[data-uid="${btn.dataset.uid}"][data-field="balance"]`);
+                    const balance = parseInt(input.value) || 0;
+                    await API.adminSetBalance(btn.dataset.uid, balance);
+                    toast('Баланс обновлён', 'success');
+                });
+            });
+            tbody.querySelectorAll('[data-action="view-user"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const u = (res.users || []).find(x => String(x.id) === String(btn.dataset.uid));
+                    if (u) openUserModal(u);
+                });
+            });
+            tbody.querySelectorAll('[data-action="toggle-admin"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const res = await API.post('/api/admin/toggle_admin', { user_id: btn.dataset.uid });
+                    if (res.success) {
+                        toast(res.is_admin ? '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-crown"/></svg> Админ добавлен' : '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-user"/></svg> Админ удалён', 'success');
+                        loadUsers();
+                    } else {
+                        toast('Ошибка', 'error');
+                    }
+                });
+            });
+            tbody.querySelectorAll('[data-action="set-title"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const modal = document.getElementById('title-modal');
+                    modal.style.display = 'flex';
+                    document.getElementById('title-modal-user').textContent = btn.dataset.uid;
+                    const grid = document.getElementById('title-grid');
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;">Загрузка...</div>';
+                    const res = await API.adminListTitles();
+                    grid.innerHTML = '';
+                    if (res.error) {
+                        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:20px;">Ошибка: ${res.error}</div>`;
+                    } else if (res.titles && res.titles.length > 0) {
+                        const titles = res.titles;
+                        const BATCH = 6;
+                        let idx = 0;
+                        const items = titles.map(title => {
+                            const item = document.createElement('div');
+                            item.style.cssText = 'cursor:pointer;border-radius:8px;border:2px solid rgba(255,255,255,0.06);overflow:hidden;transition:all 0.2s;background:var(--glass-bg);';
+                            item.innerHTML = '<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px;background:rgba(255,255,255,0.03);">...</div>';
+                            item.addEventListener('click', async () => {
+                                const r = await API.adminSetTitle(btn.dataset.uid, title);
+                                if (r.success) {
+                                    toast('Титул установлен: ' + title, 'success');
+                                    modal.style.display = 'none';
+                                    loadUsers();
+                                } else {
+                                    toast('Ошибка установки титула', 'error');
+                                }
+                            });
+                            grid.appendChild(item);
+                            return { title, item };
+                        });
+                        const loadNext = () => {
+                            const batch = items.slice(idx, idx + BATCH);
+                            idx += BATCH;
+                            batch.forEach(({ title, item }) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    item.innerHTML = `<img src="/assets/title/${title}" style="width:100%;aspect-ratio:1;object-fit:contain;display:block;padding:4px;" title="${title}">`;
+                                };
+                                img.onerror = () => {
+                                    item.innerHTML = `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:11px;">ошибка</div>`;
+                                };
+                                img.src = `/assets/title/${title}`;
+                            });
+                            if (idx < items.length) setTimeout(loadNext, 80);
+                        };
+                        loadNext();
+                    } else {
+                        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">Нет .png файлов в assets/title/</div>';
+                    }
+                });
+            });
+        }
+
+        async function loadVouchers() {
+            const res = await API.adminGetVouchers();
+            if (res.error) return;
+            const tbody = document.getElementById('admin-vouchers-body');
+            tbody.innerHTML = '';
+            (res.vouchers || []).forEach(v => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" value="${v.id}"></td>
+                    <td style="color:var(--text-muted);font-size:11px;">${v.id}</td>
+                    <td style="font-family:monospace;color:var(--cyan);">${v.code}</td>
+                    <td><strong>${v.amount}</strong> Robux</td>
+                    <td>${v.status === 'available' ? '<span style="color:var(--success);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступен</span>' : '<span style="color:var(--text-secondary);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-sent"/></svg> Выдан</span>'}</td>
+                    <td style="color:var(--text-secondary);font-size:11px;">${v.claimed_by || '-'}</td>
+                    <td style="color:var(--text-secondary);font-size:11px;">${v.claim_date || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function loadConfigEdit() {
+            const configRes = await API.getConfig();
+            const adminConfig = configRes.config;
+            if (!adminConfig || !adminConfig.game) return;
+            const form = document.getElementById('admin-config-form');
+            form.innerHTML = '';
+            const fields = {
+                'base_click_reward': 'Монет за клик',
+                'base_max_energy': 'Макс. энергия',
+                'energy_per_click': 'Энергии за клик',
+                'base_energy_regen': 'Регенерация/сек',
+                'exchange_rate': 'Курс (монет за 1 Robux)',
+                'max_exchange_per_day': 'Макс. обменов/день',
+                'referral_bonus': 'Бонус новичку за реферала',
+                'referral_ref_bonus': 'Бонус рефереру за реферала',
+                'referral_level_required': 'Уровень для бонуса',
+                'referral_coins_required': 'Монет для бонуса',
+                'click_cooldown_ms': 'Кд клика (мс)',
+                'max_clicks_per_second': 'Макс кликов/сек',
+                'passive_income_interval': 'Интервал дохода (мс)'
+            };
+            Object.entries(fields).forEach(([key, label]) => {
+                const val = adminConfig.game[key] !== undefined ? adminConfig.game[key] : '';
+                const div = document.createElement('div');
+                div.innerHTML = `<label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">${label}</label><input class="admin-input" data-key="${key}" value="${val}" type="number" step="any">`;
+                form.appendChild(div);
+            });
+            loadLevelsEdit(adminConfig);
+        }
+        function loadLevelsEdit(adminConfig) {
+            const list = document.getElementById('admin-levels-list');
+            list.innerHTML = '';
+            (adminConfig.levels || []).forEach(lvl => {
+                const div = document.createElement('div');
+                div.className = 'level-entry';
+                div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;';
+                div.innerHTML = `
+                    <input class="admin-input" data-lfield="level" value="${lvl.level}" style="width:50px;" placeholder="LVL">
+                    <input class="admin-input" data-lfield="name" value="${lvl.name}" style="flex:1;" placeholder="Название">
+                    <input class="admin-input" data-lfield="coins_needed" value="${lvl.coins_needed}" style="width:80px;" placeholder="Монет">
+                    <input class="admin-input" data-lfield="bonus" value="${lvl.bonus}" style="width:60px;" placeholder="x" step="any">
+                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function loadTasksEdit() {
+            const configRes = await API.getConfig();
+            adminTasks = configRes.tasks || [];
+            const div = document.getElementById('admin-tasks-list');
+            div.innerHTML = '';
+            adminTasks.forEach((task, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;';
+                card.innerHTML = `
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <input class="admin-input" value="${task.title}" data-idx="${i}" data-field="title" style="flex:2;min-width:120px;" placeholder="Название">
+                        <input class="admin-input" value="${task.reward}" data-idx="${i}" data-field="reward" style="width:80px;" placeholder="Награда">
+                        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
+                            <input type="checkbox" ${task.enabled ? 'checked' : ''} data-idx="${i}" data-field="enabled"> Вкл
+                        </label>
+                    </div>
+                    <input class="admin-input" value="${task.description}" data-idx="${i}" data-field="description" style="margin-top:6px;" placeholder="Описание">
+                `;
+                card.querySelectorAll('input:not([type=checkbox])').forEach(inp => {
+                    inp.addEventListener('change', () => { adminTasks[parseInt(inp.dataset.idx)][inp.dataset.field] = inp.value; });
+                });
+                card.querySelectorAll('input[type=checkbox]').forEach(cb => {
+                    cb.addEventListener('change', () => { adminTasks[parseInt(cb.dataset.idx)].enabled = cb.checked; });
+                });
+                div.appendChild(card);
+            });
+        }
+
+        async function loadCasesEdit() {
+            const configRes = await API.getConfig();
+            adminCases = configRes.cases || [];
+            const div = document.getElementById('admin-cases-list');
+            div.innerHTML = '';
+            adminCases.forEach((c, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;';
+                
+                // Header with case name and price
+                let itemsHtml = c.items.map((item, idx) => {
+                    const pct = (item.probability * 100).toFixed(1);
+                    const colors = ['#4F8FFF','#10B981','#F59E0B','#EF4444','#BF00FF','#FFD700','#06B6D4','#EC4899'];
+                    const col = colors[idx % colors.length];
+                    return `<div style="margin-bottom:8px;padding:8px;background:rgba(0,0,0,0.15);border-radius:6px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-size:12px;font-weight:600;">${item.name}</span>
+                            <span style="font-size:12px;font-weight:700;color:${col};">${pct}%</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <input type="range" min="0.1" max="100" step="0.1" value="${pct}" data-case-idx="${i}" data-item-idx="${idx}" style="flex:1;height:4px;-webkit-appearance:none;background:rgba(255,255,255,0.08);border-radius:2px;outline:none;" oninput="this.nextElementSibling.textContent = parseFloat(this.value).toFixed(1)+'%'; adminCases[${i}].items[${idx}].probability = parseFloat((this.value/100).toFixed(3));">
+                            <span style="font-size:11px;color:var(--text-secondary);min-width:40px;text-align:right;">${pct}%</span>
+                        </div>
+                    </div>`;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <strong style="font-size:15px;">${c.name}</strong>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:12px;color:var(--text-secondary);">Цена:</span>
+                            <input class="admin-input" value="${c.price}" style="width:80px;padding:4px 8px;font-size:11px;" data-case-idx="${i}" data-cfield="price">
+                        </div>
+                    </div>
+                    <div>${itemsHtml}</div>
+                `;
+                
+                card.querySelectorAll('[data-cfield="price"]').forEach(inp => {
+                    inp.addEventListener('change', () => {
+                        adminCases[parseInt(inp.dataset.caseIdx)].price = parseInt(inp.value) || 0;
+                    });
+                });
+                
+                div.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="space" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#04030f"/><stop offset="50%" stop-color="#0a0820"/><stop offset="100%" stop-color="#131031"/></linearGradient>
+<radialGradient id="nebula" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7b68ee" stop-opacity="0.45"/><stop offset="60%" stop-color="#7b68ee" stop-opacity="0.12"/><stop offset="100%" stop-color="#7b68ee" stop-opacity="0"/></radialGradient>
+<radialGradient id="nebula2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00f5ff" stop-opacity="0.3"/><stop offset="100%" stop-color="#00f5ff" stop-opacity="0"/></radialGradient>
+<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#space)"/>
+<g filter="url(#blur)">
+<ellipse cx="420" cy="380" rx="420" ry="260" fill="url(#nebula)"><animate attributeName="opacity" values="0.6;1;0.6" dur="8s" repeatCount="indefinite"/></ellipse>
+<ellipse cx="1200" cy="200" rx="320" ry="220" fill="url(#nebula2)"><animate attributeName="opacity" values="1;0.5;1" dur="6s" repeatCount="indefinite"/></ellipse>
+<ellipse cx="900" cy="720" rx="360" ry="200" fill="url(#nebula)" opacity="0.6"><animate attributeName="opacity" values="0.4;0.8;0.4" dur="9s" repeatCount="indefinite"/></ellipse>
+</g>
+<g fill="#ffffff">
+<circle cx="90" cy="120" r="1.4"><animate attributeName="opacity" values="1;0.2;1" dur="2.5s" begin="0s" repeatCount="indefinite"/></circle>
+<circle cx="230" cy="60" r="1"><animate attributeName="opacity" values="0.7;0.15;0.7" dur="3.8s" begin="1s" repeatCount="indefinite"/></circle>
+<circle cx="360" cy="160" r="1.6"><animate attributeName="opacity" values="1;0.2;1" dur="3s" begin="0.5s" repeatCount="indefinite"/></circle>
+<circle cx="510" cy="90" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.5s" begin="2s" repeatCount="indefinite"/></circle>
+<circle cx="640" cy="200" r="1.2"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="3.4s" begin="0.8s" repeatCount="indefinite"/></circle>
+<circle cx="770" cy="70" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5s" begin="2.5s" repeatCount="indefinite"/></circle>
+<circle cx="890" cy="150" r="1.5"><animate attributeName="opacity" values="1;0.2;1" dur="2.8s" begin="1.2s" repeatCount="indefinite"/></circle>
+<circle cx="1020" cy="80" r="1"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4.2s" begin="0.3s" repeatCount="indefinite"/></circle>
+<circle cx="1160" cy="130" r="1.3"><animate attributeName="opacity" values="0.9;0.15;0.9" dur="3.6s" begin="1.7s" repeatCount="indefinite"/></circle>
+<circle cx="1300" cy="60" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.8s" begin="2.2s" repeatCount="indefinite"/></circle>
+<circle cx="1440" cy="120" r="1.4"><animate attributeName="opacity" values="1;0.2;1" dur="2.6s" begin="0.6s" repeatCount="indefinite"/></circle>
+<circle cx="1520" cy="240" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5.2s" begin="1.4s" repeatCount="indefinite"/></circle>
+<circle cx="120" cy="300" r="1"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4.4s" begin="3s" repeatCount="indefinite"/></circle>
+<circle cx="280" cy="360" r="1.3"><animate attributeName="opacity" values="0.9;0.15;0.9" dur="3.2s" begin="0.9s" repeatCount="indefinite"/></circle>
+<circle cx="430" cy="290" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5.6s" begin="2.8s" repeatCount="indefinite"/></circle>
+<circle cx="580" cy="380" r="1.2"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="3.9s" begin="1.1s" repeatCount="indefinite"/></circle>
+<circle cx="730" cy="310" r="1"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4.7s" begin="0.4s" repeatCount="indefinite"/></circle>
+<circle cx="980" cy="340" r="1.4"><animate attributeName="opacity" values="1;0.2;1" dur="2.9s" begin="2.4s" repeatCount="indefinite"/></circle>
+<circle cx="1130" cy="410" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5.4s" begin="1.6s" repeatCount="indefinite"/></circle>
+<circle cx="1270" cy="320" r="1.1"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="4.1s" begin="0.7s" repeatCount="indefinite"/></circle>
+<circle cx="1410" cy="430" r="1"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="5s" begin="3.2s" repeatCount="indefinite"/></circle>
+<circle cx="700" cy="520" r="1.3"><animate attributeName="opacity" values="0.9;0.15;0.9" dur="3.3s" begin="1.9s" repeatCount="indefinite"/></circle>
+<circle cx="860" cy="600" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.9s" begin="0.2s" repeatCount="indefinite"/></circle>
+<circle cx="1040" cy="520" r="1.2"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="3.7s" begin="2.6s" repeatCount="indefinite"/></circle>
+<circle cx="1220" cy="610" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5.1s" begin="1.2s" repeatCount="indefinite"/></circle>
+<circle cx="1380" cy="560" r="1.3"><animate attributeName="opacity" values="0.9;0.15;0.9" dur="3.5s" begin="0.5s" repeatCount="indefinite"/></circle>
+<circle cx="150" cy="520" r="1"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4.3s" begin="3.5s" repeatCount="indefinite"/></circle>
+<circle cx="320" cy="640" r="1.4"><animate attributeName="opacity" values="1;0.2;1" dur="2.7s" begin="1.5s" repeatCount="indefinite"/></circle>
+<circle cx="480" cy="560" r="1"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="5.5s" begin="2.1s" repeatCount="indefinite"/></circle>
+<circle cx="1550" cy="700" r="1.5"><animate attributeName="opacity" values="0.9;0.15;0.9" dur="3.1s" begin="0.8s" repeatCount="indefinite"/></circle>
+</g>
+<g fill="none" stroke="#7b68ee" opacity="0.35">
+<g transform="rotate(-25 300 200)">
+<ellipse cx="300" cy="200" rx="150" ry="40"><animateTransform attributeName="transform" type="rotate" from="-25 300 200" to="335 300 200" dur="40s" repeatCount="indefinite"/></ellipse>
+</g>
+<circle cx="300" cy="200" r="90"/><circle cx="300" cy="200" r="60"/>
+</g>
+<circle cx="300" cy="200" r="8" fill="#fff" opacity="0.9"><animate attributeName="r" values="7;9;7" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="300" cy="200" r="3" fill="#7b68ee"/>
+</svg>

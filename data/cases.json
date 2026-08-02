@@ -1,0 +1,383 @@
+[
+  {
+    "id": "case_bronze",
+    "name": "Бронзовый кейс",
+    "price": 500,
+    "rarity": "common",
+    "color": "#cd7f32",
+    "min_win": 60,
+    "items": [
+      {
+        "type": "coins",
+        "name": "60 монет",
+        "amount": 60,
+        "probability": 0.3
+      },
+      {
+        "type": "coins",
+        "name": "100 монет",
+        "amount": 100,
+        "probability": 0.2
+      },
+      {
+        "type": "coins",
+        "name": "120 монет",
+        "amount": 120,
+        "probability": 0.06
+      },
+      {
+        "type": "coins",
+        "name": "200 монет",
+        "amount": 200,
+        "probability": 0.08
+      },
+      {
+        "type": "coins",
+        "name": "400 монет",
+        "amount": 400,
+        "probability": 0.03
+      },
+      {
+        "type": "boost",
+        "name": "x2 монеты на 5 мин",
+        "boost_id": "coins_x2",
+        "duration": 300,
+        "probability": 0.13
+      },
+      {
+        "type": "energy",
+        "name": "+200 энергии",
+        "amount": 200,
+        "probability": 0.12
+      },
+      {
+        "type": "background",
+        "name": "Случайный обычный фон",
+        "bg_rarity": "common",
+        "probability": 0.08
+      }
+    ]
+  },
+  {
+    "id": "case_silver",
+    "name": "Серебряный кейс",
+    "price": 2500,
+    "rarity": "uncommon",
+    "color": "#c0c0c0",
+    "min_win": 250,
+    "items": [
+      {
+        "type": "coins",
+        "name": "300 монет",
+        "amount": 300,
+        "probability": 0.24
+      },
+      {
+        "type": "coins",
+        "name": "400 монет",
+        "amount": 400,
+        "probability": 0.05
+      },
+      {
+        "type": "coins",
+        "name": "500 монет",
+        "amount": 500,
+        "probability": 0.2
+      },
+      {
+        "type": "coins",
+        "name": "900 монет",
+        "amount": 900,
+        "probability": 0.08
+      },
+      {
+        "type": "coins",
+        "name": "1500 монет",
+        "amount": 1500,
+        "probability": 0.03
+      },
+      {
+        "type": "boost",
+        "name": "x2 монеты на 10 мин",
+        "boost_id": "coins_x2",
+        "duration": 600,
+        "probability": 0.13
+      },
+      {
+        "type": "boost",
+        "name": "x3 монеты на 5 мин",
+        "boost_id": "coins_x3",
+        "duration": 300,
+        "probability": 0.06
+      },
+      {
+        "type": "energy",
+        "name": "+500 энергии",
+        "amount": 500,
+        "probability": 0.1
+      },
+      {
+        "type": "background",
+        "name": "Случайный редкий фон",
+        "bg_rarity": "rare",
+        "probability": 0.06
+      },
+      {
+        "type": "boost",
+        "name": "Автокликер 30 сек",
+        "boost_id": "auto_clicker",
+        "duration": 30,
+        "probability": 0.05
+      }
+    ]
+  },
+  {
+    "id": "case_gold",
+    "name": "Золотой кейс",
+    "price": 12000,
+    "rarity": "rare",
+    "color": "#ffd700",
+    "min_win": 1200,
+    "items": [
+      {
+        "type": "coins",
+        "name": "1500 монет",
+        "amount": 1500,
+        "probability": 0.22
+      },
+      {
+        "type": "coins",
+        "name": "2000 монет",
+        "amount": 2000,
+        "probability": 0.07
+      },
+      {
+        "type": "coins",
+        "name": "2500 монет",
+        "amount": 2500,
+        "probability": 0.16
+      },
+      {
+        "type": "coins",
+        "name": "4000 монет",
+        "amount": 4000,
+        "probability": 0.06
+      },
+      {
+        "type": "coins",
+        "name": "6000 монет",
+        "amount": 6000,
+        "probability": 0.04
+      },
+      {
+        "type": "coins",
+        "name": "8000 монет",
+        "amount": 8000,
+        "probability": 0.03
+      },
+      {
+        "type": "boost",
+        "name": "x3 монеты на 10 мин",
+        "boost_id": "coins_x3",
+        "duration": 600,
+        "probability": 0.13
+      },
+      {
+        "type": "boost",
+        "name": "x5 монеты на 5 мин",
+        "boost_id": "coins_x5",
+        "duration": 300,
+        "probability": 0.05
+      },
+      {
+        "type": "energy",
+        "name": "+1000 энергии",
+        "amount": 1000,
+        "probability": 0.08
+      },
+      {
+        "type": "background",
+        "name": "Случайный эпический фон",
+        "bg_rarity": "epic",
+        "probability": 0.08
+      },
+      {
+        "type": "boost",
+        "name": "Автокликер 60 сек",
+        "boost_id": "auto_clicker",
+        "duration": 60,
+        "probability": 0.06
+      }
+    ]
+  },
+  {
+    "id": "case_platinum",
+    "name": "Платиновый кейс",
+    "price": 50000,
+    "rarity": "epic",
+    "color": "#e5e4e2",
+    "min_win": 5000,
+    "items": [
+      {
+        "type": "coins",
+        "name": "6000 монет",
+        "amount": 6000,
+        "probability": 0.2
+      },
+      {
+        "type": "coins",
+        "name": "8000 монет",
+        "amount": 8000,
+        "probability": 0.07
+      },
+      {
+        "type": "coins",
+        "name": "10000 монет",
+        "amount": 10000,
+        "probability": 0.13
+      },
+      {
+        "type": "coins",
+        "name": "15000 монет",
+        "amount": 15000,
+        "probability": 0.04
+      },
+      {
+        "type": "coins",
+        "name": "18000 монет",
+        "amount": 18000,
+        "probability": 0.05
+      },
+      {
+        "type": "coins",
+        "name": "30000 монет",
+        "amount": 30000,
+        "probability": 0.02
+      },
+      {
+        "type": "boost",
+        "name": "x3 монеты на 15 мин",
+        "boost_id": "coins_x3",
+        "duration": 900,
+        "probability": 0.12
+      },
+      {
+        "type": "boost",
+        "name": "x5 монеты на 10 мин",
+        "boost_id": "coins_x5",
+        "duration": 600,
+        "probability": 0.1
+      },
+      {
+        "type": "energy",
+        "name": "+2500 энергии",
+        "amount": 2500,
+        "probability": 0.06
+      },
+      {
+        "type": "background",
+        "name": "Случайный эпический фон",
+        "bg_rarity": "epic",
+        "probability": 0.09
+      },
+      {
+        "type": "background",
+        "name": "Случайный легендарный фон",
+        "bg_rarity": "legendary",
+        "probability": 0.04
+      },
+      {
+        "type": "boost",
+        "name": "Автокликер 120 сек",
+        "boost_id": "auto_clicker",
+        "duration": 120,
+        "probability": 0.08
+      }
+    ]
+  },
+  {
+    "id": "case_diamond",
+    "name": "Бриллиантовый кейс",
+    "price": 200000,
+    "rarity": "legendary",
+    "color": "#b9f2ff",
+    "min_win": 20000,
+    "items": [
+      {
+        "type": "coins",
+        "name": "22000 монет",
+        "amount": 22000,
+        "probability": 0.18
+      },
+      {
+        "type": "coins",
+        "name": "35000 монет",
+        "amount": 35000,
+        "probability": 0.12
+      },
+      {
+        "type": "coins",
+        "name": "40000 монет",
+        "amount": 40000,
+        "probability": 0.06
+      },
+      {
+        "type": "coins",
+        "name": "60000 монет",
+        "amount": 60000,
+        "probability": 0.05
+      },
+      {
+        "type": "coins",
+        "name": "80000 монет",
+        "amount": 80000,
+        "probability": 0.03
+      },
+      {
+        "type": "coins",
+        "name": "120000 монет",
+        "amount": 120000,
+        "probability": 0.02
+      },
+      {
+        "type": "boost",
+        "name": "x3 монеты на 30 мин",
+        "boost_id": "coins_x3",
+        "duration": 1800,
+        "probability": 0.12
+      },
+      {
+        "type": "boost",
+        "name": "x5 монеты на 30 мин",
+        "boost_id": "coins_x5",
+        "duration": 1800,
+        "probability": 0.1
+      },
+      {
+        "type": "energy",
+        "name": "+5000 энергии",
+        "amount": 5000,
+        "probability": 0.04
+      },
+      {
+        "type": "background",
+        "name": "Случайный легендарный фон",
+        "bg_rarity": "legendary",
+        "probability": 0.1
+      },
+      {
+        "type": "background",
+        "name": "Случайный эпический фон",
+        "bg_rarity": "epic",
+        "probability": 0.06
+      },
+      {
+        "type": "boost",
+        "name": "Автокликер 300 сек",
+        "boost_id": "auto_clicker",
+        "duration": 300,
+        "probability": 0.12
+      }
+    ]
+  }
+]

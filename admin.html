@@ -234,6 +234,13 @@
                         <div class="admin-stat"><div class="num" id="load-db-writes">0</div><div class="label">Записей БД/мин</div></div>
                         <div class="admin-stat"><div class="num" id="load-uptime">0</div><div class="label">Аптайм</div></div>
                         <div class="admin-stat"><div class="num" id="load-users-file">0 KB</div><div class="label">users.json</div></div>
+                        <div class="admin-stat"><div class="num" id="load-cores">0</div><div class="label">Ядер CPU</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-total">0 MB</div><div class="label">RAM (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-used-mb">0 MB</div><div class="label">RAM (занято)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-users-total">0</div><div class="label">Пользователей</div></div>
+                        <div class="admin-stat"><div class="num" id="load-requests-total">0</div><div class="label">Запросов (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-reads-total">0</div><div class="label">Чтений БД (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-writes-total">0</div><div class="label">Записей БД (всего)</div></div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;" class="chart-pair">
                         <div class="chart-box">
@@ -823,6 +830,13 @@
             set('load-db-reads', res.db_reads_min ?? 0);
             set('load-db-writes', res.db_writes_min ?? 0);
             set('load-users-file', (res.users_file_kb ?? 0) + ' KB');
+            set('load-cores', (res.cores ?? 0) + '');
+            set('load-ram-total', (res.ram_total_mb ?? 0) + ' MB');
+            set('load-ram-used-mb', (res.ram_used_mb ?? 0) + ' MB');
+            set('load-users-total', res.users_total ?? 0);
+            set('load-requests-total', res.requests_total ?? 0);
+            set('load-db-reads-total', res.db_reads_total ?? 0);
+            set('load-db-writes-total', res.db_writes_total ?? 0);
             const up = res.uptime_sec || 0;
             const days = Math.floor(up / 86400), hours = Math.floor((up % 86400) / 3600), mins = Math.floor((up % 3600) / 60);
             set('load-uptime', (days > 0 ? days + 'д ' : '') + (hours > 0 ? hours + 'ч ' : '') + mins + 'м');
@@ -834,7 +848,14 @@
             const refreshBtn = document.getElementById('refresh-load-btn');
             if (refreshBtn) refreshBtn.addEventListener('click', () => loadServerLoad());
             loadServerLoad();
-            setInterval(loadServerLoad, 3000);
+            // Real-time: poll every 1.5s, but pause while the tab is hidden or the
+            // dashboard tab isn't active to avoid hammering the API.
+            setInterval(() => {
+                if (document.hidden) return;
+                const activeTab = document.querySelector('.admin-tab.active');
+                if (activeTab && activeTab.dataset.tab !== 'dashboard') return;
+                loadServerLoad();
+            }, 1500);
         });
 
         const userModalState = { uid: null, data: null, range: 'day', timer: null };

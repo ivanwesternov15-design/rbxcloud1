@@ -1726,7 +1726,7 @@ const App = {
 
             if (!isCompleted) {
                 const btn = card.querySelector('.task-action-btn');
-                btn.addEventListener('click', () => this.handleTaskAction(task));
+                btn.addEventListener('click', () => this.taskAction(task));
             }
 
             container.appendChild(card);

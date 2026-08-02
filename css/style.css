@@ -3391,4 +3391,55 @@ body::before {
 .gap-8 { gap: 8px; }
 .icon { display: inline; width: 1em; height: 1em; vertical-align: -0.125em; }
 .icon-sm { width: 0.8em; height: 0.8em; }
+
+/* --- Offline welcome-back panel --- */
+.offline-panel { display: flex; flex-direction: column; gap: 16px; }
+.offline-hero { text-align: center; }
+.offline-icon {
+    width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%;
+    background: linear-gradient(135deg, #00FF88, #3DFFB0);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 28px rgba(0,255,136,0.45);
+}
+.offline-icon .icon { width: 28px; height: 28px; color: #07140e; }
+.offline-label { font-size: 13px; color: var(--text-secondary); }
+.offline-amount {
+    font-size: 32px; font-weight: 900; color: var(--gold);
+    display: inline-flex; align-items: center; gap: 4px; line-height: 1;
+}
+.offline-amount .offline-plus { font-size: 28px; line-height: 1; }
+.offline-coin { width: 22px; height: 22px; }
+.offline-time { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.offline-summary {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+    border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.offline-row { display: flex; justify-content: space-between; font-size: 13px; }
+.offline-row-lbl { color: var(--text-secondary); }
+.offline-row-val { font-weight: 700; }
+.offline-claim { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* --- Case drop chances modal --- */
+.chances-header { text-align: center; margin-bottom: 16px; }
+.chances-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid;
+}
+.chances-title {
+    font-size: 18px; font-weight: 800; margin: 6px 0 2px; display: inline-flex;
+    align-items: center; gap: 6px;
+}
+.chances-list { display: flex; flex-direction: column; gap: 10px; }
+.chance-row { display: flex; align-items: center; gap: 8px; }
+.chance-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.chance-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.chance-dot .icon { width: 12px; height: 12px; }
+.chance-name { font-size: 12px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chance-bar-wrap { flex: 1; height: 5px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; }
+.chance-bar { height: 100%; border-radius: 3px; }
+.chance-val { font-size: 12px; font-weight: 700; min-width: 42px; text-align: right; }
 .icon-lg { width: 1.2em; height: 1.2em; }

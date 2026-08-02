@@ -5,7 +5,7 @@
     "base_max_energy": 1000,
     "energy_per_click": 1,
     "base_energy_regen": 3,
-    "exchange_rate": 2000,
+    "exchange_rate": 5000,
     "max_exchange_per_day": 3,
     "referral_bonus": 2000,
     "referral_ref_bonus": 6000,
@@ -27,55 +27,55 @@
     {
       "level": 2,
       "name": "Исследователь",
-      "coins_needed": 1000,
+      "coins_needed": 2500,
       "bonus": 1.1
     },
     {
       "level": 3,
-      "name": "Шахтер",
-      "coins_needed": 5000,
+      "name": "Шахтёр",
+      "coins_needed": 15000,
       "bonus": 1.25
     },
     {
       "level": 4,
       "name": "Фермер",
-      "coins_needed": 20000,
+      "coins_needed": 80000,
       "bonus": 1.4
     },
     {
       "level": 5,
       "name": "Магнат",
-      "coins_needed": 80000,
+      "coins_needed": 400000,
       "bonus": 1.6
     },
     {
       "level": 6,
       "name": "Инвестор",
-      "coins_needed": 300000,
+      "coins_needed": 2000000,
       "bonus": 1.9
     },
     {
       "level": 7,
       "name": "Миллионер",
-      "coins_needed": 1200000,
+      "coins_needed": 10000000,
       "bonus": 2.3
     },
     {
       "level": 8,
       "name": "Легенда",
-      "coins_needed": 5000000,
+      "coins_needed": 50000000,
       "bonus": 2.8
     },
     {
       "level": 9,
       "name": "Король",
-      "coins_needed": 20000000,
+      "coins_needed": 250000000,
       "bonus": 3.5
     },
     {
       "level": 10,
       "name": "Бог Кликера",
-      "coins_needed": 80000000,
+      "coins_needed": 1000000000,
       "bonus": 4.5
     }
   ],
@@ -85,8 +85,8 @@
       "description": "+2 монеты к базовой награде за клик",
       "branch": "click",
       "icon": "click",
-      "base_cost": 40,
-      "cost_multiplier": 1.3,
+      "base_cost": 200,
+      "cost_multiplier": 1.45,
       "max_level": 60,
       "effect_per_level": 2,
       "requires": null
@@ -96,8 +96,8 @@
       "description": "+5% к силе клика (множитель)",
       "branch": "click",
       "icon": "muscle",
-      "base_cost": 500,
-      "cost_multiplier": 1.45,
+      "base_cost": 2500,
+      "cost_multiplier": 1.55,
       "max_level": 30,
       "effect_per_level": 5,
       "requires": {
@@ -109,8 +109,8 @@
       "description": "+2% шанс удвоить награду",
       "branch": "click",
       "icon": "star",
-      "base_cost": 300,
-      "cost_multiplier": 1.4,
+      "base_cost": 1500,
+      "cost_multiplier": 1.5,
       "max_level": 30,
       "effect_per_level": 2,
       "requires": {
@@ -122,8 +122,8 @@
       "description": "+3% шанс двойного клика",
       "branch": "click",
       "icon": "cycle",
-      "base_cost": 500,
-      "cost_multiplier": 1.45,
+      "base_cost": 2500,
+      "cost_multiplier": 1.55,
       "max_level": 25,
       "effect_per_level": 3,
       "requires": {
@@ -135,8 +135,8 @@
       "description": "+4% шанс крита",
       "branch": "click",
       "icon": "explosion",
-      "base_cost": 700,
-      "cost_multiplier": 1.5,
+      "base_cost": 3500,
+      "cost_multiplier": 1.6,
       "max_level": 20,
       "effect_per_level": 4,
       "requires": {
@@ -148,8 +148,8 @@
       "description": "+40% к множителю крита",
       "branch": "click",
       "icon": "target",
-      "base_cost": 1200,
-      "cost_multiplier": 1.55,
+      "base_cost": 6000,
+      "cost_multiplier": 1.65,
       "max_level": 15,
       "effect_per_level": 40,
       "requires": {
@@ -161,8 +161,8 @@
       "description": "+100 к запасу энергии",
       "branch": "energy",
       "icon": "battery",
-      "base_cost": 80,
-      "cost_multiplier": 1.35,
+      "base_cost": 400,
+      "cost_multiplier": 1.45,
       "max_level": 30,
       "effect_per_level": 100,
       "requires": null
@@ -172,8 +172,8 @@
       "description": "+1 энергии в секунду",
       "branch": "energy",
       "icon": "lightning",
-      "base_cost": 150,
-      "cost_multiplier": 1.4,
+      "base_cost": 750,
+      "cost_multiplier": 1.5,
       "max_level": 25,
       "effect_per_level": 1,
       "requires": null
@@ -183,8 +183,8 @@
       "description": "+2% шанс клика без траты энергии",
       "branch": "energy",
       "icon": "shield",
-      "base_cost": 250,
-      "cost_multiplier": 1.45,
+      "base_cost": 1200,
+      "cost_multiplier": 1.55,
       "max_level": 20,
       "effect_per_level": 2,
       "requires": {
@@ -196,8 +196,8 @@
       "description": "+2% шанс вернуть энергию за клик",
       "branch": "energy",
       "icon": "refresh",
-      "base_cost": 500,
-      "cost_multiplier": 1.5,
+      "base_cost": 2500,
+      "cost_multiplier": 1.6,
       "max_level": 20,
       "effect_per_level": 2,
       "requires": {
@@ -209,8 +209,8 @@
       "description": "+2 монеты в секунду",
       "branch": "passive",
       "icon": "cash",
-      "base_cost": 120,
-      "cost_multiplier": 1.4,
+      "base_cost": 600,
+      "cost_multiplier": 1.5,
       "max_level": 40,
       "effect_per_level": 2,
       "requires": null
@@ -220,8 +220,8 @@
       "description": "+5% к пассивному доходу",
       "branch": "passive",
       "icon": "chart",
-      "base_cost": 400,
-      "cost_multiplier": 1.5,
+      "base_cost": 2000,
+      "cost_multiplier": 1.6,
       "max_level": 30,
       "effect_per_level": 5,
       "requires": {
@@ -233,8 +233,8 @@
       "description": "+3% ко всему доходу (клик + пассив)",
       "branch": "passive",
       "icon": "dice",
-      "base_cost": 900,
-      "cost_multiplier": 1.55,
+      "base_cost": 4500,
+      "cost_multiplier": 1.65,
       "max_level": 25,
       "effect_per_level": 3,
       "requires": {
@@ -247,43 +247,43 @@
     {
       "id": "coins_x2",
       "name": "x2 монеты",
-      "duration": 300,
-      "price": 200,
+      "duration": 240,
+      "price": 2000,
       "multiplier": 2
     },
     {
       "id": "coins_x3",
       "name": "x3 монеты",
-      "duration": 300,
-      "price": 500,
+      "duration": 240,
+      "price": 6000,
       "multiplier": 3
     },
     {
       "id": "coins_x5",
       "name": "x5 монеты",
-      "duration": 300,
-      "price": 1200,
+      "duration": 180,
+      "price": 15000,
       "multiplier": 5
     },
     {
       "id": "coins_x10",
       "name": "x10 монеты",
-      "duration": 300,
-      "price": 3000,
+      "duration": 180,
+      "price": 40000,
       "multiplier": 10
     },
     {
       "id": "energy_full",
       "name": "Полная энергия",
       "duration": 0,
-      "price": 100,
+      "price": 500,
       "multiplier": 1
     },
     {
       "id": "auto_clicker",
       "name": "Автокликер",
-      "duration": 120,
-      "price": 800,
+      "duration": 90,
+      "price": 10000,
       "multiplier": 1
     }
   ]

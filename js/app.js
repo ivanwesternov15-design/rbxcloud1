@@ -334,6 +334,23 @@ const App = {
             }
         }, 100);
 
+        // Passive income: real-time ticker. Adds the per-second rate to the
+        // displayed balance locally; the 10s server poll reconciles (max-merge),
+        // so the number visibly ticks up every second instead of jumping in 10s
+        // bursts.
+        if (this.passiveTick) clearInterval(this.passiveTick);
+        this.passiveTick = setInterval(() => {
+            if (!Auth.user) return;
+            if (this.currentScreen === 'exchange') return;
+            const rate = Auth.calculatePassiveIncome() || 0;
+            if (rate <= 0) return;
+            Auth.user.coins = (Auth.user.coins || 0) + rate;
+            Auth.user.total_earned = (Auth.user.total_earned || 0) + rate;
+            this.updateBalanceUI();
+            this.updateHeaderUI();
+            this.updateHomeStatsUI();
+        }, 1000);
+
         // Passive income: server-authoritative. Poll user every 10s so offline/
         // elapsed passive income accrues server-side and lands in the balance.
         if (this.passiveInterval) clearInterval(this.passiveInterval);
@@ -401,13 +418,29 @@ const App = {
     async tickAutoClicker() {
         if (!Auth.user) return;
         if (this.currentScreen === 'exchange') return;
-        if (this._clickPending || this._clickQueue > 0) return;
+        if (this._clickPending) return;
         const now = Date.now() / 1000;
         const boost = (Auth.user.active_boosts || []).find(b => b.boost_id === 'auto_clicker' && b.expires_at > now);
         if (!boost) return;
         const energyPerClick = (Auth.config && Auth.config.game && Auth.config.game.energy_per_click) || 1;
         if ((Auth.user.energy || 0) < energyPerClick * 5) return;
-        this.doClick(5);
+        // Send auto-clicks directly (bypass the manual hold queue) so the
+        // auto-clicker runs reliably even while the user is also tapping.
+        const res = await API.click(5);
+        if (res.error) return;
+        if (Auth.user) {
+            this._confirmedCoins = res.coins || 0;
+            this._confirmedClicks = res.total_clicks || 0;
+            const queueExtra = this._clickQueue * (this._lastReward || 1);
+            Auth.user.coins = res.coins + queueExtra;
+            Auth.user.total_clicks = res.total_clicks + this._clickQueue;
+            Auth.user.total_earned = res.total_earned + queueExtra;
+            if (res.energy !== undefined) Auth.user.energy = res.energy;
+        }
+        this.updateBalanceUI();
+        this.updateHeaderUI();
+        this.updateEnergyUI();
+        this.updateHomeStatsUI();
     },
 
     async _syncFromServer() {
@@ -530,25 +563,40 @@ const App = {
         const secs = u.offline_seconds || 0;
         if (earned <= 0 || secs < 60) return;
         const mins = Math.floor(secs / 60);
+        const hours = Math.floor(secs / 3600);
         const passive = u.offline_passive || 0;
         const autoClicks = u.offline_auto_clicks || 0;
         const autoGained = u.offline_auto_gained || 0;
         const overlay = document.getElementById('modal-overlay');
         const body = document.getElementById('modal-body');
         if (!overlay || !body) return;
+
+        const timeText = hours > 0 ? `${hours}ч ${mins % 60}м` : `${mins} мин`;
         body.innerHTML = `
             <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕</button>
-            <div style="text-align:center;">
-                <div style="width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(135deg,#00FF88,#3DFFB0);display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px rgba(0,255,136,0.4);">
-                    <svg class="icon" viewBox="0 0 24 24" style="width:34px;height:34px;color:#07140e;"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+            <div class="offline-panel">
+                <div class="offline-hero">
+                    <div class="offline-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clock"/></svg></div>
+                    <div class="offline-label">Вы не заходили</div>
+                    <div class="offline-amount">
+                        <span class="offline-plus">+</span>${Auth.formatNumber(earned)}
+                        <svg class="icon offline-coin" viewBox="0 0 24 24"><use href="#icon-coin"/></svg>
+                    </div>
+                    <div class="offline-time">заработано за ${timeText}</div>
                 </div>
-                <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">Вы не заходили</div>
-                <div style="font-size:30px;font-weight:900;color:var(--gold);">${Auth.formatNumber(earned)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
-                <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 14px;">заработано за ${mins} мин</div>
-                <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:12px;padding:10px 14px;margin-bottom:18px;text-align:left;">
-                    ${passive}${autoClicks ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Автокликер · ${autoClicks} кликов → <strong style="color:var(--gold);">+${Auth.formatNumber(autoGained)}</strong></div>` : ''}
+                <div class="offline-summary">
+                    <div class="offline-row">
+                        <span class="offline-row-lbl">Пассивный доход</span>
+                        <span class="offline-row-val" style="color:#4F8FFF;">+${Auth.formatNumber(passive)}</span>
+                    </div>
+                    ${autoClicks ? `<div class="offline-row">
+                        <span class="offline-row-lbl">Автокликер · ${autoClicks} кликов</span>
+                        <span class="offline-row-val" style="color:#FFD700;">+${Auth.formatNumber(autoGained)}</span>
+                    </div>` : ''}
                 </div>
-                <button class="exchange-btn" style="width:100%;padding:14px;font-size:14px;background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;" onclick="document.getElementById('modal-overlay').classList.remove('active')">Забрать</button>
+                <button class="exchange-btn offline-claim" style="width:100%;margin-top:10px;" onclick="document.getElementById('modal-overlay').classList.remove('active')">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-check"/></svg> Забрать
+                </button>
             </div>
         `;
         overlay.classList.add('active');
@@ -799,9 +847,13 @@ const App = {
         boosts.forEach(b => {
             const active = activeBoosts.find(x => x.boost_id === b.id && x.expires_at > now);
             const canAfford = Auth.user.coins >= b.price;
+            // Hardcore rule: while ANY coins_x multiplier is active, all other
+            // coins_x boosts are locked until it expires.
+            const multActive = activeBoosts.some(x => x.boost_id.startsWith('coins_x') && x.expires_at > now);
+            const lockedByMult = b.id.startsWith('coins_x') && !active && multActive;
 
             const card = document.createElement('div');
-            card.className = `boost-card ${active ? 'active' : ''}`;
+            card.className = `boost-card ${active ? 'active' : ''} ${lockedByMult ? 'locked' : ''}`;
             card.style.borderColor = active ? 'rgba(245,196,81,0.35)' : 'var(--glass-border)';
 
             let sub;
@@ -821,13 +873,13 @@ const App = {
                     ${b.duration ? `<div class="boost-duration"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-calendar"/></svg> ${b.duration} сек</div>` : ''}
                 </div>
                 <div class="boost-buy">
-                    ${active ? `<div class="boost-active-tag">Активен</div>` : `
+                    ${active ? `<div class="boost-active-tag">Активен</div>` : lockedByMult ? `<div class="boost-lock-tag"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-lock"/></svg> Ждёт</div>` : `
                     <div class="boost-price">${Auth.formatNumber(b.price)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
                     <div class="boost-buy-btn">Купить</div>`}
                 </div>
             `;
 
-            if (!active) {
+            if (!active && !lockedByMult) {
                 card.addEventListener('click', () => this.handleBoostClick(b, canAfford));
             }
             container.appendChild(card);
@@ -907,6 +959,7 @@ const App = {
 
         const startClick = () => {
             isHolding = true;
+            this._holdStartedAt = Date.now();
             this._clickQueue++;
             applyOptimistic();
             // Cooldown after a network failure: don't spam a dead server, but
@@ -916,6 +969,10 @@ const App = {
             if (!holdInterval) {
                 holdInterval = setInterval(() => {
                     if (isHolding) {
+                        // Only auto-repeat after a REAL hold. A quick tap (mouse
+                        // down+up under ~300ms) must count as exactly ONE click,
+                        // otherwise fast tapping inflates the click counter.
+                        if (Date.now() - this._holdStartedAt < 300) return;
                         this._clickQueue++;
                         applyOptimistic();
                         if (Date.now() >= this._offlineUntil) this.drainClickQueue();
@@ -1486,30 +1543,61 @@ const App = {
     showCaseChances(caseData) {
         const modal = document.getElementById('modal-overlay');
         const body = document.getElementById('modal-body');
-        
+        if (!modal || !body) return;
+
+        const col = caseData.color || '#4F8FFF';
+        const rarityLabels = { common: 'Обычный', uncommon: 'Необычный', rare: 'Редкий', epic: 'Эпический', legendary: 'Легендарный' };
+        const rarityColors = { common: '#7F8A99', uncommon: '#4F8FFF', rare: '#BF00FF', epic: '#00D4FF', legendary: '#FFD700' };
+        const rarityColor = rarityColors[caseData.rarity] || col;
+        const rarityLabel = rarityLabels[caseData.rarity] || caseData.rarity;
+
+        const typeIcon = {
+            coins: '#icon-coin',
+            boost: '#icon-lightning',
+            energy: '#icon-battery',
+            background: '#icon-palette',
+            voucher: '#icon-ticket',
+        };
+        const typeColor = {
+            coins: '#FFD700',
+            boost: '#F59E0B',
+            energy: '#00FF88',
+            background: '#BF00FF',
+            voucher: '#00D4FF',
+        };
+
         let itemsHtml = caseData.items.map((item, idx) => {
             const pct = (item.probability * 100).toFixed(1);
-            const colors = ['#4F8FFF', '#10B981', '#F59E0B', '#EF4444', '#BF00FF', '#FFD700'];
-            const barColor = colors[idx % colors.length];
-            return `<div style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                    <span>${item.name}</span>
-                    <span style="font-weight:600;color:${barColor};">${pct}%</span>
+            const ticon = typeIcon[item.type] || '#icon-gift';
+            const tcol = typeColor[item.type] || '#4F8FFF';
+            const rarity = item.bg_rarity || item.type;
+            const rcol = rarityColors[rarity] || tcol;
+            return `<div class="chance-row">
+                <div class="chance-left">
+                    <span class="chance-dot" style="background:${rcol};box-shadow:0 0 8px ${rcol}">
+                        <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="${ticon}"/></svg>
+                    </span>
+                    <span class="chance-name" title="${item.name}">${item.name}</span>
                 </div>
-                <div style="width:100%;height:4px;background:rgba(0,0,0,0.3);border-radius:2px;overflow:hidden;">
-                    <div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;box-shadow:0 0 8px ${barColor}44;"></div>
+                <div class="chance-bar-wrap">
+                    <div class="chance-bar" style="width:${pct}%;background:${rcol};"></div>
                 </div>
+                <span class="chance-val" style="color:${rcol};">${pct}%</span>
             </div>`;
         }).join('');
 
-        const col = caseData.color || '#4F8FFF';
         body.innerHTML = `
             <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕</button>
-            <div class="modal-title" style="color:${col};"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> ${caseData.name}</div>
-            <div style="font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:16px;">
-                Шансы выпадения предметов
+            <div class="chances-header">
+                <div class="chances-badge" style="background:${rarityColor}20;border-color:${rarityColor}40;color:${rarityColor};">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-chart"/></svg> ${rarityLabel}
+                </div>
+                <div class="chances-title" style="color:${col};"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> ${caseData.name}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">Шансы выпадения предметов (${Auth.formatNumber(caseData.price)} монет)</div>
             </div>
-            ${itemsHtml}
+            <div class="chances-list">
+                ${itemsHtml}
+            </div>
         `;
 
         modal.classList.add('active');

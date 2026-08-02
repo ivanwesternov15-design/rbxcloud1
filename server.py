@@ -52,7 +52,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260803-rebalance-reset-1"
+BUILD_VERSION = "20260803-hardcore-v2-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -2204,7 +2204,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if is_leech:
                     user["energy"] = min(user["energy"] + energy_cost, user["max_energy"])
                 total_reward += total_one
-                total_clicks_added += 1 + (1 if is_combo else 0)
+                # One physical tap always counts as exactly ONE click. Combo
+                # doubles the reward but must not inflate the click counter.
+                total_clicks_added += 1
                 last_is_lucky = is_lucky
                 last_is_combo = is_combo
                 last_is_crit = is_crit
@@ -2427,6 +2429,15 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 
                 # Remove old boost of same type
                 user["active_boosts"] = [b for b in user["active_boosts"] if b.get("boost_id") != boost_id]
+
+                # Hardcore rule: while ANY coins_x multiplier boost is active,
+                # you cannot buy another one until it expires.
+                now = time.time()
+                if "coins_x" in boost_id:
+                    for active_b in user["active_boosts"]:
+                        if active_b.get("boost_id", "").startswith("coins_x") and active_b.get("expires_at", 0) > now:
+                            self.send_json(400, {"error": "Сначала дождись окончания текущего множителя!"})
+                            return
                 
                 user["active_boosts"].append({
                     "boost_id": boost_id,

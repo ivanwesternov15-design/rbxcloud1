@@ -1386,14 +1386,20 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         self.send_cors_headers()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
-        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
-    
+        try:
+            self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # client disconnected; nothing else to do
+
     def send_html(self, status, html):
         self.send_response(status)
         self.send_cors_headers()
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
-        self.wfile.write(html.encode("utf-8"))
+        try:
+            self.wfile.write(html.encode("utf-8"))
+        except (BrokenPipeError, ConnectionResetError):
+            pass
     
     def serve_static(self, path):
         if path == "" or path == "/":

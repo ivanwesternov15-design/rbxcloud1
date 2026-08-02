@@ -384,7 +384,7 @@ def check_telegram_webapp_auth(init_data, bot_token):
         if not received_hash:
             return False
         check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
-        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+        secret_key = hmac.new(bot_token.encode(), b"WebAppData", hashlib.sha256).digest()
         computed_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
         if computed_hash != received_hash:
             return False

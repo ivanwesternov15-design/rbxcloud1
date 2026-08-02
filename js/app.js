@@ -106,18 +106,25 @@ const App = {
         document.body.classList.remove('bg-applied');
         document.body.style.background = '';
         
-        // Inside Telegram we never show the manual login screen - the user is
-        // already authenticated via initData. Just retry the auto-login.
+        // Inside Telegram we never show the manual login screen. Automatic
+        // login already ran once in init(); on failure, wait for a manual
+        // retry instead of reloading forever and flooding the backend.
         if (this.inTelegram()) {
             document.getElementById('auth-telegram-wrap').innerHTML =
-                '<div class="auth-auto-msg">Подключение...</div>';
-            setTimeout(() => {
-                try {
-                    window.Telegram.WebApp.ready();
-                    window.Telegram.WebApp.expand();
-                } catch (e) {}
-                this.tryTelegramLogin().then(() => window.location.reload());
-            }, 800);
+                '<div class="auth-auto-msg">Не удалось подключиться через Telegram.</div>' +
+                '<button id="auth-telegram-retry" class="auth-trigger-btn">Повторить вход</button>';
+            const retry = document.getElementById('auth-telegram-retry');
+            retry.addEventListener('click', async () => {
+                retry.disabled = true;
+                retry.textContent = 'Подключение...';
+                const ok = await this.tryTelegramLogin();
+                if (ok) {
+                    window.location.reload();
+                    return;
+                }
+                retry.disabled = false;
+                retry.textContent = 'Повторить вход';
+            });
             return;
         }
 

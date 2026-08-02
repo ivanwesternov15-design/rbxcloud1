@@ -385,7 +385,7 @@ def check_telegram_webapp_auth(init_data, bot_token):
             log_error(f"Mini App: в initData нет поля hash (ключи: {list(params.keys())})")
             return False
         check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
-        secret_key = hmac.new(bot_token.encode(), b"WebAppData", hashlib.sha256).digest()
+        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
         computed_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
         if computed_hash != received_hash:
             auth_date_raw = params.get("auth_date", "?")

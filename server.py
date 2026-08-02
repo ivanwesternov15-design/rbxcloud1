@@ -42,7 +42,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260802-catalog-admin-1"
+BUILD_VERSION = "20260803-task-range-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -3045,6 +3045,7 @@ if __name__ == "__main__":
     log_success(f"Сервер запущен на http://localhost:{PORT}")
     log_info("Откройте в браузере: http://localhost:" + str(PORT))
     log_info("Нажмите CTRL+C чтобы остановить сервер")
+    log_ok(f"[ДЕПЛОЙ] Обновление принято. Текущая версия: {BUILD_VERSION}")
     print("")
 
     # Diagnostic: confirm the bot token is configured and reachable.

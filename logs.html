@@ -111,6 +111,8 @@
 
     let currentCount = 0;
     let stateLines = [];
+    let currentFile = null;
+    let liveTimer = null;
 
     async function init() {
         if (!localStorage.getItem(LS)) { showGate(); return; }
@@ -125,7 +127,7 @@
     }
 
     function showGate() { $('gateView').style.display = 'flex'; $('appView').style.display = 'none'; }
-    function showApp() { $('gateView').style.display = 'none'; $('appView').style.display = 'block'; }
+    function showApp() { $('gateView').style.display = 'none'; $('appView').style.display = 'block'; startLive(); }
 
     async function submitKey() {
         const key = $('keyInput').value.trim();
@@ -161,8 +163,13 @@
 
     async function loadDay(name) {
         if (!name) return;
-        const r = await apiPost('/api/logs/read', { file: name });
-        $('logs').innerHTML = '';
+        currentFile = name;
+        await fetchAndRender();
+    }
+
+    async function fetchAndRender() {
+        if (!currentFile) return;
+        const r = await apiPost('/api/logs/read', { file: currentFile });
         if (r.status === 403) { localStorage.removeItem(LS); showGate(); return; }
         if (r.status !== 200) {
             $('logs').innerHTML = '<div class="empty">' + ((r.data && r.data.error) || 'Ошибка загрузки') + '</div>';
@@ -170,9 +177,19 @@
         }
         const lines = r.data.lines || [];
         stateLines = lines;
-        stateCount = lines.length;
         $('summary').textContent = 'Записей в файле: ' + lines.length;
         renderLines();
+    }
+
+    async function poll() {
+        if (document.hidden || !currentFile) return;
+        if (!localStorage.getItem(LS)) { showGate(); return; }
+        try { await fetchAndRender(); } catch (e) {}
+    }
+
+    function startLive() {
+        if (liveTimer) clearInterval(liveTimer);
+        liveTimer = setInterval(poll, 4000);
     }
 
     function esc(s) {
@@ -186,6 +203,7 @@
     }
 
     function renderLines() {
+        const stick = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 150);
         const box = $('logs');
         box.innerHTML = '';
         const q = $('searchInput').value.trim().toLowerCase();
@@ -209,9 +227,12 @@
         if (box.children.length === 0) {
             box.innerHTML = '<div class="empty">Ничего не найдено</div>';
         }
+        if (stick) window.scrollTo(0, document.body.scrollHeight);
     }
 
     function logout() {
+        if (liveTimer) clearInterval(liveTimer);
+        currentFile = null;
         localStorage.removeItem(LS);
         location.reload();
     }

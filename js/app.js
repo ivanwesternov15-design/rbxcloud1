@@ -1993,6 +1993,27 @@ const App = {
     },
 
     // --- EXCHANGE SCREEN ---
+    // "Обмены сегодня" reset countdown (resets at local midnight)
+    _updateExchangeReset() {
+        const el = document.getElementById('exchange-reset');
+        if (!el) return;
+        const timeEl = document.getElementById('exchange-reset-time');
+        if (!timeEl) return;
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        let diff = Math.max(0, Math.floor((midnight - now) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        const pad = (n) => String(n).padStart(2, '0');
+        timeEl.textContent = diff >= 3600 ? `${h} ч. ${pad(m)} м.` : diff >= 60 ? `${pad(m)} мин. ${pad(s)} с.` : `${pad(s)} с.`;
+        // Warm amber while few exchanges left, muted otherwise
+        const maxPerDay = (Auth.config && Auth.config.game && Auth.config.game.max_exchange_per_day) || 5;
+        const used = (Auth.user && Auth.user.exchange_count_today) || 0;
+        el.classList.toggle('no-warn', used >= maxPerDay);
+    },
+
     async renderExchange() {
         if (this.currentScreen !== 'exchange') return;
         if (!Auth.user) return;
@@ -2001,6 +2022,13 @@ const App = {
         document.getElementById('exchange-balance').textContent = Auth.formatNumber(Auth.user.coins || 0);
         document.getElementById('exchange-today').textContent = `${Auth.user.exchange_count_today || 0}/${Auth.config.game.max_exchange_per_day || 5}`;
         document.getElementById('exchange-total').textContent = Auth.formatNumber(Auth.user.total_exchanged || 0);
+
+        this._updateExchangeReset();
+        if (!this._resetTimer) {
+            this._resetTimer = setInterval(() => {
+                if (this.currentScreen === 'exchange') this._updateExchangeReset();
+            }, 1000);
+        }
 
         const res = await API.getAvailableVouchers();
         if (res.error) return;
@@ -2138,11 +2166,28 @@ const App = {
                 if (a <= bal) this.showWithdrawClaim(a);
             });
         });
-        document.getElementById('withdraw-more').addEventListener('click', () => {
-            const w = document.getElementById('withdraw-more-wrap');
-            w.style.display = w.style.display === 'none' ? 'grid' : 'none';
-            const btnIcon = document.getElementById('withdraw-more').querySelector('.icon');
-            if (btnIcon) btnIcon.style.transform = w.style.display === 'none' ? '' : 'rotate(45deg)';
+        const moreBtn = document.getElementById('withdraw-more');
+        const moreWrap = document.getElementById('withdraw-more-wrap');
+        const moreLabel = () => {
+            const open = moreWrap.style.display !== 'none';
+            const icon = moreBtn.querySelector('.icon');
+            if (icon) icon.querySelector('use').setAttribute('href', open ? '#icon-x' : '#icon-plus');
+            moreBtn.innerHTML = (open
+                ? `<svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> скрыть ещё`
+                : `<svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> открыть ещё`);
+            moreBtn.style.animation = 'none'; void moreBtn.offsetWidth; moreBtn.style.animation = '';
+        };
+        moreBtn.addEventListener('click', () => {
+            const open = moreWrap.style.display !== 'none';
+            moreWrap.style.display = open ? 'none' : 'grid';
+            if (!open) {
+                // move button to the bottom, right after all "more" options
+                moreWrap.parentNode.insertBefore(moreBtn, moreWrap.nextSibling);
+            } else {
+                // move it back above the more-wrap
+                moreWrap.parentNode.insertBefore(moreBtn, moreWrap);
+            }
+            moreLabel();
         });
     },
 

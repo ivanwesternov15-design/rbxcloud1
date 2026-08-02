@@ -922,6 +922,21 @@ body::before {
 
 .section-title .icon { color: var(--accent); filter: drop-shadow(0 0 12px rgba(59,130,246,0.5)); }
 
+/* Linebelow: countdown to daily exchange reset (00:00) */
+.exchange-reset {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(245,196,81,0.1);
+    border: 1px solid rgba(245,196,81,0.2);
+    color: var(--gold);
+    font-size: 12px; font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.exchange-reset .icon { width: 14px; height: 14px; }
+.exchange-reset.no-warn { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); color: var(--text-muted); }
+
 .section-subtitle {
     font-size: 12px; color: var(--text-secondary);
     font-weight: 400; margin-bottom: 16px;

@@ -2848,7 +2848,10 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         "is_admin": u.get("is_admin", False),
                         "registered_at": u.get("registered_at", 0),
                         "photo_url": local_avatar or u.get("photo_url", ""),
-                        "custom_title": u.get("custom_title", "")
+                        "custom_title": u.get("custom_title", ""),
+                        "robux_balance": u.get("robux_balance", 0),
+                        "exchange_count_today": u.get("exchange_count_today", 0),
+                        "total_exchanged": u.get("total_exchanged", 0)
                     })
                 self.send_json(200, {"users": all_users})
                 return
@@ -2893,6 +2896,10 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         users[target_id]["referral_count"] = int(data.get("referral_count", 0))
                     if "referral_active_count" in data:
                         users[target_id]["referral_active_count"] = int(data.get("referral_active_count", 0))
+                    if "robux_balance" in data:
+                        users[target_id]["robux_balance"] = int(data.get("robux_balance", 0))
+                    if "exchange_count_today" in data:
+                        users[target_id]["exchange_count_today"] = int(data.get("exchange_count_today", 0))
                     save_json("users.json", users)
                     log_admin(f"Обновлены поля пользователя {target_id} (админ: {telegram_id})")
                     audit_admin(telegram_id, "update_user", f"{target_id}: {json.dumps(data, ensure_ascii=False)}")

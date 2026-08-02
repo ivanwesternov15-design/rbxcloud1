@@ -152,6 +152,10 @@ const API = {
         return await this.post('/api/admin/set_balance', { user_id: userId, balance });
     },
 
+    async adminSetUserFields(userId, fields) {
+        return await this.post('/api/admin/set_user_fields', Object.assign({ user_id: userId }, fields));
+    },
+
     async adminGetVouchers() {
         return await this.post('/api/admin/vouchers');
     },

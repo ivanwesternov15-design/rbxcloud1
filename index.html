@@ -306,7 +306,13 @@
 
         <!-- Screen: Exchange -->
         <div id="screen-exchange" class="screen">
-            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Обмен на Robux</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div class="section-title" style="margin-bottom:0;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Обмен на Robux</div>
+                <div class="exchange-reset" id="exchange-reset" title="До сброса обменов сегодня">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+                    <span id="exchange-reset-time">--:--:--</span>
+                </div>
+            </div>
             <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
                 Обменивай монеты на реальные Robux-ваучеры
             </div>

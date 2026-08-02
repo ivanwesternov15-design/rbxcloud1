@@ -1800,7 +1800,12 @@ const App = {
 
         Auth.user.coins = res.coins;
         Auth.user.completed_tasks = res.completed_tasks;
-        this.showToast(`Задание выполнено! +${this.formatTaskReward(task)}`, 'success');
+        if (res.total_robux !== undefined) Auth.user.total_robux = res.total_robux;
+        if (res.reward && res.reward.type === 'voucher') {
+            this.showToast(`🎟 Ваучер ${Auth.formatNumber(res.reward.amount)} Robux! Код: ${res.reward.voucher_code}`, 'success');
+        } else {
+            this.showToast(`Задание выполнено! +${this.formatTaskReward(task)}`, 'success');
+        }
         this.updateAllUI();
         this.renderTasks();
     },
@@ -2161,7 +2166,7 @@ const App = {
         document.getElementById('profile-referrals').textContent = Auth.user.referral_count || 0;
         document.getElementById('profile-referral-earned').textContent = Auth.formatNumber(Auth.user.referral_earned || 0);
         document.getElementById('profile-cases').textContent = Auth.user.cases_opened || 0;
-        document.getElementById('profile-exchanged').textContent = Auth.formatNumber(Auth.user.total_exchanged || 0);
+        document.getElementById('profile-exchanged').textContent = Auth.formatNumber(Auth.user.total_robux ?? Auth.user.total_exchanged ?? 0);
 
         // Rank panel
         const level = Auth.user.level || 1;

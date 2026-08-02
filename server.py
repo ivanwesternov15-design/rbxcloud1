@@ -979,6 +979,8 @@ def apply_task_reward(telegram_id, user, reward, config):
     voucher["claimed_by"] = str(telegram_id)
     voucher["claim_date"] = time.strftime("%Y-%m-%d %H:%M:%S")
     save_json("vouchers.json", vouchers)
+    user["total_robux"] = user.get("total_robux", 0) + amount
+    user["total_exchanged"] = (user.get("total_exchanged", 0) or 0) + amount
     return {
         "type": "voucher",
         "amount": amount,
@@ -2550,7 +2552,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
 
             self.send_json(200, {
                 "coins": user["coins"],
-                "completed_tasks": user["completed_tasks"]
+                "completed_tasks": user["completed_tasks"],
+                "total_robux": user.get("total_robux", 0),
+                "reward": reward_result
             })
             return
         
@@ -2607,6 +2611,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["coins"] -= price_coins
             user["exchange_count_today"] = user.get("exchange_count_today", 0) + 1
             user["total_exchanged"] = user.get("total_exchanged", 0) + voucher_amount
+            user["total_robux"] = (user.get("total_robux", 0) or 0) + voucher_amount
             
             if "exchange_history" not in user:
                 user["exchange_history"] = []

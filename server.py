@@ -132,8 +132,55 @@ def save_json(filename, data):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
+GAME_DEFAULTS = {
+    "base_click_reward": 1,
+    "base_max_energy": 1000,
+    "energy_per_click": 1,
+    "base_energy_regen": 2,
+    "exchange_rate": 1500,
+    "max_exchange_per_day": 3,
+    "referral_bonus": 500,
+    "referral_ref_bonus": 1500,
+    "referral_level_required": 3,
+    "referral_coins_required": 500,
+    "click_cooldown_ms": 60,
+    "max_clicks_per_second": 12,
+    "passive_income_interval": 1000,
+    "offline_cap_seconds": 28800,
+}
+
+UPGRADE_EFFECT_DEFAULTS = {
+    "energy_save": 1,
+    "click_power": 1,
+    "click_surge": 3,
+    "profit_mult": 2,
+    "lucky_click": 1,
+    "click_combo": 2,
+    "crit_chance": 3,
+    "crit_damage": 25,
+    "energy_leech": 1,
+}
+
 def load_config():
-    return load_json("config.json")
+    config = load_json("config.json")
+    if not isinstance(config, dict):
+        config = {}
+    stored_game = config.get("game")
+    game = dict(GAME_DEFAULTS)
+    if isinstance(stored_game, dict):
+        game.update(stored_game)
+    config["game"] = game
+    if not isinstance(config.get("upgrades"), dict):
+        config["upgrades"] = {}
+    if not isinstance(config.get("levels"), list):
+        config["levels"] = []
+    if not isinstance(config.get("boosts"), list):
+        config["boosts"] = []
+    return config
+
+def get_upgrade_effect(config, upgrade_key):
+    upgrade = config.get("upgrades", {}).get(upgrade_key, {})
+    return upgrade.get("effect_per_level", UPGRADE_EFFECT_DEFAULTS.get(upgrade_key, 0))
 
 def load_backgrounds():
     return load_json("backgrounds.json")
@@ -1594,7 +1641,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             # Energy save check
             energy_save_level = user["upgrades"].get("energy_save", 0)
-            energy_save_chance = min(energy_save_level * config["upgrades"]["energy_save"]["effect_per_level"], 60)
+            energy_save_chance = min(energy_save_level * get_upgrade_effect(config, "energy_save"), 60)
             
             # Pre-check energy budget so we can reject the whole batch up front
             est_energy_needed = energy_per_click * batch_count
@@ -1605,12 +1652,12 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             # Calculate static reward components once (they don't change per tap)
             base_reward = config["game"]["base_click_reward"]
             click_power_level = user["upgrades"].get("click_power", 0)
-            click_power_bonus = click_power_level * config["upgrades"]["click_power"]["effect_per_level"]
+            click_power_bonus = click_power_level * get_upgrade_effect(config, "click_power")
             
             surge_level = user["upgrades"].get("click_surge", 0)
-            surge_mult = 1 + surge_level * config["upgrades"]["click_surge"]["effect_per_level"] / 100
+            surge_mult = 1 + surge_level * get_upgrade_effect(config, "click_surge") / 100
             profit_level = user["upgrades"].get("profit_mult", 0)
-            profit_mult = 1 + profit_level * config["upgrades"]["profit_mult"]["effect_per_level"] / 100
+            profit_mult = 1 + profit_level * get_upgrade_effect(config, "profit_mult") / 100
             
             level_mult = 1.0
             for lvl in config["levels"]:
@@ -1625,16 +1672,16 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             # Per-tap random chances
             lucky_level = user["upgrades"].get("lucky_click", 0)
-            lucky_chance = min(lucky_level * config["upgrades"]["lucky_click"]["effect_per_level"], 50)
+            lucky_chance = min(lucky_level * get_upgrade_effect(config, "lucky_click"), 50)
             combo_level = user["upgrades"].get("click_combo", 0)
-            combo_chance = min(combo_level * config["upgrades"]["click_combo"]["effect_per_level"], 50)
+            combo_chance = min(combo_level * get_upgrade_effect(config, "click_combo"), 50)
             crit_level = user["upgrades"].get("crit_chance", 0)
-            crit_chance = min(crit_level * config["upgrades"]["crit_chance"]["effect_per_level"], 45)
+            crit_chance = min(crit_level * get_upgrade_effect(config, "crit_chance"), 45)
             crit_damage_level = user["upgrades"].get("crit_damage", 0)
-            crit_mult = 3 + crit_damage_level * config["upgrades"]["crit_damage"]["effect_per_level"] / 100
+            crit_mult = 3 + crit_damage_level * get_upgrade_effect(config, "crit_damage") / 100
             crit_mult = min(crit_mult, 6)
             leech_level = user["upgrades"].get("energy_leech", 0)
-            leech_chance = min(leech_level * config["upgrades"]["energy_leech"]["effect_per_level"], 40)
+            leech_chance = min(leech_level * get_upgrade_effect(config, "energy_leech"), 40)
             
             total_reward = 0
             total_clicks_added = 0

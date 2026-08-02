@@ -1228,12 +1228,12 @@ def get_click_reward(user, config, backgrounds=None):
     return int(base_reward * (1 + click_power_bonus) * surge_mult * profit_mult * level_mult * (1 + bg_bonus / 100))
 
 def check_anti_cheat(user):
-    """Reject only genuinely abusive click rates.
+    """Server-side click rate limiter.
 
-    Uses a float click timestamp (last_click) so normal hold-to-click taps
-    (80ms interval) are never flagged. A tap is only 'too fast' if it arrives
-    < 50ms after the previous one (>20 clicks/sec), which human/mobile hold
-    tapping cannot produce.
+    Flags abusive patterns: sustained >8 clicks/sec over a 5-second
+    sliding window, or >60 total clicks in 60 seconds. Human tapping
+    rarely exceeds 5-6 clicks/sec; scripted autoclickers maintain
+    constant high rates.
     """
     now = time.time()
     suspicious = user.get("suspicious_activity", [])
@@ -1247,6 +1247,24 @@ def check_anti_cheat(user):
         suspicious.append({"time": now, "reason": "too_fast_click"})
         user["suspicious_activity"] = suspicious
         return False
+    # Sustained high-rate detection: track clicks per second over a
+    # rolling window. If the user sustains >8 clicks/sec for more than
+    # 5 seconds straight, flag it.
+    click_history = user.get("click_history", [])
+    click_history.append(now)
+    # Keep only last 10 seconds of clicks
+    click_history = [t for t in click_history if now - t < 10]
+    user["click_history"] = click_history
+    if len(click_history) > 40:
+        # More than 40 clicks in 10 seconds = sustained >4 clicks/sec
+        # which is suspicious for a normal player but possible with
+        # rapid tapping. Flag only if truly excessive.
+        five_sec_ago = now - 5
+        clicks_in_5s = sum(1 for t in click_history if t > five_sec_ago)
+        if clicks_in_5s > 40:
+            suspicious.append({"time": now, "reason": "sustained_autoclick"})
+            user["suspicious_activity"] = suspicious
+            return False
     return True
 
 def get_client_ip(handler):
@@ -2414,36 +2432,51 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if not boost_def:
                 self.send_json(400, {"error": "Boost not found"})
                 return
-            
+
+            # 6-hour cooldown between boost purchases
+            BOOST_COOLDOWN = 6 * 3600
+            last_boosts = user.get("last_boost_purchase", {})
+            last_bought = last_boosts.get(boost_id, 0)
+            if now - last_bought < BOOST_COOLDOWN:
+                remaining = int(BOOST_COOLDOWN - (now - last_bought))
+                hrs = remaining // 3600
+                mins = (remaining % 3600) // 60
+                self.send_json(400, {"error": f"Кулдаун буста: подожди {hrs}ч {mins}мин"})
+                return
+
             if user["coins"] < boost_def["price"]:
                 self.send_json(400, {"error": "Недостаточно монет"})
                 return
-            
+
             user["coins"] -= boost_def["price"]
-            
+
             if boost_id == "energy_full":
                 user["energy"] = user["max_energy"]
             else:
                 if "active_boosts" not in user:
                     user["active_boosts"] = []
-                
+
                 # Remove old boost of same type
                 user["active_boosts"] = [b for b in user["active_boosts"] if b.get("boost_id") != boost_id]
 
                 # Hardcore rule: while ANY coins_x multiplier boost is active,
                 # you cannot buy another one until it expires.
-                now = time.time()
                 if "coins_x" in boost_id:
                     for active_b in user["active_boosts"]:
                         if active_b.get("boost_id", "").startswith("coins_x") and active_b.get("expires_at", 0) > now:
                             self.send_json(400, {"error": "Сначала дождись окончания текущего множителя!"})
                             return
-                
+
                 user["active_boosts"].append({
                     "boost_id": boost_id,
                     "started_at": time.time(),
                     "expires_at": time.time() + boost_def["duration"]
                 })
+
+            user["last_active"] = int(time.time())
+            if "last_boost_purchase" not in user:
+                user["last_boost_purchase"] = {}
+            user["last_boost_purchase"][boost_id] = time.time()
             
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)

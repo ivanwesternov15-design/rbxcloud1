@@ -1887,6 +1887,8 @@ const App = {
                 if (btn) btn.addEventListener('click', () => this.taskAction(task));
                 const exp = card.querySelector('.task-action-btn.expired');
                 if (exp) exp.addEventListener('click', () => this.expireTask(task));
+                const act = card.querySelector('.task-action-btn:not(.verify):not(.expired)');
+                if (act) act.addEventListener('click', () => this.taskAction(task));
             }
 
             container.appendChild(card);

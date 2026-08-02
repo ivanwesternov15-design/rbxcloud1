@@ -264,7 +264,11 @@
 
             <div class="admin-content-inner" data-content="users">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Управление пользователями</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Пользователи</div>
+                    <div class="admin-search-row">
+                        <input class="admin-input admin-search-input" id="admin-user-search" type="text" placeholder="Поиск по @Username..." style="width:260px;">
+                        <button class="admin-btn" id="admin-user-search-clear">✕</button>
+                    </div>
                     <div style="overflow-x:auto;">
                         <table class="admin-table">
                             <thead><tr>
@@ -273,6 +277,8 @@
                             <tbody id="admin-users-body"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
                 </div>
             </div>
 
@@ -488,6 +494,12 @@
             document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступ разрешён';
             document.getElementById('admin-badge').style.display = 'flex';
             document.getElementById('admin-content').style.display = 'block';
+
+            document.getElementById('admin-user-search').addEventListener('input', () => loadUsers());
+            document.getElementById('admin-user-search-clear').addEventListener('click', () => {
+                document.getElementById('admin-user-search').value = '';
+                loadUsers();
+            });
 
             document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -1134,8 +1146,18 @@
             const tbody = document.getElementById('admin-users-body');
             tbody.innerHTML = '';
             adminUsersByName = {};
-            (res.users || []).forEach(u => { adminUsersByName[String(u.id)] = u.first_name || u.id; });
-            (res.users || []).forEach(u => {
+            const searchInput = document.getElementById('admin-user-search');
+            const searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            let users = res.users || [];
+            if (searchTerm) {
+                users = users.filter(u => {
+                    const un = (u.username || '').toLowerCase();
+                    const fn = (u.first_name || '').toLowerCase();
+                    return un.includes(searchTerm.replace('@','')) || fn.toLowerCase().includes(searchTerm);
+                });
+            }
+            users.forEach(u => { adminUsersByName[String(u.id)] = u.first_name || u.id; });
+            users.forEach(u => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="width:36px;"><img src="${u.photo_url || '/assets/icons/coin.png'}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--glass-bg);" onerror="this.style.display='none'" alt=""></td>

@@ -2173,16 +2173,90 @@ body::before {
     min-width: 0;
     flex: 1 1 auto;
 }
-.profile-withdraw-panel .exchange-btn {
-    white-space: nowrap;
-    position: relative;
-    z-index: 2;
-    pointer-events: auto;
+.admin-search-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
 }
-.profile-withdraw-panel {
-    padding: 16px 14px;
-    margin-bottom: 12px;
+.admin-search-input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.admin-search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(79,143,255,0.15);
+}
+.admin-search-input::placeholder { color: var(--text-muted); }
+.admin-search-input { width: 260px; }
+.admin-btn {
+    padding: 8px 14px; border-radius: 10px; border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.04); color: var(--text-primary); font-size: 12px;
+    cursor: pointer; font-family: var(--font); transition: all 0.2s;
+}
+.admin-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+
+/* --- Profile enhancements --- */
+.profile-header-card {
+    border-image: linear-gradient(180deg, rgba(96,165,250,0.2), transparent 60%) 1;
+}
+.profile-header-glow {
+    background:
+        radial-gradient(160px 100px at 15% -15%, rgba(96,165,250,0.3), transparent 70%),
+        radial-gradient(180px 110px at 90% -5%, rgba(34,211,238,0.2), transparent 70%),
+        radial-gradient(120px 80px at 50% 100%, rgba(214,163,93,0.15), transparent 70%);
+}
+.profile-rank-panel {
+    border-image: linear-gradient(135deg, rgba(214,163,93,0.15), transparent 50%) 1;
+    position: relative;
     overflow: hidden;
+}
+.profile-rank-panel::before {
+    content: '';
+    position: absolute; top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(214,163,93,0.06), transparent 30%);
+    animation: profileRankSpin 8s linear infinite;
+    pointer-events: none;
+}
+@keyframes profileRankSpin { to { transform: rotate(360deg); } }
+.profile-rank-left { position: relative; z-index: 1; }
+.profile-rank-right { position: relative; z-index: 1; }
+.profile-rank-img {
+    filter: drop-shadow(0 0 16px rgba(214,163,93,0.35)) drop-shadow(0 0 4px rgba(214,163,93,0.5));
+    transition: transform 0.4s var(--ease-spring);
+}
+.profile-rank-panel:hover .profile-rank-img { transform: scale(1.06) rotate(-3deg); }
+.profile-rank-level-num {
+    background: linear-gradient(135deg, var(--gold), #f59e0b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.profile-rank-name {
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.prp-track {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.04);
+}
+.prp-fill {
+    background: linear-gradient(90deg, var(--gold), #f59e0b);
+    box-shadow: 0 0 8px rgba(214,163,93,0.3);
+}
+.prp-meta { color: var(--text-muted); font-size: 11px; }
+.profile-withdraw-panel {
+    border-image: linear-gradient(135deg, rgba(79,143,255,0.1), transparent 50%) 1;
+}
+.pw-value {
+    background: linear-gradient(135deg, var(--accent), #00D4FF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .pw-info {

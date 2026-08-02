@@ -1572,17 +1572,22 @@ const App = {
             const tcol = typeColor[item.type] || '#4F8FFF';
             const rarity = item.bg_rarity || item.type;
             const rcol = rarityColors[rarity] || tcol;
+            const isRare = (item.probability || 0) < 0.05;
+            const glow = `0 0 8px ${rcol}`;
+            const bgGlow = isRare
+                ? `0 0 10px ${rcol}, inset 0 0 6px ${rcol}`
+                : `0 0 6px ${rcol}`;
             return `<div class="chance-row">
                 <div class="chance-left">
-                    <span class="chance-dot" style="background:${rcol};box-shadow:0 0 8px ${rcol}">
+                    <span class="chance-dot" style="background:${rcol};box-shadow:${glow};">
                         <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="${ticon}"/></svg>
                     </span>
                     <span class="chance-name" title="${item.name}">${item.name}</span>
                 </div>
                 <div class="chance-bar-wrap">
-                    <div class="chance-bar" style="width:${pct}%;background:${rcol};"></div>
+                    <div class="chance-bar" style="width:${pct}%;background:${rcol};box-shadow:${bgGlow};"></div>
                 </div>
-                <span class="chance-val" style="color:${rcol};">${pct}%</span>
+                <span class="chance-val" style="color:${rcol};font-weight:700;">${pct}%</span>
             </div>`;
         }).join('');
 
@@ -2202,6 +2207,11 @@ const App = {
 
         // User info
         const exchangeLimit = this._exchangeLimit();
+        const rateEl = document.getElementById('exchange-rate-value');
+        if (rateEl) {
+            const rate = (Auth.config && Auth.config.game && Auth.config.game.exchange_rate) || 0;
+            rateEl.textContent = Auth.formatNumber(rate);
+        }
         document.getElementById('exchange-balance').textContent = Auth.formatNumber(Auth.user.coins || 0);
         document.getElementById('exchange-today').textContent = `${Auth.user.exchange_count_today || 0}/${exchangeLimit}`;
         document.getElementById('exchange-total').textContent = Auth.formatNumber(Auth.user.total_exchanged || 0);

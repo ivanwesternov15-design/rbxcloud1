@@ -306,9 +306,18 @@
 
         <!-- Screen: Exchange -->
         <div id="screen-exchange" class="screen">
-            <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Обмен на Robux</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
-                Обменивай монеты на реальные Robux-ваучеры
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                    <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Обмен на Robux</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+                        Обменивай монеты на реальные Robux-ваучеры
+                    </div>
+                </div>
+                <div class="exchange-rate-panel" id="exchange-rate-panel">
+                    <span class="exchange-rate-label">Цена за 1 Robux:</span>
+                    <span class="exchange-rate-value" id="exchange-rate-value">—</span>
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg>
+                </div>
             </div>
 
             <div class="stats-grid" style="margin-bottom:16px;">
@@ -548,8 +557,10 @@
     <!-- Case Animation Overlay -->
     <div id="case-animation" class="case-animation-overlay"></div>
 
-    <script src="/js/api.js?v=20260803-hardcore-v2-1"></script>
-    <script src="/js/auth.js?v=20260803-hardcore-v2-1"></script>
-    <script src="/js/app.js?v=20260803-hardcore-v2-1"></script>
+    <script src="/js/api.js?v=20260803-progression-hardcore-2"></script>
+
+    <script src="/js/auth.js?v=20260803-progression-hardcore-2"></script>
+
+    <script src="/js/app.js?v=20260803-progression-hardcore-2"></script>
 </body>
 </html>

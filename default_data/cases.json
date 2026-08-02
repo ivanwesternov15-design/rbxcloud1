@@ -9,52 +9,52 @@
     "items": [
       {
         "type": "coins",
-        "name": "800 монет",
-        "amount": 800,
-        "probability": 0.3
+        "name": "1200 монет",
+        "amount": 1200,
+        "probability": 0.20
       },
       {
         "type": "coins",
-        "name": "1500 монет",
-        "amount": 1500,
-        "probability": 0.22
+        "name": "3000 монет",
+        "amount": 3000,
+        "probability": 0.18
       },
       {
-        "type": "coins",
-        "name": "2500 монет",
-        "amount": 2500,
-        "probability": 0.14
-      },
-      {
-        "type": "coins",
-        "name": "4000 монет",
-        "amount": 4000,
-        "probability": 0.08
-      },
-      {
-        "type": "coins",
-        "name": "6500 монет",
-        "amount": 6500,
-        "probability": 0.03
+        "type": "energy",
+        "name": "+250 энергии",
+        "amount": 250,
+        "probability": 0.15
       },
       {
         "type": "boost",
         "name": "x2 монеты на 5 мин",
         "boost_id": "coins_x2",
         "duration": 300,
-        "probability": 0.06
-      },
-      {
-        "type": "energy",
-        "name": "+250 энергии",
-        "amount": 250,
-        "probability": 0.14
+        "probability": 0.12
       },
       {
         "type": "background",
         "name": "Случайный обычный фон",
         "bg_rarity": "common",
-        "probability": 0.03
+        "probability": 0.10
+      },
+      {
+        "type": "coins",
+        "name": "6000 монет",
+        "amount": 6000,
+        "probability": 0.08
+      },
+      {
+        "type": "background",
+        "name": "Случайный редкий фон",
+        "bg_rarity": "rare",
+        "probability": 0.05
+      },
+      {
+        "type": "coins",
+        "name": "12000 монет",
+        "amount": 12000,
+        "probability": 0.02
       }
     ]
   },
@@ -68,66 +68,53 @@
     "items": [
       {
         "type": "coins",
-        "name": "4000 монет",
-        "amount": 4000,
-        "probability": 0.25
+        "name": "5000 монет",
+        "amount": 5000,
+        "probability": 0.20
       },
       {
         "type": "coins",
-        "name": "8000 монет",
-        "amount": 8000,
-        "probability": 0.2
+        "name": "12000 монет",
+        "amount": 12000,
+        "probability": 0.18
       },
       {
-        "type": "coins",
-        "name": "14000 монет",
-        "amount": 14000,
-        "probability": 0.13
-      },
-      {
-        "type": "coins",
-        "name": "22000 монет",
-        "amount": 22000,
-        "probability": 0.07
-      },
-      {
-        "type": "coins",
-        "name": "35000 монет",
-        "amount": 35000,
-        "probability": 0.02
+        "type": "energy",
+        "name": "+600 энергии",
+        "amount": 600,
+        "probability": 0.14
       },
       {
         "type": "boost",
         "name": "x2 монеты на 10 мин",
         "boost_id": "coins_x2",
         "duration": 600,
-        "probability": 0.07
-      },
-      {
-        "type": "boost",
-        "name": "x3 монеты на 5 мин",
-        "boost_id": "coins_x3",
-        "duration": 300,
-        "probability": 0.04
-      },
-      {
-        "type": "energy",
-        "name": "+600 энергии",
-        "amount": 600,
         "probability": 0.12
       },
       {
         "type": "background",
         "name": "Случайный редкий фон",
         "bg_rarity": "rare",
-        "probability": 0.05
+        "probability": 0.10
+      },
+      {
+        "type": "coins",
+        "name": "22000 монет",
+        "amount": 22000,
+        "probability": 0.08
       },
       {
         "type": "boost",
-        "name": "Автокликер 30 сек",
-        "boost_id": "auto_clicker",
-        "duration": 30,
+        "name": "x3 монеты на 5 мин",
+        "boost_id": "coins_x3",
+        "duration": 300,
         "probability": 0.05
+      },
+      {
+        "type": "coins",
+        "name": "40000 монет",
+        "amount": 40000,
+        "probability": 0.03
       }
     ]
   },
@@ -141,60 +128,21 @@
     "items": [
       {
         "type": "coins",
-        "name": "20000 монет",
-        "amount": 20000,
-        "probability": 0.22
-      },
-      {
-        "type": "coins",
-        "name": "40000 монет",
-        "amount": 40000,
+        "name": "25000 монет",
+        "amount": 25000,
         "probability": 0.18
       },
       {
         "type": "coins",
-        "name": "65000 монет",
-        "amount": 65000,
-        "probability": 0.11
-      },
-      {
-        "type": "coins",
-        "name": "100000 монет",
-        "amount": 100000,
-        "probability": 0.06
-      },
-      {
-        "type": "coins",
-        "name": "170000 монет",
-        "amount": 170000,
-        "probability": 0.02
-      },
-      {
-        "type": "boost",
-        "name": "x3 монеты на 10 мин",
-        "boost_id": "coins_x3",
-        "duration": 600,
-        "probability": 0.08
-      },
-      {
-        "type": "boost",
-        "name": "x5 монеты на 5 мин",
-        "boost_id": "coins_x5",
-        "duration": 300,
-        "probability": 0.04
-      },
-      {
-        "type": "boost",
-        "name": "x10 монеты на 5 мин",
-        "boost_id": "coins_x10",
-        "duration": 300,
-        "probability": 0.02
+        "name": "50000 монет",
+        "amount": 50000,
+        "probability": 0.16
       },
       {
         "type": "energy",
         "name": "+1500 энергии",
         "amount": 1500,
-        "probability": 0.1
+        "probability": 0.14
       },
       {
         "type": "background",
@@ -204,10 +152,36 @@
       },
       {
         "type": "boost",
+        "name": "x3 монеты на 10 мин",
+        "boost_id": "coins_x3",
+        "duration": 600,
+        "probability": 0.10
+      },
+      {
+        "type": "boost",
+        "name": "x5 монеты на 5 мин",
+        "boost_id": "coins_x5",
+        "duration": 300,
+        "probability": 0.08
+      },
+      {
+        "type": "coins",
+        "name": "90000 монет",
+        "amount": 90000,
+        "probability": 0.06
+      },
+      {
+        "type": "boost",
         "name": "Автокликер 60 сек",
         "boost_id": "auto_clicker",
         "duration": 60,
-        "probability": 0.05
+        "probability": 0.04
+      },
+      {
+        "type": "coins",
+        "name": "180000 монет",
+        "amount": 180000,
+        "probability": 0.02
       }
     ]
   },
@@ -221,60 +195,21 @@
     "items": [
       {
         "type": "coins",
-        "name": "80000 монет",
-        "amount": 80000,
-        "probability": 0.2
+        "name": "90000 монет",
+        "amount": 90000,
+        "probability": 0.18
       },
       {
         "type": "coins",
-        "name": "150000 монет",
-        "amount": 150000,
+        "name": "180000 монет",
+        "amount": 180000,
         "probability": 0.16
-      },
-      {
-        "type": "coins",
-        "name": "250000 монет",
-        "amount": 250000,
-        "probability": 0.1
-      },
-      {
-        "type": "coins",
-        "name": "400000 монет",
-        "amount": 400000,
-        "probability": 0.05
-      },
-      {
-        "type": "coins",
-        "name": "700000 монет",
-        "amount": 700000,
-        "probability": 0.02
-      },
-      {
-        "type": "boost",
-        "name": "x3 монеты на 15 мин",
-        "boost_id": "coins_x3",
-        "duration": 900,
-        "probability": 0.08
-      },
-      {
-        "type": "boost",
-        "name": "x5 монеты на 10 мин",
-        "boost_id": "coins_x5",
-        "duration": 600,
-        "probability": 0.06
-      },
-      {
-        "type": "boost",
-        "name": "x10 монеты на 10 мин",
-        "boost_id": "coins_x10",
-        "duration": 600,
-        "probability": 0.03
       },
       {
         "type": "energy",
         "name": "+3500 энергии",
         "amount": 3500,
-        "probability": 0.08
+        "probability": 0.14
       },
       {
         "type": "background",
@@ -286,14 +221,34 @@
         "type": "background",
         "name": "Случайный легендарный фон",
         "bg_rarity": "legendary",
-        "probability": 0.04
+        "probability": 0.10
+      },
+      {
+        "type": "boost",
+        "name": "x5 монеты на 10 мин",
+        "boost_id": "coins_x5",
+        "duration": 600,
+        "probability": 0.08
+      },
+      {
+        "type": "boost",
+        "name": "x10 монеты на 10 мин",
+        "boost_id": "coins_x10",
+        "duration": 600,
+        "probability": 0.06
       },
       {
         "type": "boost",
         "name": "Автокликер 120 сек",
         "boost_id": "auto_clicker",
         "duration": 120,
-        "probability": 0.06
+        "probability": 0.04
+      },
+      {
+        "type": "coins",
+        "name": "450000 монет",
+        "amount": 450000,
+        "probability": 0.02
       }
     ]
   },
@@ -307,33 +262,34 @@
     "items": [
       {
         "type": "coins",
-        "name": "300000 монет",
-        "amount": 300000,
+        "name": "450000 монет",
+        "amount": 450000,
         "probability": 0.18
       },
       {
         "type": "coins",
-        "name": "550000 монет",
-        "amount": 550000,
-        "probability": 0.15
+        "name": "800000 монет",
+        "amount": 800000,
+        "probability": 0.16
       },
       {
-        "type": "coins",
-        "name": "900000 монет",
-        "amount": 900000,
-        "probability": 0.1
+        "type": "energy",
+        "name": "+8000 энергии",
+        "amount": 8000,
+        "probability": 0.14
       },
       {
-        "type": "coins",
-        "name": "1500000 монет",
-        "amount": 1500000,
-        "probability": 0.05
+        "type": "background",
+        "name": "Случайный легендарный фон",
+        "bg_rarity": "legendary",
+        "probability": 0.12
       },
       {
-        "type": "coins",
-        "name": "2500000 монет",
-        "amount": 2500000,
-        "probability": 0.02
+        "type": "boost",
+        "name": "x10 монеты на 30 мин",
+        "boost_id": "coins_x10",
+        "duration": 1800,
+        "probability": 0.10
       },
       {
         "type": "boost",
@@ -343,36 +299,23 @@
         "probability": 0.08
       },
       {
-        "type": "boost",
-        "name": "x10 монеты на 30 мин",
-        "boost_id": "coins_x10",
-        "duration": 1800,
-        "probability": 0.05
-      },
-      {
-        "type": "energy",
-        "name": "+8000 энергии",
-        "amount": 8000,
-        "probability": 0.06
-      },
-      {
-        "type": "background",
-        "name": "Случайный легендарный фон",
-        "bg_rarity": "legendary",
-        "probability": 0.15
-      },
-      {
         "type": "background",
         "name": "Случайный эпический фон",
         "bg_rarity": "epic",
-        "probability": 0.08
+        "probability": 0.06
       },
       {
         "type": "boost",
         "name": "Автокликер 300 сек",
         "boost_id": "auto_clicker",
         "duration": 300,
-        "probability": 0.08
+        "probability": 0.04
+      },
+      {
+        "type": "coins",
+        "name": "1500000 монет",
+        "amount": 1500000,
+        "probability": 0.02
       }
     ]
   }

@@ -2126,11 +2126,11 @@ const App = {
             <div style="text-align:center;">
                 <div style="font-size:16px;font-weight:800;">Вывод Robux</div>
                 <div style="font-size:12px;color:var(--text-secondary);margin:6px 0 14px;">Доступно: <b style="color:var(--accent);">${Auth.formatNumber(bal)} Robux</b></div>
-                <div class="withdraw-grid">${base.map(btn).join('')}</div>
+                <div class="withdraw-grid">${base.map(cell).join('')}</div>
                 <button class="withdraw-more-btn" id="withdraw-more">
                     <svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> открыть ещё
                 </button>
-                <div style="display:none;margin-top:10px;" id="withdraw-more-wrap">${more.map(btn).join('')}</div>
+                <div style="display:none;margin-top:10px;" id="withdraw-more-wrap">${more.map(cell).join('')}</div>
             </div>`);
         document.querySelectorAll('#modal-body [data-amt]').forEach(el => {
             el.addEventListener('click', () => {

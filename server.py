@@ -1815,18 +1815,34 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if is_admin_telegram_id(telegram_id):
                 user["is_admin"] = True
             
-            # Auto-update profile data (name/username/bio) from Telegram (max once per hour, or forced)
-            # Runs in a background thread so the single-threaded server is never blocked on network calls.
+            # Auto-update profile data (name/username/bio) from Telegram.
             now_ts = int(time.time())
             force_sync = query.get("force", "") == "1"
             last_profile_check = user.get("last_profile_check", 0)
-            if force_sync or now_ts - last_profile_check > 3600:
+            if force_sync:
+                # Real-time: run the Telegram sync synchronously so the fresh
+                # bio/name/username is included in THIS very response instead of
+                # being applied later in a background thread the client never sees.
+                sync_profile_from_telegram(str(telegram_id))
+                users = load_users()
+                fresh = users.get(str(telegram_id))
+                if fresh:
+                    user = fresh
+                user["last_profile_check"] = now_ts
+            elif now_ts - last_profile_check > 3600:
                 user["last_profile_check"] = now_ts
                 threading.Thread(target=sync_profile_from_telegram, args=(str(telegram_id),), daemon=True).start()
             
             # Auto-update avatar from Telegram if photo changed (max once per hour)
             last_avatar_check = user.get("last_avatar_check", 0)
-            if now_ts - last_avatar_check > 3600:
+            if force_sync:
+                sync_avatar_from_telegram(str(telegram_id))
+                users = load_users()
+                fresh = users.get(str(telegram_id))
+                if fresh:
+                    user = fresh
+                user["last_avatar_check"] = now_ts
+            elif now_ts - last_avatar_check > 3600:
                 user["last_avatar_check"] = now_ts
                 threading.Thread(target=sync_avatar_from_telegram, args=(str(telegram_id),), daemon=True).start()
             

@@ -52,7 +52,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260803-task-range-1"
+BUILD_VERSION = "20260803-rebalance-reset-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.

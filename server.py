@@ -11,14 +11,22 @@ import re
 import sys
 from urllib.parse import urlparse, parse_qs, unquote
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+# Bot token. BotHost exposes the token under several possible env names depending
+# on template/settings, so we read the first one that is set.
+BOT_TOKEN = ""
+for _k in ("BOT_TOKEN", "TELEGRAM_BOT_TOKEN", "BOT_API_TOKEN", "API_TOKEN", "TOKEN"):
+    if os.environ.get(_k):
+        BOT_TOKEN = os.environ[_k]
+        break
 PORT = int(os.environ.get("PORT", "3000"))
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
-# Public base URL of the Mini App. Set BASE_URL in the BotHost env vars to your
-# real HTTPS domain (e.g. https://clickerfarm.bothost.ru). Used in bot messages,
-# logout and webhook setup.
-BASE_URL = os.environ.get("BASE_URL", "https://bot-1785687837-1511-senku.bothost.tech")
+# Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
+# back to explicit BASE_URL, else a sensible default.
+BASE_URL = (
+    ("https://" + os.environ["DOMAIN"].rstrip("/")) if os.environ.get("DOMAIN")
+    else os.environ.get("BASE_URL", "https://bot-1785687837-1511-senku.bothost.tech")
+)
 
 # --- Color Logging ---
 class Log:

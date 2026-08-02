@@ -1964,7 +1964,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             config_data = load_config()
             bot_uname = config_data.get("bot_username", "YourBot")
-            ref_link = f"https://t.me/{bot_uname}?startapp={user.get('referral_code', '')}"
+            ref_link = f"https://t.me/{bot_uname}?start={user.get('referral_code', '')}"
             
             self.send_json(200, {
                 "referral_code": user.get("referral_code", ""),

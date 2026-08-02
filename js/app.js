@@ -1635,6 +1635,23 @@ const App = {
     },
 
     // --- TASKS SCREEN ---
+    formatTaskReward(task) {
+        const r = task.reward;
+        if (r && typeof r === 'object') {
+            const type = r.type || 'coins';
+            if (type === 'boost') {
+                const name = r.name || r.boost_id || 'буст';
+                const mins = r.duration ? Math.max(1, Math.round(r.duration / 60)) : 0;
+                return `Буст «${name}»${mins ? ` на ${mins} мин` : ''}`;
+            }
+            if (type === 'voucher') {
+                return `🎟 Ваучер на ${Auth.formatNumber(r.amount)} Robux`;
+            }
+            return `${Auth.formatNumber(r.amount)} монет`;
+        }
+        return `${Auth.formatNumber(r)} монет`;
+    },
+
     renderTasks() {
         if (this.currentScreen !== 'tasks') return;
         if (!Auth.tasks || !Auth.user) return;
@@ -1661,7 +1678,7 @@ const App = {
                 <div class="task-info">
                     <div class="task-title">${task.title}</div>
                     <div class="task-desc">${task.description}</div>
-                    <div class="task-reward">+${Auth.formatNumber(task.reward)} монет</div>
+                    <div class="task-reward">+${this.formatTaskReward(task)}</div>
                 </div>
                 ${isCompleted ? '<span class="task-status">✓ Выполнено</span>' :
                  '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>'}
@@ -1693,7 +1710,7 @@ const App = {
 
         Auth.user.coins = res.coins;
         Auth.user.completed_tasks = res.completed_tasks;
-        this.showToast(`Задание выполнено! +${Auth.formatNumber(task.reward)} монет`, 'success');
+        this.showToast(`Задание выполнено! +${this.formatTaskReward(task)}`, 'success');
         this.updateAllUI();
         this.renderTasks();
     },

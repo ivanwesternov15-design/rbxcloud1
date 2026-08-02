@@ -1335,25 +1335,9 @@
                         adminTasks[idx].channels[ci][el2.dataset.c] = el2.value;
                     });
                 });
-                card.querySelector('[data-role="rm"]').addEventListener('click', () => {
-                    adminTasks.splice(parseInt(card.dataset.idx), 1);
-                    renderTasksEdit();
-                });
-                card.querySelector('[data-role="addch"]')?.addEventListener('click', () => {
-                    const idx = parseInt(card.dataset.idx);
-                    adminTasks[idx].channels.push({ label: '', url: '', chat_id: '' });
-                    renderTasksEdit();
-                });
-                card.querySelectorAll('[data-role="remch"]').forEach(b => {
-                    b.addEventListener('click', () => {
-                        const idx = parseInt(card.dataset.idx);
-                        const ci = parseInt(b.parentElement.dataset.ci);
-                        adminTasks[idx].channels.splice(ci, 1);
-                        renderTasksEdit();
-                    });
-                });
                 div.appendChild(card);
             });
+            setupTasksListDelegation();
         }
 
         function buildSaveTasksPayload() {
@@ -1385,6 +1369,31 @@
         async function saveAdminTasks() {
             await API.adminSaveTasks(buildSaveTasksPayload());
             toast('Задания сохранены', 'success');
+        }
+
+        function setupTasksListDelegation() {
+            const root = document.getElementById('admin-tasks-list');
+            if (!root || root.dataset.delegated) return;
+            root.dataset.delegated = '1';
+            root.addEventListener('click', (e) => {
+                const add = e.target.closest('[data-role="addch"]');
+                const rm = e.target.closest('[data-role="rm"]');
+                const remch = e.target.closest('[data-role="remch"]');
+                if (!add && !rm && !remch) return;
+                if (add) e.preventDefault();
+                const card = e.target.closest('[data-idx]');
+                if (!card) return;
+                const idx = parseInt(card.dataset.idx);
+                if (add) {
+                    adminTasks[idx].channels.push({ label: '', url: '', chat_id: '' });
+                } else if (rm) {
+                    adminTasks.splice(idx, 1);
+                } else if (remch) {
+                    const ci = parseInt(remch.parentElement.dataset.ci);
+                    adminTasks[idx].channels.splice(ci, 1);
+                }
+                renderTasksEdit();
+            });
         }
 
         async function loadTasksEdit() {

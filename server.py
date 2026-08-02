@@ -907,14 +907,16 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True)
         pass
 
 def verify_telegram_task_channels(task, telegram_id):
+    """Return (passed, error, internal). `internal` is True for config/technical
+    errors that only admins should see in detail."""
     channels = task.get("channels", [])
     if not channels:
-        return False, "В задании не настроены Telegram-каналы"
+        return False, "В задании не настроены Telegram-каналы", True
     results = []
     for channel in channels:
         chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(channel.get("url", ""))
         if not chat_id:
-            return False, f"Для канала «{channel.get('label', 'Telegram')}» не указан chat_id"
+            return False, f"Для канала «{channel.get('label', 'Telegram')}» не указан chat_id", True
         try:
             import urllib.request
             query = urlencode({"chat_id": chat_id, "user_id": str(telegram_id)})
@@ -930,9 +932,9 @@ def verify_telegram_task_channels(task, telegram_id):
             results.append(joined)
         except Exception as e:
             log_warn(f"Не удалось проверить подписку {chat_id} для {telegram_id}: {e}")
-            return False, f"Не удалось проверить канал «{channel.get('label', chat_id)}». Добавьте бота администратором канала."
+            return False, f"Не удалось проверить канал «{channel.get('label', chat_id)}»: {e}", True
     passed = any(results) if task.get("channel_mode") == "any" else all(results)
-    return (True, "") if passed else (False, "Подпишитесь на указанные каналы и попробуйте снова")
+    return (True, "", False) if passed else (False, "Подпишитесь на указанные каналы и попробуйте снова", False)
 
 def apply_task_reward(telegram_id, user, reward, config):
     reward = normalize_task_reward(reward)
@@ -2495,8 +2497,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             # Check task conditions
             can_complete = False
             if task_def["type"] == "telegram":
-                passed, verify_error = verify_telegram_task_channels(task_def, str(telegram_id))
+                passed, verify_error, internal = verify_telegram_task_channels(task_def, str(telegram_id))
                 if not passed:
+                    if internal and not is_admin_telegram_id(telegram_id):
+                        self.send_json(400, {"error": "Не удалось проверить подписку. Попробуйте немного позже."})
+                        return
                     self.send_json(400, {"error": verify_error})
                     return
                 can_complete = True

@@ -424,11 +424,20 @@ const App = {
         const icons = { success: '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg>', error: '❌', info: 'ℹ️' };
         toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
         container.appendChild(toast);
+        this._pruneToasts(container);
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateY(-20px)';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 1800);
+    },
+
+    _pruneToasts(container) {
+        const MAX = 3;
+        while (container.children.length > MAX) {
+            const old = container.firstChild;
+            if (old) old.remove();
+        }
     },
 
     showUpgradeNotification(key, fromLevel, toLevel) {
@@ -450,7 +459,8 @@ const App = {
         toast.style.animation = 'toastUpgrade 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
         toast.innerHTML = `<span style="font-size:20px;"><svg class="icon" viewBox="0 0 24 24" style="width:22px;height:22px;"><use href="#${iconId}"/></svg></span><span><strong style="color:var(--gold);">${name}</strong> <span style="color:var(--success);">${fromLevel} → ${toLevel}</span></span>`;
         container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-30px) scale(0.9)'; setTimeout(() => toast.remove(), 300); }, 2500);
+        this._pruneToasts(container);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-30px) scale(0.9)'; setTimeout(() => toast.remove(), 300); }, 1300);
         
         // Add pulse animation to the upgrade card
         const cards = document.querySelectorAll('.upgrade-card');
@@ -1723,9 +1733,16 @@ const App = {
         const task = Auth.tasks.find(t => t.id === taskId);
         if (!task) return;
 
-        // If it's a telegram task, open the link first
+        // If it's a telegram task, open the link first.
+        // Use Telegram's openTelegramLink so a new tab doesn't take over and the
+        // Mini App is kept alive (just backgrounded) instead of closing.
         if (task.type === 'telegram' && task.link) {
-            window.open(task.link, '_blank');
+            const lg = window.Telegram && window.Telegram.WebApp;
+            if (lg && lg.openTelegramLink) {
+                lg.openTelegramLink(task.link);
+            } else {
+                window.open(task.link, '_blank');
+            }
         }
 
         const res = await API.completeTask(taskId);
@@ -1828,20 +1845,26 @@ const App = {
             if (ok) this.showToast('Ссылка скопирована!', 'success');
         };
 
-        // Share link via native share sheet (mobile-friendly)
+        // Share link via Telegram's native share, letting the user pick a friend
+        // and send a pre-filled nice message (keeps the Mini App alive).
         const shareBtn = document.getElementById('ref-share-btn');
         if (shareBtn) {
             shareBtn.style.display = '';
             shareBtn.onclick = async () => {
-                const text = document.getElementById('ref-link').textContent || fallbackLink;
-                if (navigator.share) {
-                    try {
-                        await navigator.share({ title: 'Игра', text: 'Заходи в игру!', url: text });
-                        return;
-                    } catch (e) { /* cancelled or unsupported */ }
+                const link = document.getElementById('ref-link').textContent || fallbackLink;
+                const gameName = (Auth.config && Auth.config.game_name) || 'Clicker Farm';
+                const msg = `🔥 Присоединяйся ко мне в ${gameName}! Жми по ссылке, начни играть и зарабатывай монеты 🪙`;
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`;
+                const lg = window.Telegram && window.Telegram.WebApp;
+                if (lg && lg.openTelegramLink) {
+                    lg.openTelegramLink(shareUrl);
+                    return;
                 }
-                const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(text)}&text=${encodeURIComponent('Заходи в игру!')}`;
-                window.open(tgUrl, '_blank');
+                if (navigator.share) {
+                    try { await navigator.share({ title: gameName, text: msg, url: link }); return; }
+                    catch (e) { /* cancelled or unsupported */ }
+                }
+                window.open(shareUrl, '_blank');
             };
         }
     },
@@ -2156,12 +2179,6 @@ const App = {
         const tasksEl = document.getElementById('profile-tasks');
         const completed = Auth.user.completed_tasks || [];
         tasksEl.textContent = `${completed.length}/${(Auth.tasks || []).filter(t => t.enabled).length}`;
-
-        // Logout button
-        document.getElementById('profile-logout-btn').onclick = async () => {
-            const confirmed = await this.showConfirm('Выйти из аккаунта?');
-            if (confirmed) this.logout();
-        };
     },
 
     // --- LOGOUT ---

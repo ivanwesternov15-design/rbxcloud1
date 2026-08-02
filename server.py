@@ -7,6 +7,7 @@ import hmac
 import time
 import uuid
 import threading
+import secrets
 import re
 import sys
 from urllib.parse import urlparse, parse_qs, unquote, urlencode
@@ -97,6 +98,72 @@ def get_lock(name):
     if name not in file_locks:
         file_locks[name] = threading.Lock()
     return file_locks[name]
+
+# --- Persistent audit log (daily files) + private access key ---
+LOG_DIR = os.path.join(DATA_DIR, "logs")
+# Private key for /logs.html. Stored obfuscated (XOR) so it's not plaintext in source.
+# Key word: "Hell1aliity"
+ACCESS_KEY = "".join(chr(ord(c) ^ 0x5A) for c in "\x12?66k;633.#")
+ACCESS_TOKENS = {}  # token -> timestamp (persisted)
+
+def _load_access_tokens():
+    try:
+        p = os.path.join(DATA_DIR, "logs_tokens.json")
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+def _save_access_tokens():
+    try:
+        p = os.path.join(DATA_DIR, "logs_tokens.json")
+        with get_lock("access_tokens"):
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump(ACCESS_TOKENS, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _refresh_access_tokens():
+    tokens = _load_access_tokens()
+    ACCESS_TOKENS.clear()
+    ACCESS_TOKENS.update(tokens)
+
+def logs_issue_token(key):
+    _refresh_access_tokens()
+    if str(key) != ACCESS_KEY:
+        return None
+    tok = secrets.token_hex(24)
+    ACCESS_TOKENS[tok] = {
+        "ts": time.time(),
+        "device": "",
+    }
+    _save_access_tokens()
+    return tok
+
+def logs_token_ok(token):
+    if not token:
+        return False
+    _refresh_access_tokens()
+    return token in ACCESS_TOKENS
+
+def audit(telegram_id, action, detail=""):
+    """Append one audit line for the current day (thread-safe)."""
+    from datetime import datetime
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        p = os.path.join(LOG_DIR, f"audit-{datetime.now().strftime('%Y-%m-%d')}.jsonl")
+        line = {"ts": ts, "who": str(telegram_id), "action": action, "detail": str(detail)}
+        with get_lock("audit"):
+            with open(p, "a", encoding="utf-8") as f:
+                f.write(json.dumps(line, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+def audit_admin(telegram_id, action, detail=""):
+    audit(telegram_id, "admin:" + action, detail)
 
 # --- Server load tracking (admin "Нагрузка сервера") ---
 LOAD_STATE = {"db_reads": 0, "db_writes": 0}
@@ -2341,6 +2408,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["cases_opened"] = user.get("cases_opened", 0) + 1
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)
+            audit(telegram_id, "open_case", f"{case_def.get('name', case_id)} -> {reward_result.get('name')} ({reward_result.get('type')})")
             
             self.send_json(200, {
                 "reward": reward_result,
@@ -2431,6 +2499,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 notify_task_completed(str(telegram_id), task_def, reward_result)
             except Exception as e:
                 log_warn(f"Не удалось отправить уведомление о задании: {e}")
+            audit(telegram_id, "complete_task", f"{task_def.get('title')} reward={reward_result.get('type')}")
 
             self.send_json(200, {
                 "coins": user["coins"],
@@ -2504,6 +2573,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)
+            audit(telegram_id, "exchange", f"voucher {voucher['id']} code={voucher['code']} amount={voucher_amount} paid={price_coins}")
             
             self.send_json(200, {
                 "coins": user["coins"],
@@ -2514,6 +2584,72 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             })
             return
         
+        # --- Logs API (private audit journal: gated by key-token or admin) ---
+        if path.startswith("/api/logs/"):
+            try:
+                query = parse_qs(urlparse(self.path).query)
+                params = {k: v[0] for k, v in query.items()}
+            except Exception:
+                params = {}
+            if path == "/api/logs/auth":
+                _key = data.get("key")
+                _tok = logs_issue_token(_key)
+                if not _tok:
+                    self.send_json(403, {"error": "Неверный ключ"})
+                    return
+                self.send_json(200, {"token": _tok})
+                return
+
+            if path in ("/api/logs/list", "/api/logs/read"):
+                _token = data.get("token") or params.get("token", "") if isinstance(data, dict) else params.get("token", "")
+                if not (_token and logs_token_ok(_token)) and not (telegram_id and is_admin_telegram_id(telegram_id)):
+                    self.send_json(403, {"error": "Access denied"})
+                    return
+                if path == "/api/logs/list":
+                    try:
+                        os.makedirs(LOG_DIR, exist_ok=True)
+                        names = sorted(
+                            [f for f in os.listdir(LOG_DIR) if f.startswith("audit-")],
+                            reverse=True,
+                        )
+                        files_info = []
+                        for n in names:
+                            cnt = 0
+                            try:
+                                with open(os.path.join(LOG_DIR, n), "r", encoding="utf-8") as f:
+                                    cnt = sum(1 for _ in f)
+                            except Exception:
+                                cnt = 0
+                            files_info.append({"name": n, "count": cnt})
+                        self.send_json(200, {"files": files_info})
+                    except Exception as e:
+                        self.send_json(500, {"error": str(e)})
+                    return
+                fname = str(data.get("file") or params.get("file", ""))
+                if not fname or "/" in fname or "\\" in fname or not fname.startswith("audit-"):
+                    self.send_json(400, {"error": "Недопустимое имя файла"})
+                    return
+                fpath = os.path.join(LOG_DIR, fname)
+                if not os.path.exists(fpath):
+                    self.send_json(404, {"error": "Файл не найден"})
+                    return
+                lines = []
+                try:
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        for ln in f:
+                            ln = ln.strip()
+                            if not ln:
+                                continue
+                            try:
+                                lines.append(json.loads(ln))
+                            except Exception:
+                                lines.append({"raw": ln})
+                except Exception as e:
+                    self.send_json(500, {"error": str(e)})
+                    return
+                self.send_json(200, {"lines": lines})
+                return
+
         if path == "/api/admin/check":
             if not telegram_id:
                 self.send_json(401, {"error": "Not authorized"})
@@ -2591,6 +2727,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     users[target_id]["coins"] = new_balance
                     save_json("users.json", users)
                     log_admin(f"Баланс пользователя {target_id}: {old_balance} -> {new_balance} (админ: {telegram_id})")
+                    audit_admin(telegram_id, "set_balance", f"{target_id}: {old_balance} -> {new_balance}")
                     self.send_json(200, {"success": True, "new_balance": new_balance})
                     return
             
@@ -2611,6 +2748,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         users[target_id]["referral_active_count"] = int(data.get("referral_active_count", 0))
                     save_json("users.json", users)
                     log_admin(f"Обновлены поля пользователя {target_id} (админ: {telegram_id})")
+                    audit_admin(telegram_id, "update_user", f"{target_id}: {json.dumps(data, ensure_ascii=False)}")
                     self.send_json(200, {"success": True})
                     return
             
@@ -2633,6 +2771,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     "claim_date": None
                 })
                 save_json("vouchers.json", vouchers)
+                audit_admin(telegram_id, "create_voucher", f"{code} amount={amount}")
                 self.send_json(200, {"success": True, "voucher": vouchers[-1]})
                 return
             
@@ -2642,6 +2781,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 original_count = len(vouchers)
                 vouchers = [v for v in vouchers if v.get("id") not in voucher_ids]
                 save_json("vouchers.json", vouchers)
+                audit_admin(telegram_id, "delete_vouchers", f"removed {original_count - len(vouchers)}")
                 self.send_json(200, {"success": True, "deleted": original_count - len(vouchers)})
                 return
             
@@ -2663,6 +2803,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     })
                     added.append({"id": new_id, "code": code})
                 save_json("vouchers.json", vouchers)
+                audit_admin(telegram_id, "create_vouchers_bulk", f"x{count} amount={amount} ({len(added)} codes)")
                 self.send_json(200, {"success": True, "added_count": count})
                 return
             
@@ -2684,6 +2825,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         self.send_json(400, {"error": str(e)})
                         return
                 save_json("config.json", current)
+                audit_admin(telegram_id, "update_economy", "config.json updated")
                 self.send_json(200, {"success": True})
                 return
             
@@ -2694,18 +2836,21 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     self.send_json(400, {"error": str(e)})
                     return
                 save_json("tasks.json", new_tasks)
+                audit_admin(telegram_id, "save_tasks", f"{len(new_tasks)} tasks")
                 self.send_json(200, {"success": True, "tasks": new_tasks})
                 return
             
             if endpoint == "save_cases":
                 new_cases = data.get("cases", [])
                 save_json("cases.json", new_cases)
+                audit_admin(telegram_id, "save_cases", f"{len(new_cases)} cases")
                 self.send_json(200, {"success": True})
                 return
             
             if endpoint == "save_backgrounds":
                 new_bgs = data.get("backgrounds", [])
                 save_json("backgrounds.json", new_bgs)
+                audit_admin(telegram_id, "save_backgrounds", f"{len(new_bgs)} backgrounds")
                 self.send_json(200, {"success": True})
                 return
             
@@ -2736,6 +2881,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     save_json("users.json", users)
                     title_name = title_file if title_file else "нет титула"
                     log_admin(f"Титул пользователю {target_id}: {title_name} (админ: {telegram_id})")
+                    audit_admin(telegram_id, "set_title", f"{target_id}: {title_name}")
                     self.send_json(200, {"success": True, "title": title_file})
                     return
                 self.send_json(404, {"error": "User not found"})
@@ -2748,6 +2894,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     save_json("users.json", users)
                     action = "назначен админом" if users[target_id]["is_admin"] else "снят с админа"
                     log_admin(f"Пользователь {target_id} {action} (админ: {telegram_id})")
+                    audit_admin(telegram_id, "toggle_admin", f"{target_id}: {action}")
                     self.send_json(200, {"success": True, "is_admin": users[target_id]["is_admin"]})
                     return
                 self.send_json(404, {"error": "User not found"})

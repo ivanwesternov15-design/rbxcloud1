@@ -10,148 +10,213 @@
         font-family: 'Segoe UI', system-ui, sans-serif;
         background: #0a0a12;
         color: #d6d6e6;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+        min-height: 100vh;
     }
+    .gate {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .gate-box {
+        background: #11111f; border: 1px solid #26263f; border-radius: 16px;
+        padding: 32px; max-width: 360px; width: 100%; text-align: center;
+    }
+    .gate-box h2 { font-size: 18px; margin-bottom: 6px; color: #fff; }
+    .gate-box p { font-size: 12px; color: #8a8aa5; margin-bottom: 20px; }
+    .gate-box input {
+        width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #2e2e4a;
+        background: #0d0d18; color: #e6e6ef; font-size: 14px; margin-bottom: 12px; text-align: center;
+    }
+    .gate-box button {
+        width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer;
+        background: #1d7afc; color: #fff; font-size: 14px; font-weight: 700;
+    }
+    .gate-err { color: #ff5c5c; font-size: 12px; margin-top: 10px; min-height: 18px; }
+
     .header {
-        display: flex; align-items: center; gap: 8px;
-        padding: 8px 12px;
-        background: #0f0f1c;
-        border-bottom: 1px solid #20203a;
+        display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+        background: #0f0f1c; border-bottom: 1px solid #20203a;
+        position: sticky; top: 0; z-index: 10;
     }
     .header h1 { font-size: 13px; font-weight: 800; flex: 1; }
-    .header button {
-        background: #171728; color: #e6e6ef;
-        border: 1px solid #2a2a44; border-radius: 6px;
+    .header select, .header button {
+        background: #171728; color: #e6e6ef; border: 1px solid #2a2a44; border-radius: 6px;
         padding: 4px 8px; font-size: 12px; cursor: pointer;
     }
-    .header button:hover { border-color: #4f8fff; }
-    .filter {
-        display: flex; gap: 6px; padding: 6px 12px;
-        background: #0d0d18; border-bottom: 1px solid #1d1d2e;
-        flex-wrap: wrap;
+    .toolbar {
+        display: flex; gap: 8px; padding: 6px 12px; background: #0d0d18;
+        border-bottom: 1px solid #1d1d2e; flex-wrap: wrap; align-items: center;
     }
-    .filter label { font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+    .toolbar input[type=text] {
+        flex: 1; min-width: 160px; background: #10101e; border: 1px solid #26263f;
+        color: #e6e6ef; border-radius: 6px; padding: 5px 8px; font-size: 12px;
+    }
     #logs {
-        flex: 1; overflow-y: auto;
-        padding: 8px 12px;
-        font-family: Consolas, 'Courier New', monospace;
-        font-size: 12px;
-        line-height: 1.55;
+        padding: 8px 12px; font-family: Consolas, 'Courier New', monospace;
+        font-size: 12px; line-height: 1.55;
     }
     .log-line { display: flex; gap: 8px; border-bottom: 1px solid #14141f; padding: 2px 0; word-break: break-word; }
     .log-time { color: #5c5c76; flex-shrink: 0; }
-    .log-type { flex-shrink: 0; font-weight: 700; min-width: 58px; }
-    .log-msg { flex: 1; }
-    .t-info .log-type { color: #4f8fff; }
-    .t-click .log-type { color: #f0b554; }
-    .t-api .log-type { color: #7c5cff; }
-    .t-error .log-type { color: #ff5c5c; }
-    .t-warn .log-type { color: #ffb74d; }
-    .t-success .log-type { color: #4ade80; }
+    .log-who { color: #3fb6ff; flex-shrink: 0; }
+    .log-action { color: #7c5cff; flex-shrink: 0; font-weight: 700; }
+    .log-detail { flex: 1; color: #d6d6e6; }
     .empty { color: #5c5c76; text-align: center; padding: 40px 0; font-size: 13px; }
     .footer {
         display: flex; justify-content: space-between; align-items: center;
         padding: 6px 12px; background: #0f0f1c; border-top: 1px solid #20203a;
-        font-size: 11px; color: #5c5c76;
+        font-size: 11px; color: #5c5c76; position: sticky; bottom: 0;
     }
+    #summary { color: #e6e6ef; }
 </style>
 </head>
 <body>
+
+<div id="gateView" class="gate">
+    <div class="gate-box">
+        <h2>🔐 Доступ</h2>
+        <p>Введите ключ для доступа к журналу</p>
+        <input id="keyInput" type="password" placeholder="Ключ доступа" autocomplete="off" onkeydown="if(event.key==='Enter')submitKey()">
+        <button onclick="submitKey()">Войти</button>
+        <div id="gateErr" class="gate-err"></div>
+    </div>
+</div>
+
+<div id="appView" style="display:none;">
     <div class="header">
         <h1>📋 Журнал событий</h1>
-        <button id="clearBtn">Очистить</button>
+        <select id="daySel" onchange="loadDay(this.value)"><option value="">— Выберите день —</option></select>
+        <button onclick="logout()">Выйти</button>
     </div>
-    <div class="filter">
-        <label><input type="checkbox" class="ft" data-t="info" checked> Инфо</label>
-        <label><input type="checkbox" class="ft" data-t="click" checked> Клики</label>
-        <label><input type="checkbox" class="ft" data-t="api" checked> API</label>
-        <label><input type="checkbox" class="ft" data-t="warn" checked> Предупр.</label>
-        <label><input type="checkbox" class="ft" data-t="error" checked> Ошибки</label>
-        <label><input type="checkbox" class="ft" data-t="success" checked> Успех</label>
+    <div class="toolbar">
+        <label><input type="checkbox" id="searchMode" onchange="applyFilter()"> Поиск</label>
+        <input type="text" id="searchInput" placeholder="Фильтр (кто/что/детали)" oninput="applyFilter()" style="display:none;">
     </div>
-    <div id="logs"><div class="empty">Ожидание событий…<br>Открой <b>index.html</b> или <b>mobile-test.html</b>, чтобы логи шли сюда.</div></div>
-    <div class="footer"><span id="count">Событий: 0</span><span>Живой журнал</span></div>
+    <div id="logs"><div class="empty">Выберите день, чтобы загрузить записи.<br>Журналы хранятся за каждый день отдельно.</div></div>
+    <div class="footer"><span id="count">0</span><span id="summary"></span></div>
+</div>
 
-    <script>
-        const logBox = document.getElementById('logs');
-        const countEl = document.getElementById('count');
-        let shown = 0;
+<script>
+    const LS = 'logs_token';
+    const $ = (id) => document.getElementById(id);
 
-        const filterState = { info: true, click: true, api: true, warn: true, error: true, success: true };
-        document.querySelectorAll('.ft').forEach(cb => {
-            cb.addEventListener('change', () => {
-                filterState[cb.dataset.t] = cb.checked;
-            });
+    async function apiPost(path, payload) {
+        const token = localStorage.getItem(LS) || '';
+        const res = await fetch(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign({ token: token }, payload || {}))
         });
+        let j = {};
+        try { j = await res.json(); } catch (e) {}
+        return { status: res.status, data: j };
+    }
 
-        function fmtTime() {
-            const d = new Date();
-            return d.toLocaleTimeString('ru-RU', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+    let currentCount = 0;
+    let stateLines = [];
+
+    async function init() {
+        if (!localStorage.getItem(LS)) { showGate(); return; }
+        const r = await apiPost('/api/logs/list', {});
+        if (r.status === 200 && r.data.files) {
+            showApp();
+            renderDays(r.data.files, r.data.files.length ? r.data.files[0].name : '');
+        } else {
+            localStorage.removeItem(LS);
+            showGate();
         }
+    }
 
-        function render() {
-            const lines = [...logBox.querySelectorAll('.log-line')];
-            let visible = 0;
-            lines.forEach(ln => {
-                const t = ln.dataset.type;
-                const show = filterState[t] !== false;
-                ln.style.display = show ? 'flex' : 'none';
-                if (show) visible++;
-            });
-            countEl.textContent = 'Видно: ' + visible + ' / ' + lines.length;
+    function showGate() { $('gateView').style.display = 'flex'; $('appView').style.display = 'none'; }
+    function showApp() { $('gateView').style.display = 'none'; $('appView').style.display = 'block'; }
+
+    async function submitKey() {
+        const key = $('keyInput').value.trim();
+        $('gateErr').textContent = '';
+        if (!key) { $('gateErr').textContent = 'Введите ключ'; return; }
+        const r = await apiPost('/api/logs/auth', { key: key });
+        if (r.status === 200 && r.data.token) {
+            localStorage.setItem(LS, r.data.token);
+            await init();
+        } else {
+            $('gateErr').textContent = (r.data && r.data.error) || 'Неверный ключ';
         }
+    }
 
-        function addLine(type, msg) {
-            if (logBox.querySelector('.empty')) logBox.querySelector('.empty').remove();
+    function renderDays(files, selected) {
+        const sel = $('daySel');
+        sel.innerHTML = '<option value="">— Выберите день —</option>';
+        if (!files || !files.length) {
+            const o = document.createElement('option');
+            o.value = ''; o.textContent = 'Нет записей';
+            sel.appendChild(o);
+            return;
+        }
+        const selMap = {};
+        files.forEach(f => {
+            const o = document.createElement('option');
+            o.value = f.name;
+            o.textContent = f.name.replace('audit-', '').replace('.jsonl', '') + ' (' + f.count + ')';
+            sel.appendChild(o);
+        });
+        if (selected) { sel.value = selected; loadDay(selected); }
+    }
+
+    async function loadDay(name) {
+        if (!name) return;
+        const r = await apiPost('/api/logs/read', { file: name });
+        $('logs').innerHTML = '';
+        if (r.status === 403) { localStorage.removeItem(LS); showGate(); return; }
+        if (r.status !== 200) {
+            $('logs').innerHTML = '<div class="empty">' + ((r.data && r.data.error) || 'Ошибка загрузки') + '</div>';
+            return;
+        }
+        const lines = r.data.lines || [];
+        stateLines = lines;
+        stateCount = lines.length;
+        $('summary').textContent = 'Записей в файле: ' + lines.length;
+        renderLines();
+    }
+
+    function esc(s) {
+        s = String(s == null ? '' : s);
+        return s.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&/g, '&amp;');
+    }
+
+    function applyFilter() {
+        if (!stateLines.length) return;
+        renderLines();
+    }
+
+    function renderLines() {
+        const box = $('logs');
+        box.innerHTML = '';
+        const q = $('searchInput').value.trim().toLowerCase();
+        const searchMode = $('searchMode').checked;
+        let visible = 0;
+        stateLines.forEach(it => {
+            if (searchMode && q) {
+                const hay = [it.who, it.action, it.detail, it.ts].join(' ').toLowerCase();
+                if (hay.indexOf(q) === -1) return;
+            }
+            visible++;
             const div = document.createElement('div');
-            div.className = 'log-line t-' + type;
-            div.dataset.type = type;
-            div.innerHTML = `<span class="log-time">${fmtTime()}</span><span class="log-type">${type.toUpperCase()}</span><span class="log-msg"></span>`;
-            div.querySelector('.log-msg').textContent = msg;
-            logBox.appendChild(div);
-            // keep max 500 lines
-            while (logBox.children.length > 500) logBox.removeChild(logBox.firstChild);
-            const show = filterState[type] !== false;
-            div.style.display = show ? 'flex' : 'none';
-            shown++;
-            countEl.textContent = 'Видно: ' + visibleCount();
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function visibleCount() {
-            let n = 0;
-            [...logBox.querySelectorAll('.log-line')].forEach(ln => {
-                if (ln.style.display !== 'none') n++;
-            });
-            return n;
-        }
-
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            logBox.innerHTML = '<div class="empty">Журнал очищен</div>';
-            shown = 0;
-            countEl.textContent = 'Событий: 0';
+            div.className = 'log-line';
+            div.innerHTML = `<span class="log-time">${esc(it.ts)}</span>` +
+                `<span class="log-who">${esc(it.who)}</span>` +
+                `<span class="log-action">${esc(it.action)}</span>` +
+                `<span class="log-detail">${esc(it.detail)}</span>`;
+            box.appendChild(div);
         });
+        $('count').textContent = 'Видно: ' + visible + ' / ' + stateLines.length;
+        if (box.children.length === 0) {
+            box.innerHTML = '<div class="empty">Ничего не найдено</div>';
+        }
+    }
 
-        // Receive events from the game via BroadcastChannel (same-origin, works with iframes/tabs)
-        const chan = new BroadcastChannel('game_logs');
-        chan.onmessage = (ev) => {
-            const d = ev.data || {};
-            addLine(d.type || 'info', d.msg || String(d));
-        };
+    function logout() {
+        localStorage.removeItem(LS);
+        location.reload();
+    }
 
-        // Also catch window errors in this page itself
-        window.addEventListener('error', (e) => addLine('error', 'JS: ' + (e.message || e)));
-        window.addEventListener('unhandledrejection', (e) => addLine('error', 'Promise: ' + (e.reason && e.reason.message || e.reason)));
-
-        // Fallback: also receive via window 'message' (if a page opened us via window.open)
-        window.addEventListener('message', (ev) => {
-            if (ev.data && ev.data.__log) addLine(ev.data.__log.type || 'info', ev.data.__log.msg || '');
-        });
-
-        setInterval(render, 400);
-    </script>
+    init();
+</script>
 </body>
 </html>

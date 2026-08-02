@@ -80,6 +80,8 @@ const App = {
         if (Auth.user && Auth.user.is_admin) {
             document.getElementById('admin-gear-btn').style.display = 'inline';
             document.getElementById('profile-admin-gear').style.display = 'inline';
+            const logBtn = document.getElementById('log-btn');
+            if (logBtn) logBtn.style.display = 'inline';
         }
         
         // Start online counter
@@ -350,6 +352,30 @@ const App = {
                 if (this.currentScreen === 'home') this.renderHome();
             });
         }, 10000);
+
+        // Real-time refresh: pick up admin edits/adds (tasks/levels/economy) live.
+        if (this._cfgPoll) clearInterval(this._cfgPoll);
+        this._cfgPoll = setInterval(() => this._refreshConfigLive(), 8000);
+    },
+
+    async _refreshConfigLive() {
+        if (!Auth.user || !Auth.config) return;
+        try {
+            const res = await API.getConfig();
+            if (!res || res.error) return;
+            const before = JSON.stringify({ tasks: Auth.tasks, config: Auth.config });
+            if (res.config) Auth.config = res.config;
+            if (res.tasks) Auth.tasks = res.tasks;
+            if (res.backgrounds) Auth.backgrounds = res.backgrounds;
+            if (res.cases) Auth.cases = res.cases;
+            const after = JSON.stringify({ tasks: Auth.tasks, config: Auth.config });
+            if (before !== after) {
+                this.updateAllUI();
+                if (this.currentScreen === 'tasks') this.renderTasks();
+                if (this.currentScreen === 'boosts') this.renderBoosts();
+                if (this.currentScreen === 'cases') this.renderCases();
+            }
+        } catch (e) {}
     },
 
     // --- Online Counter ---

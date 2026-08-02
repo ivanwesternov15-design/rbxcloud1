@@ -2004,6 +2004,13 @@ const App = {
         const timeEl = document.getElementById('exchange-reset-time');
         if (!timeEl) return;
         const now = new Date();
+        // Detect local midnight rollover and reset today's counter + re-render
+        const dayKey = now.toDateString();
+        if (this._resetDay && this._resetDay !== dayKey) {
+            if (Auth.user) Auth.user.exchange_count_today = 0;
+            this.renderExchange();
+        }
+        this._resetDay = dayKey;
         const midnight = new Date(now);
         midnight.setHours(24, 0, 0, 0);
         let diff = Math.max(0, Math.floor((midnight - now) / 1000));

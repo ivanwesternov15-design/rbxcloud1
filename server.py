@@ -13,6 +13,16 @@ import re
 import sys
 from urllib.parse import urlparse, parse_qs, unquote, urlencode
 
+# Force a fixed timezone so "today", audit-log dates and the daily reset
+# rollover at local (audience) midnight instead of the server's UTC midnight.
+# Override by setting TZ env (e.g. TZ=Europe/Moscow) at deploy time.
+_tz = os.environ.get("TZ") or "Europe/Moscow"
+os.environ["TZ"] = _tz
+try:
+    time.tzset()
+except Exception:
+    pass
+
 # Bot token. BotHost exposes the token under several possible env names depending
 # on template/settings. If no env var is set, fall back to the in-repo file
 # `bot_token` (which ships inside the Docker image), then to a plain default.
@@ -1846,6 +1856,13 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if user.get("is_blocked"):
                 self.send_json(403, {"error": "User is blocked"})
                 return
+
+            # Daily exchange counter reset (server-authoritative on read)
+            today = time.strftime("%Y-%m-%d")
+            if user.get("exchange_date") != today:
+                user["exchange_count_today"] = 0
+                user["exchange_date"] = today
+                save_user(telegram_id, user)
 
             if is_admin_telegram_id(telegram_id):
                 user["is_admin"] = True

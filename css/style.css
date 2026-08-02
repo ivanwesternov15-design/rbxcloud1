@@ -2984,7 +2984,7 @@ body::before {
 
 /* --- Admin Styles --- */
 .admin-panel {
-    max-width: 900px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 20px;
     z-index: 1;

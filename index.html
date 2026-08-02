@@ -384,19 +384,20 @@
                     <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Вывести Robux</span>
                     <span class="pst-divider"></span>
                 </div>
-                <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;">
-                    Каждую <b style="color:var(--gold);">неделю</b> ты можешь выводить свои Robux на аккаунт Roblox.
+                <div class="pw-info">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-calendar"/></svg>
+                    <span>Каждую <b>неделю</b> ты можешь выводить свои Robux на аккаунт Roblox.</span>
                 </div>
                 <div class="profile-withdraw-row">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span class="stat-dark-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg></span>
-                        <div>
-                            <div style="font-size:12px;color:var(--text-secondary);">Доступно для вывода</div>
-                            <div style="font-size:18px;font-weight:800;color:var(--accent);"><span id="profile-withdraw-balance">0</span> Robux</div>
+                    <div class="pw-balance">
+                        <span class="pw-ico"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg></span>
+                        <div class="pw-balance-cols">
+                            <span class="pw-label">Доступно для вывода</span>
+                            <span class="pw-value"><span id="profile-withdraw-balance">0</span> Robux</span>
                         </div>
                     </div>
-                    <button class="exchange-btn" id="profile-withdraw-btn" style="white-space:nowrap;">
-                        <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывести Robux
+                    <button class="exchange-btn pw-btn" id="profile-withdraw-btn">
+                        <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывести
                     </button>
                 </div>
             </div>

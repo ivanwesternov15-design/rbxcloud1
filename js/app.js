@@ -2130,7 +2130,7 @@ const App = {
                 <button class="withdraw-more-btn" id="withdraw-more">
                     <svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> открыть ещё
                 </button>
-                <div style="display:none;margin-top:10px;" id="withdraw-more-wrap">${more.map(cell).join('')}</div>
+                <div style="display:none;margin-top:10px;" id="withdraw-more-wrap" class="withdraw-grid">${more.map(cell).join('')}</div>
             </div>`);
         document.querySelectorAll('#modal-body [data-amt]').forEach(el => {
             el.addEventListener('click', () => {
@@ -2140,18 +2140,23 @@ const App = {
         });
         document.getElementById('withdraw-more').addEventListener('click', () => {
             const w = document.getElementById('withdraw-more-wrap');
-            w.style.display = w.style.display === 'none' ? 'block' : 'none';
+            w.style.display = w.style.display === 'none' ? 'grid' : 'none';
+            const btnIcon = document.getElementById('withdraw-more').querySelector('.icon');
+            if (btnIcon) btnIcon.style.transform = w.style.display === 'none' ? '' : 'rotate(45deg)';
         });
     },
 
     showWithdrawClaim(amount) {
         this.modal(`
-            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;">
-                <div style="font-size:20px;"><svg class="icon" viewBox="0 0 24 24" style="width:34px;height:34px;color:var(--accent);"><use href="#icon-ticket"/></svg></div>
-                <div style="font-size:16px;font-weight:800;margin:6px 0;">Для вывода ${Auth.formatNumber(amount)} Robux</div>
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Укажи никнейм своего Roblox-аккаунта</div>
-                <input class="withdraw-input" id="roblox-username" placeholder="Никнейм Roblox" autocomplete="off">
-                <button class="exchange-btn" id="withdraw-submit" style="margin-top:12px;width:100%;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывод</button>
+            <div class="wd-claim">
+                <div class="wd-claim-ico"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg></div>
+                <div class="wd-claim-title">Вывод ${Auth.formatNumber(amount)} Robux</div>
+                <div class="wd-claim-sub">Укажи никнейм своего Roblox-аккаунта</div>
+                <div class="wd-claim-field">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-user"/></svg>
+                    <input class="withdraw-input" id="roblox-username" placeholder="Никнейм Roblox" autocomplete="off">
+                </div>
+                <button class="exchange-btn wd-claim-btn" id="withdraw-submit"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывести</button>
             </div>`);
         document.getElementById('withdraw-submit').addEventListener('click', async () => {
             const nick = document.getElementById('roblox-username').value.trim();
@@ -2211,33 +2216,30 @@ const App = {
         return `<span class="wd-status pending" title="Обрабатывается"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clock"/></svg></span>`;
     },
 
-    _statusIcon(status) {
-        const cls = status === 'approved' ? 'ok' : (status === 'rejected' ? 'bad' : 'pending');
-        if (status === 'approved') return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-check"/></svg>`;
-        if (status === 'rejected') return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-x"/></svg>`;
-        return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>`;
-    },
-
     _showWithdrawDetail(wid) {
         const w = (Auth.user.withdrawals || []).find(x => String(x.id) === String(wid));
         if (!w) return;
-        const nick = `<span style="color:#FBBF24;">@${w.roblox_username}</span>`;
-        const greenNick = `<span style="color:#34D399;">@${w.roblox_username}</span>`;
-        let body = '';
-        let btnLabel = 'Понял';
-        if (w.status === 'pending') {
-            body = `<p>🎉 Статус: <b>в обработке</b><br>Администрация выведет ваши <b>${Auth.formatNumber(w.amount)} Robux</b> в кратчайшие сроки на аккаунт ${nick}.</p>`;
-        } else if (w.status === 'rejected') {
-            body = `<p>❌ Статус: <b>отклонён администрацией</b><br>Ваши <b>${Auth.formatNumber(w.amount)} Robux</b> были возвращены на аккаунт. Попробуйте отправить ещё раз.</p>`;
-        } else {
-            body = `<p>✅ Статус: <b>одобрен</b><br><b>${Auth.formatNumber(w.amount)} Robux</b> поступили на ваш Roblox аккаунт ${greenNick}.</p>`;
-            btnLabel = 'Ура';
-        }
+        const statusMeta = {
+            pending: { label: 'В обработке', icon: 'clock', cls: 'pending' },
+            rejected: { label: 'Отклонён', icon: 'x', cls: 'bad' },
+            approved: { label: 'Одобрен', icon: 'check', cls: 'ok' }
+        }[w.status] || { label: w.status, icon: 'clock', cls: 'pending' };
+        const nickCls = w.status === 'approved' ? 'nick-ok' : 'nick-warn';
+        const bodyTxt = w.status === 'pending'
+            ? `Администрация выведет <b>${Auth.formatNumber(w.amount)} Robux</b> в кратчайшие сроки на аккаунт <span class="wd-nick ${nickCls}">@${w.roblox_username}</span>.`
+            : w.status === 'rejected'
+                ? `Ваши <b>${Auth.formatNumber(w.amount)} Robux</b> возвращены на аккаунт. Попробуйте отправить заявку ещё раз.`
+                : `<b>${Auth.formatNumber(w.amount)} Robux</b> поступили на ваш Roblox аккаунт <span class="wd-nick ${nickCls}">@${w.roblox_username}</span>.`;
+        const btnLabel = w.status === 'approved' ? 'Ура' : 'Понял';
         this.modal(`
             <div class="wd-detail">
-                <div class="wd-detail-ico">${this._statusIcon(w.status)}</div>
-                <div style="font-size:18px;font-weight:800;margin:6px 0;">Вывод ${Auth.formatNumber(w.amount)} R</div>
-                <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:16px;">${body}</div>
+                <div class="wd-hero ${statusMeta.cls}">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-${statusMeta.icon}"/></svg>
+                </div>
+                <div class="wd-amount">${Auth.formatNumber(w.amount)} <small>Robux</small></div>
+                <div class="wd-amount-sub">Вывод</div>
+                <div class="wd-pill ${statusMeta.cls}"><span class="wd-dot"></span>${statusMeta.label}</div>
+                <p class="wd-text">${bodyTxt}</p>
                 <button class="exchange-btn wd-ok" id="wd-ok">${btnLabel}</button>
             </div>`);
         document.getElementById('wd-ok').addEventListener('click', () => this.closeModal());

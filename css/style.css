@@ -347,6 +347,14 @@ body::before {
     transform: scale(0.96);
 }
 
+.auth-auto-msg {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
 /* Auth Loading Overlay */
 .auth-loading-overlay {
     position: fixed; inset: 0; z-index: 9999;

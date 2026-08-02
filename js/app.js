@@ -49,14 +49,9 @@ const App = {
         Logger.init();
         
         // Telegram Mini App auto-login: exchange initData for a session token.
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-            const tg = window.Telegram.WebApp;
-            try { tg.ready(); tg.expand(); } catch (e) {}
-            const res = await API.post('/api/auth/login', { init_data: tg.initData });
-            if (res && res.token) {
-                localStorage.setItem('session_token', res.token);
-                localStorage.setItem('user_id', String(res.user_id));
-            }
+        if (this.inTelegram()) {
+            try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (e) {}
+            await this.tryTelegramLogin();
         }
         
         const authed = await Auth.init();
@@ -111,8 +106,22 @@ const App = {
         document.body.classList.remove('bg-applied');
         document.body.style.background = '';
         
-        // Don't auto-load any widget - inside Telegram the Mini App auto-logs-in
-        // via /api/auth/login in init(). This screen is only a fallback for a
+        // Inside Telegram we never show the manual login screen - the user is
+        // already authenticated via initData. Just retry the auto-login.
+        if (this.inTelegram()) {
+            document.getElementById('auth-telegram-wrap').innerHTML =
+                '<div class="auth-auto-msg">Подключение...</div>';
+            setTimeout(() => {
+                try {
+                    window.Telegram.WebApp.ready();
+                    window.Telegram.WebApp.expand();
+                } catch (e) {}
+                this.tryTelegramLogin().then(() => window.location.reload());
+            }, 800);
+            return;
+        }
+
+        // Don't auto-load any widget - the auth screen is only a fallback for a
         // plain browser (dev) where there is no Telegram initData.
         const wrap = document.getElementById('auth-telegram-wrap');
         wrap.innerHTML = `<button id="auth-login-trigger" class="auth-trigger-btn">🔑 Войти через Telegram</button>`;
@@ -132,6 +141,28 @@ const App = {
         const el = document.getElementById('loading-text');
         if (el && text) el.textContent = text;
         document.getElementById('loading-screen').classList.remove('hidden');
+    },
+
+    inTelegram() {
+        return !!(window.Telegram && window.Telegram.WebApp &&
+            (window.Telegram.WebApp.initData || window.Telegram.WebApp.initDataUnsafe));
+    },
+
+    async tryTelegramLogin() {
+        const tg = window.Telegram.WebApp;
+        if (!tg || !tg.initData) return false;
+        this.showLoading('Вход через Telegram...');
+        try {
+            const res = await API.post('/api/auth/login', { init_data: tg.initData });
+            if (res && res.token) {
+                localStorage.setItem('session_token', res.token);
+                localStorage.setItem('user_id', String(res.user_id));
+                return true;
+            }
+        } catch (e) {
+            Logger.log('error', 'Telegram login: ' + (e && e.message || e));
+        }
+        return false;
     },
 
     setupNavigation() {
@@ -2090,13 +2121,13 @@ const App = {
     },
 
     // --- Browser fallback for the auth screen (dev / non-Telegram) ---
-    // Open the game inside Telegram's WebApp so a session can be created.
+    // If run inside Telegram this shouldn't be reached; try one more auto-login
+    // instead of opening a link (which would collapse the Mini App).
     openTelegramMiniApp() {
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.openTelegramLink('https://t.me/erqwdas231bot');
+        if (this.inTelegram()) {
+            this.tryTelegramLogin().then((ok) => { if (ok) window.location.reload(); });
             return;
         }
-        // Outside Telegram this button can't authenticate; show a hint.
         alert('Эта игра работает внутри Telegram. Откройте её через кнопку меню бота.');
     }
 };

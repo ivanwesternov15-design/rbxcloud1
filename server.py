@@ -1343,6 +1343,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             self.send_json(400, {"error": "Нет данных авторизации Telegram"})
             return
         if not check_telegram_webapp_auth(init_data, BOT_TOKEN):
+            masked = (BOT_TOKEN[:8] + "..." + BOT_TOKEN[-3:]) if len(BOT_TOKEN) > 11 else "(empty)"
+            log_error(f"Отказ подписи Mini App: используется токен {masked}")
             self.send_json(403, {"error": "Неверная подпись данных Telegram"})
             return
         token, telegram_id = process_telegram_webapp_login(init_data)

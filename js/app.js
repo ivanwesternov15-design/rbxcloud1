@@ -75,6 +75,7 @@ const App = {
         this.showScreen('home');
         this.startIntervals();
         this.updateAllUI();
+        this.checkAdminMessages();
         
         // Admin gear
         if (Auth.user && Auth.user.is_admin) {
@@ -2082,6 +2083,197 @@ const App = {
         return { pct: Math.min(earned / needed, 1), earned, needed };
     },
 
+    // --- ROBUX WITHDRAW SYSTEM ---
+    withdrawEnabled() {
+        return !!(Auth.config && Auth.config.game && Auth.config.game.robux_withdraw_enabled);
+    },
+
+    modal(html) {
+        const b = document.getElementById('modal-body');
+        if (!b) return;
+        b.innerHTML = `<button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('active')">✕</button>` + html;
+        document.getElementById('modal-overlay').classList.add('active');
+    },
+    closeModal() {
+        const o = document.getElementById('modal-overlay');
+        if (o) o.classList.remove('active');
+    },
+
+    renderWithdrawPanel() {
+        const panel = document.getElementById('profile-withdraw-panel');
+        if (!panel) return;
+        const enabled = this.withdrawEnabled();
+        panel.style.display = enabled ? '' : 'none';
+        if (!enabled) return;
+        const bal = (Auth.user.robux_balance || 0);
+        const bEl = document.getElementById('profile-withdraw-balance');
+        if (bEl) bEl.textContent = Auth.formatNumber(bal);
+        document.getElementById('profile-withdraw-btn').onclick = () => this.showWithdrawSelect();
+    },
+
+    showWithdrawSelect() {
+        const bal = (Auth.user.robux_balance || 0);
+        if (bal <= 0) { this.showToast('На аккаунте нет Robux для вывода', 'error'); return; }
+        const base = [40, 80, 400, 800];
+        const more = [1200, 1700, 3150, 4500, 10000, 22500];
+        const cell = (amt) => `
+            <button class="withdraw-opt ${amt <= bal ? '' : 'disabled'}" data-amt="${amt}">
+                <span class="wo-ico"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg></span>
+                <span class="wo-amt">${Auth.formatNumber(amt)} <small>Robux</small></span>
+                <span class="wo-go">${amt <= bal ? 'Вывести' : 'Не хватает'}</span>
+            </button>`;
+        this.modal(`
+            <div style="text-align:center;">
+                <div style="font-size:16px;font-weight:800;">Вывод Robux</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin:6px 0 14px;">Доступно: <b style="color:var(--accent);">${Auth.formatNumber(bal)} Robux</b></div>
+                <div class="withdraw-grid">${base.map(btn).join('')}</div>
+                <button class="withdraw-more-btn" id="withdraw-more">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> открыть ещё
+                </button>
+                <div style="display:none;margin-top:10px;" id="withdraw-more-wrap">${more.map(btn).join('')}</div>
+            </div>`);
+        document.querySelectorAll('#modal-body [data-amt]').forEach(el => {
+            el.addEventListener('click', () => {
+                const a = parseInt(el.dataset.amt, 10);
+                if (a <= bal) this.showWithdrawClaim(a);
+            });
+        });
+        document.getElementById('withdraw-more').addEventListener('click', () => {
+            const w = document.getElementById('withdraw-more-wrap');
+            w.style.display = w.style.display === 'none' ? 'block' : 'none';
+        });
+    },
+
+    showWithdrawClaim(amount) {
+        this.modal(`
+            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;">
+                <div style="font-size:20px;"><svg class="icon" viewBox="0 0 24 24" style="width:34px;height:34px;color:var(--accent);"><use href="#icon-ticket"/></svg></div>
+                <div style="font-size:16px;font-weight:800;margin:6px 0;">Для вывода ${Auth.formatNumber(amount)} Robux</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Укажи никнейм своего Roblox-аккаунта</div>
+                <input class="withdraw-input" id="roblox-username" placeholder="Никнейм Roblox" autocomplete="off">
+                <button class="exchange-btn" id="withdraw-submit" style="margin-top:12px;width:100%;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывод</button>
+            </div>`);
+        document.getElementById('withdraw-submit').addEventListener('click', async () => {
+            const nick = document.getElementById('roblox-username').value.trim();
+            if (!nick) { this.showToast('Укажите никнейм Roblox', 'error'); return; }
+            const res = await API.withdraw(amount, nick);
+            if (res.error) { this.showToast(res.error, 'error'); return; }
+            Auth.user.robux_balance = res.robux_balance;
+            if (Auth.user.withdrawals) Auth.user.withdrawals.push(res.withdrawal);
+            this.closeModal();
+            this.showToast('✅ Вывод активирован! Ожидайте обработки ✔', 'success');
+            this.createConfetti();
+            this.updateAllUI();
+            this.renderProfile();
+        });
+    },
+
+    _renderHistory() {
+        const el = document.getElementById('profile-exchange-history');
+        if (!el) return;
+        const withdrawals = (Auth.user.withdrawals || []).slice();
+        const exchanges = (Auth.user.exchange_history || []).slice(-5);
+        const items = [];
+        withdrawals.forEach(w => items.push({ kind: 'withdraw', obj: w, date: w.date }));
+        exchanges.forEach(h => items.push({ kind: 'exchange', obj: h, date: h.date }));
+        items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        if (!items.length) {
+            el.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:8px;font-size:12px;">Нет операций</div>';
+            return;
+        }
+        el.innerHTML = items.map((it) => this._historyItemHtml(it)).join('');
+        el.querySelectorAll('[data-wd="1"]').forEach(x => {
+            x.addEventListener('click', () => this._showWithdrawDetail(x.dataset.wid));
+        });
+    },
+
+    _historyItemHtml(item) {
+        if (item.kind === 'withdraw') {
+            const w = item.obj;
+            return `
+                <div data-wd="1" data-wid="${w.id}" class="hd-item">
+                    <span class="hd-icon" style="color:var(--accent);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg></span>
+                    <div class="hd-main"><div class="hd-title">Вывод ${w.amount} R</div><div class="hd-date">${w.roblox_username} • ${w.date}</div></div>
+                    ${this._statusSvg(w.status)}
+                </div>`;
+        }
+        const h = item.obj;
+        return `
+            <div class="hd-item plain">
+                <span class="hd-date">${h.date}</span>
+                <span class="hd-ex">Обмен ${h.amount} Robux</span>
+            </div>`;
+    },
+
+    _statusSvg(status) {
+        if (status === 'approved') return `<span class="wd-status ok" title="Одобрен"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></span>`;
+        if (status === 'rejected') return `<span class="wd-status bad" title="Отказан"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg></span>`;
+        return `<span class="wd-status pending" title="Обрабатывается"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clock"/></svg></span>`;
+    },
+
+    _statusIcon(status) {
+        const cls = status === 'approved' ? 'ok' : (status === 'rejected' ? 'bad' : 'pending');
+        if (status === 'approved') return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-check"/></svg>`;
+        if (status === 'rejected') return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-x"/></svg>`;
+        return `<svg class="icon ${cls}" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>`;
+    },
+
+    _showWithdrawDetail(wid) {
+        const w = (Auth.user.withdrawals || []).find(x => String(x.id) === String(wid));
+        if (!w) return;
+        const nick = `<span style="color:#FBBF24;">@${w.roblox_username}</span>`;
+        const greenNick = `<span style="color:#34D399;">@${w.roblox_username}</span>`;
+        let body = '';
+        let btnLabel = 'Понял';
+        if (w.status === 'pending') {
+            body = `<p>🎉 Статус: <b>в обработке</b><br>Администрация выведет ваши <b>${Auth.formatNumber(w.amount)} Robux</b> в кратчайшие сроки на аккаунт ${nick}.</p>`;
+        } else if (w.status === 'rejected') {
+            body = `<p>❌ Статус: <b>отклонён администрацией</b><br>Ваши <b>${Auth.formatNumber(w.amount)} Robux</b> были возвращены на аккаунт. Попробуйте отправить ещё раз.</p>`;
+        } else {
+            body = `<p>✅ Статус: <b>одобрен</b><br><b>${Auth.formatNumber(w.amount)} Robux</b> поступили на ваш Roblox аккаунт ${greenNick}.</p>`;
+            btnLabel = 'Ура';
+        }
+        this.modal(`
+            <div class="wd-detail">
+                <div class="wd-detail-ico">${this._statusIcon(w.status)}</div>
+                <div style="font-size:18px;font-weight:800;margin:6px 0;">Вывод ${Auth.formatNumber(w.amount)} R</div>
+                <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:16px;">${body}</div>
+                <button class="exchange-btn wd-ok" id="wd-ok">${btnLabel}</button>
+            </div>`);
+        document.getElementById('wd-ok').addEventListener('click', () => this.closeModal());
+    },
+
+    checkAdminMessages() {
+        if (!Auth.user || !Auth.user.inbox) return;
+        const unread = Auth.user.inbox.filter(m => !m.read);
+        if (!unread.length || this._msgOpen) return;
+        this._msgOpen = true;
+        const m = unread[unread.length - 1];
+        const adminAvatar = '<img src="/assets/icons/admin.png" style="width:44px;height:44px;border-radius:12px;display:block;" alt="Админ">';
+        this.modal(`
+            <div class="msg-card">
+                <div class="msg-head">
+                    <div class="msg-admin">${adminAvatar}</div>
+                    <div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Админ <b style="color:var(--accent);">@${m.from_name}</b><br>отправил вам сообщение</div>
+                    </div>
+                </div>
+                <div class="msg-body">
+                    <div style="font-size:14px;line-height:1.5;">${m.text}</div>
+                    ${m.title_img ? `<img src="/assets/title/${m.title_img}" style="width:26px;height:26px;display:inline-block;margin-top:6px;" alt="">` : ''}
+                </div>
+                <button class="exchange-btn msg-ok" id="msg-ok">Прочитал</button>
+            </div>`);
+        document.getElementById('msg-ok').addEventListener('click', async () => {
+            await API.readAdminMessage(m.id);
+            if (Auth.user.inbox) {
+                Auth.user.inbox.forEach(x => { if (x.id === m.id) x.read = true; });
+            }
+            this._msgOpen = false;
+            this.closeModal();
+        });
+    },
+
     async renderProfile() {
         if (this.currentScreen !== 'profile') return;
         if (!Auth.user) return;
@@ -2213,19 +2405,9 @@ const App = {
             if (rankBadge) rankBadge.style.display = 'block';
         }
 
-        // Exchange history
-        const historyEl = document.getElementById('profile-exchange-history');
-        const history = Auth.user.exchange_history || [];
-        if (history.length > 0) {
-            historyEl.innerHTML = history.slice(-5).reverse().map(h => `
-                <div>
-                    <span style="color:var(--text-secondary);font-size:12px;">${h.date}</span>
-                    <span style="color:var(--accent);font-weight:600;font-size:13px;">${h.amount} Robux</span>
-                </div>
-            `).join('');
-        } else {
-            historyEl.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:8px;font-size:12px;">Нет операций</div>';
-        }
+        // Withdraw panel + operations history (withdrawals + exchanges)
+        this.renderWithdrawPanel();
+        this._renderHistory();
 
         // Completed tasks
         const tasksEl = document.getElementById('profile-tasks');

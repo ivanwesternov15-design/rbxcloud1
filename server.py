@@ -865,6 +865,10 @@ def get_or_create_user(telegram_id, user_data=None):
             "exchange_count_today": 0,
             "exchange_history": [],
             "total_exchanged": 0,
+            "total_robux": 0,
+            "robux_balance": 0,
+            "withdrawals": [],
+            "inbox": [],
             "last_daily": 0,
             "daily_streak": 0,
             "is_admin": is_admin_telegram_id(telegram_id),
@@ -981,6 +985,7 @@ def apply_task_reward(telegram_id, user, reward, config):
     save_json("vouchers.json", vouchers)
     user["total_robux"] = user.get("total_robux", 0) + amount
     user["total_exchanged"] = (user.get("total_exchanged", 0) or 0) + amount
+    user["robux_balance"] = (user.get("robux_balance", 0) or 0) + amount
     return {
         "type": "voucher",
         "amount": amount,
@@ -1547,10 +1552,10 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                         new_user = users.get(new_user_id)
 
                         # Already joined via another/referral link: tell the user
-                        if new_user and new_user.get("referred_by") and referrer and referrer_id != new_user_id:
+                        if new_user and new_user.get("referred_by") and str(new_user.get("referred_by")) != referrer_id:
                             old_ref_id = new_user["referred_by"]
-                            old_ref = users.get(old_ref_id, {})
-                            old_name = old_ref.get("username") or old_ref.get("first_name") or old_ref_id
+                            old_ref = users.get(str(old_ref_id), {})
+                            old_name = old_ref.get("username") or old_ref.get("first_name") or str(old_ref_id)
                             send_telegram_message(
                                 chat_id,
                                 f"ℹ️ <b>Ты уже перешел по реферальной ссылке (@{old_name})</b>\n"
@@ -2612,6 +2617,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["exchange_count_today"] = user.get("exchange_count_today", 0) + 1
             user["total_exchanged"] = user.get("total_exchanged", 0) + voucher_amount
             user["total_robux"] = (user.get("total_robux", 0) or 0) + voucher_amount
+            user["robux_balance"] = (user.get("robux_balance", 0) or 0) + voucher_amount
             
             if "exchange_history" not in user:
                 user["exchange_history"] = []
@@ -2634,6 +2640,83 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 "total_exchanged": user["total_exchanged"],
                 "exchange_count_today": user["exchange_count_today"]
             })
+            return
+
+        if path == "/api/user/robux_status":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            users = load_users()
+            user = users.get(str(telegram_id), {})
+            cfg = load_config().get("game", {})
+            enabled = bool(cfg.get("robux_withdraw_enabled", False))
+            self.send_json(200, {
+                "enabled": enabled,
+                "robux_balance": (user.get("robux_balance", 0) or 0),
+                "withdrawals": user.get("withdrawals", []),
+                "total_robux": user.get("total_robux", 0)
+            })
+            return
+
+        if path == "/api/user/withdraw":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            users = load_users()
+            user = users.get(str(telegram_id))
+            if not user or user.get("is_blocked"):
+                self.send_json(403, {"error": "User not found or blocked"})
+                return
+            config = load_config()
+            if not config.get("game", {}).get("robux_withdraw_enabled", False):
+                self.send_json(400, {"error": "Выдача Robux сейчас отключена"})
+                return
+            amount = int(data.get("amount", 0) or 0)
+            rusername = str(data.get("roblox_username", "")).strip()
+            if amount <= 0:
+                self.send_json(400, {"error": "Некорректная сумма"})
+                return
+            if not rusername:
+                self.send_json(400, {"error": "Укажите никнейм Roblox"})
+                return
+            balance = user.get("robux_balance", 0) or 0
+            if balance < amount:
+                self.send_json(400, {"error": "Недостаточно Robux на аккаунте"})
+                return
+            withdrawal = {
+                "id": f"W{int(time.time())}{uuid.uuid4().hex[:4]}",
+                "amount": amount,
+                "roblox_username": rusername,
+                "status": "pending",
+                "date": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            if "withdrawals" not in user:
+                user["withdrawals"] = []
+            user["withdrawals"].append(withdrawal)
+            user["robux_balance"] = balance - amount
+            user["last_active"] = int(time.time())
+            save_user(telegram_id, user)
+            audit(telegram_id, "withdraw_create", f"{amount} Robux -> {rusername}")
+            self.send_json(200, {
+                "success": True,
+                "robux_balance": user["robux_balance"],
+                "withdrawal": withdrawal
+            })
+            return
+
+        if path == "/api/user/message_read":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            users = load_users()
+            user = users.get(str(telegram_id))
+            if user:
+                mid = str(data.get("message_id", ""))
+                for msg in user.get("inbox", []):
+                    if str(msg.get("id", "")) == mid:
+                        msg["read"] = True
+                save_user(telegram_id, user)
+            self.send_json(200, {"success": True})
             return
         
         # --- Logs API (private audit journal: gated by key-token or admin) ---
@@ -3028,6 +3111,101 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     self.send_json(500, {"error": str(e)})
                 return
             
+            if endpoint == "toggle_robux_withdraw":
+                enabled = bool(data.get("enabled", False))
+                cfg = load_config()
+                cfg.setdefault("game", {})["robux_withdraw_enabled"] = enabled
+                save_json("config.json", cfg)
+                audit_admin(telegram_id, "toggle_robux_withdraw", "on" if enabled else "off")
+                self.send_json(200, {"success": True, "enabled": enabled})
+                return
+
+            if endpoint == "robux_withdraw_status":
+                cfg = load_config().get("game", {})
+                enabled = bool(cfg.get("robux_withdraw_enabled", False))
+                withdrawals = []
+                for uid, u in users.items():
+                    for w in u.get("withdrawals", []):
+                        withdrawals.append({
+                            "user_id": uid,
+                            "username": u.get("username") or u.get("first_name") or uid,
+                            "id": w.get("id"),
+                            "amount": w.get("amount"),
+                            "roblox_username": w.get("roblox_username", ""),
+                            "status": w.get("status", "pending"),
+                            "date": w.get("date", ""),
+                        })
+                withdrawals.sort(key=lambda x: x.get("date", ""), reverse=True)
+                self.send_json(200, {"enabled": enabled, "withdrawals": withdrawals})
+                return
+
+            if endpoint == "set_withdrawal":
+                target_id = str(data.get("user_id", ""))
+                wid = str(data.get("withdrawal_id", ""))
+                status = data.get("status", "pending")
+                if target_id in users and wid:
+                    found = None
+                    for w in users[target_id].get("withdrawals", []):
+                        if str(w.get("id", "")) == wid:
+                            found = w
+                            break
+                    if found:
+                        old = found.get("status", "pending")
+                        if status in ("pending", "approved", "rejected") and status != old:
+                            found["status"] = status
+                            if status == "rejected":
+                                users[target_id]["robux_balance"] = (users[target_id].get("robux_balance", 0) or 0) + found.get("amount", 0)
+                            save_json("users.json", users)
+                            audit_admin(telegram_id, "withdrawal_status", f"{target_id}: {wid} {old}->{status} amount={found.get('amount')}")
+                            try:
+                                send_telegram_message(
+                                    target_id,
+                                    status == "approved" and (
+                                        f"✅ <b>Вывод одобрен!</b>\n"
+                                        f"{found.get('amount')} Robux поступили на ваш Roblox аккаунт <b>{found.get('roblox_username', '')}</b>."
+                                    ) or (
+                                        f"ℹ️ Вывод <b>{found.get('amount')} Robux</b> обрабатывается.\n"
+                                        f"Администрация пытается вывести их в кратчайшие сроки на ваш аккаунт {found.get('roblox_username', '')}."
+                                        if status == "pending" else
+                                        f"❌ Вывод <b>{found.get('amount')} Robux</b> отклонён администрацией.\n"
+                                        f"Robux были возвращены на ваш аккаунт. Попробуйте отправить заявку ещё раз."
+                                    ),
+                                    parse_mode="HTML",
+                                    web_app_button=True,
+                                )
+                            except Exception:
+                                pass
+                        self.send_json(200, {"success": True, "status": found["status"]})
+                        return
+                    self.send_json(404, {"error": "Withdrawal not found"})
+                    return
+                self.send_json(400, {"error": "Bad request"})
+                return
+
+            if endpoint == "send_message":
+                target_id = str(data.get("user_id", ""))
+                text = str(data.get("text", "")).strip()
+                title_img = str(data.get("title", ""))
+                if target_id in users and text:
+                    admin_name = user.get("username") or user.get("first_name") or str(telegram_id)
+                    msg = {
+                        "id": f"M{int(time.time())}{uuid.uuid4().hex[:4]}",
+                        "from_name": admin_name,
+                        "text": text,
+                        "title_img": title_img,
+                        "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "read": False,
+                    }
+                    if "inbox" not in users[target_id]:
+                        users[target_id]["inbox"] = []
+                    users[target_id]["inbox"].append(msg)
+                    save_json("users.json", users)
+                    audit_admin(telegram_id, "send_message", f"to {target_id}: {text[:60]}{' +title ' + title_img if title_img else ''}")
+                    self.send_json(200, {"success": True, "message": msg})
+                    return
+                self.send_json(404, {"error": "User not found"})
+                return
+
             self.send_json(404, {"error": "Admin endpoint not found"})
             return
         

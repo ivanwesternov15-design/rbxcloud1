@@ -95,6 +95,34 @@ const API = {
         return await this.get('/api/user/referral_info');
     },
 
+    async getRobuxStatus() {
+        return await this.get('/api/user/robux_status');
+    },
+
+    async withdraw(amount, roblox_username) {
+        return await this.post('/api/user/withdraw', { amount, roblox_username });
+    },
+
+    async readAdminMessage(message_id) {
+        return await this.post('/api/user/message_read', { message_id });
+    },
+
+    async adminRobuxWithdraw() {
+        return await this.post('/api/admin/robux_withdraw_status', {});
+    },
+
+    async adminToggleRobuxWithdraw(enabled) {
+        return await this.post('/api/admin/toggle_robux_withdraw', { enabled });
+    },
+
+    async adminSetWithdrawal(user_id, withdrawal_id, status) {
+        return await this.post('/api/admin/set_withdrawal', { user_id, withdrawal_id, status });
+    },
+
+    async adminSendMessage(user_id, text, title) {
+        return await this.post('/api/admin/send_message', { user_id, text, title });
+    },
+
     async getConfig() {
         return await this.get('/api/config');
     },

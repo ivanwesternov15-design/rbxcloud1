@@ -168,6 +168,8 @@
                 <button class="admin-tab" data-tab="config"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Экономика</button>
                 <button class="admin-tab" data-tab="tasks"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Задания</button>
                 <button class="admin-tab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</button>
+                <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
+                <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
             </div>
 
             <div class="admin-content-inner active" data-content="dashboard">
@@ -340,6 +342,48 @@
                     <button class="admin-btn success" id="save-cases-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить кейсы</button>
                 </div>
             </div>
+
+            <div class="admin-content-inner" data-content="withdrawals">
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывод Robux</span>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:12px;color:var(--text-secondary);" id="wd-toggle-label">Выдача выключена</span>
+                            <button class="admin-btn" id="wd-toggle-btn" style="padding:6px 12px;font-size:11px;">Включить</button>
+                            <button class="admin-btn" id="refresh-withdrawals-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table">
+                            <thead><tr>
+                                <th>Дата</th><th>ID</th><th>Пользователь</th><th>Ник Roblox</th><th>Сумма</th><th>Статус</th><th>Действия</th>
+                            </tr></thead>
+                            <tbody id="admin-withdrawals-body"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Загрузка...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-content-inner" data-content="messages">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить сообщение пользователю</div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:520px;">
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Пользователь</div>
+                            <select class="admin-input" id="msg-user-select" style="width:100%;"></select>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Название титула (необязательно)</div>
+                            <input class="admin-input" id="msg-title-img" placeholder="напр. crown.png" style="width:100%;">
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Текст сообщения</div>
+                            <textarea class="admin-input" id="msg-text" rows="3" placeholder="Текст сообщения..."></textarea>
+                        </div>
+                        <button class="admin-btn success" id="send-msg-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="admin-denied" style="display:none;text-align:center;padding:60px 20px;">
@@ -442,6 +486,8 @@
                     if (tab.dataset.tab === 'config') loadConfigEdit();
                     if (tab.dataset.tab === 'tasks') loadTasksEdit();
                     if (tab.dataset.tab === 'cases') loadCasesEdit();
+                    if (tab.dataset.tab === 'withdrawals') loadWithdrawals();
+                    if (tab.dataset.tab === 'messages') loadMessageUsers();
                     if (tab.dataset.tab === 'dashboard') loadDashboard();
                 });
             });
@@ -536,6 +582,30 @@
             });
             document.getElementById('refresh-cases-btn').addEventListener('click', loadCasesEdit);
 
+            document.getElementById('refresh-withdrawals-btn').addEventListener('click', loadWithdrawals);
+            document.getElementById('wd-toggle-btn').addEventListener('click', async () => {
+                const btn = document.getElementById('wd-toggle-btn');
+                const enabled = btn.dataset.enabled === '1';
+                await API.adminToggleRobuxWithdraw(!enabled);
+                toast(enabled ? 'Выдача Robux выключена' : 'Выдача Robux включена', 'success');
+                loadWithdrawals();
+            });
+            document.getElementById('send-msg-btn').addEventListener('click', async () => {
+                const uid = document.getElementById('msg-user-select').value;
+                const text = document.getElementById('msg-text').value.trim();
+                const title = document.getElementById('msg-title-img').value.trim();
+                if (!uid) { toast('Выберите пользователя', 'error'); return; }
+                if (!text) { toast('Введите текст сообщения', 'error'); return; }
+                const res = await API.adminSendMessage(uid, text, title);
+                if (res.success) {
+                    toast('Сообщение отправлено', 'success');
+                    document.getElementById('msg-text').value = '';
+                    document.getElementById('msg-title-img').value = '';
+                } else {
+                    toast('Ошибка отправки', 'error');
+                }
+            });
+
             // Refresh all button
             document.getElementById('admin-refresh-all-btn').addEventListener('click', async () => {
                 await loadDashboard();
@@ -544,6 +614,8 @@
                 loadConfigEdit();
                 loadTasksEdit();
                 loadCasesEdit();
+                loadWithdrawals();
+                loadMessageUsers();
                 toast('Все данные обновлены', 'success');
             });
 
@@ -1135,6 +1207,66 @@
                     }
                 });
             });
+        }
+
+        async function loadWithdrawals() {
+            const res = await API.adminRobuxWithdraw();
+            if (res.error) { toast('Ошибка загрузки выводов', 'error'); return; }
+            const btn = document.getElementById('wd-toggle-btn');
+            const label = document.getElementById('wd-toggle-label');
+            const enabled = !!res.enabled;
+            btn.dataset.enabled = enabled ? '1' : '0';
+            btn.textContent = enabled ? 'Выключить' : 'Включить';
+            btn.classList.toggle('danger', enabled);
+            btn.classList.toggle('success', !enabled);
+            label.textContent = enabled ? 'Выдача включена' : 'Выдача выключена';
+            const tbody = document.getElementById('admin-withdrawals-body');
+            tbody.innerHTML = '';
+            if (!res.withdrawals || res.withdrawals.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Нет заявок на вывод</td></tr>';
+                return;
+            }
+            const statusMap = { pending: '<span style="color:var(--gold);">Обрабатывается</span>', approved: '<span style="color:var(--success);">Одобрен</span>', rejected: '<span style="color:var(--danger);">Отклонён</span>' };
+            res.withdrawals.forEach(w => {
+                const tr = document.createElement('tr');
+                const actions = w.status === 'approved' || w.status === 'rejected'
+                    ? '<span style="color:var(--text-muted);font-size:11px;">—</span>'
+                    : `<button class="admin-btn success" style="padding:4px 8px;font-size:11px;" data-wd-action="approve" data-uid="${w.user_id}" data-wid="${w.id}">Одобрить</button>
+                       <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" data-wd-action="reject" data-uid="${w.user_id}" data-wid="${w.id}">Отклонить</button>`;
+                tr.innerHTML = `
+                    <td style="color:var(--text-muted);font-size:11px;white-space:nowrap;">${w.date || '-'}</td>
+                    <td style="color:var(--text-muted);font-size:11px;">${w.id}</td>
+                    <td>${w.username || w.user_id}</td>
+                    <td style="color:var(--cyan);">@${w.roblox_username || '-'}</td>
+                    <td><strong>${w.amount || 0}</strong> Robux</td>
+                    <td>${statusMap[w.status] || w.status}</td>
+                    <td><div style="display:flex;gap:5px;flex-wrap:wrap;">${actions}</div></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('[data-wd-action]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const status = btn.dataset.wdAction === 'approve' ? 'approved' : 'rejected';
+                    await API.adminSetWithdrawal(btn.dataset.uid, btn.dataset.wid, status);
+                    toast(status === 'approved' ? 'Вывод одобрен' : 'Вывод отклонён', 'success');
+                    loadWithdrawals();
+                });
+            });
+        }
+
+        async function loadMessageUsers() {
+            const res = await API.adminGetUsers();
+            if (res.error) return;
+            const sel = document.getElementById('msg-user-select');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">— Выберите пользователя —</option>';
+            (res.users || []).forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = (u.first_name || u.id) + (u.username ? ' (@' + u.username + ')' : '');
+                sel.appendChild(opt);
+            });
+            if (cur) sel.value = cur;
         }
 
         async function loadVouchers() {

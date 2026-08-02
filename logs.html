@@ -218,7 +218,7 @@
             const div = document.createElement('div');
             div.className = 'log-line';
             div.innerHTML = `<span class="log-time">${esc(it.ts)}</span>` +
-                `<span class="log-who">${esc(it.who)}</span>` +
+                `<span class="log-who">${esc(it.who_name || it.who)}</span>` +
                 `<span class="log-action">${esc(it.action)}</span>` +
                 `<span class="log-detail">${esc(it.detail)}</span>`;
             box.appendChild(div);

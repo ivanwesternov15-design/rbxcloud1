@@ -762,6 +762,7 @@ def process_telegram_webapp_login(init_data):
                 users[referrer_id]["referral_count"] = users[referrer_id].get("referral_count", 0) + 1
                 users[referrer_id]["referral_active_count"] = users[referrer_id].get("referral_active_count", 0) + 1
                 users[referrer_id]["referral_earned"] = users[referrer_id].get("referral_earned", 0) + ref_bonus
+                audit(telegram_id, "joined_referral", f"ref {referrer_id}")
 
                 PENDING_REFERRALS.pop(telegram_id, None)
 
@@ -1540,6 +1541,19 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                         users = load_users()
                         referrer = users.get(referrer_id)
                         new_user = users.get(new_user_id)
+
+                        # Already joined via another/referral link: tell the user
+                        if new_user and new_user.get("referred_by") and referrer and referrer_id != new_user_id:
+                            old_ref_id = new_user["referred_by"]
+                            old_ref = users.get(old_ref_id, {})
+                            old_name = old_ref.get("username") or old_ref.get("first_name") or old_ref_id
+                            send_telegram_message(
+                                chat_id,
+                                f"ℹ️ <b>Ты уже перешел по реферальной ссылке (@{old_name})</b>\n"
+                                f"Награда уже была выдана ранее.",
+                            )
+                            self.send_json(200, {"ok": True})
+                            return
                         
                         # Grant reward immediately if referrer exists and new user not already referred
                         granted = False
@@ -1570,6 +1584,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 save_json("users.json", users)
                                 PENDING_REFERRALS.pop(new_user_id, None)
                                 granted = True
+                                audit(new_user_id, "joined_referral", f"ref {referrer_id}")
                                 
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
                                 send_telegram_message(
@@ -2243,6 +2258,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["backgrounds"].append(bg_id)
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)
+            audit(telegram_id, "buy_background", f"id={bg_id} name={bg.get('name', bg_id)} price={bg.get('price', 0)}")
             
             self.send_json(200, {
                 "coins": user["coins"],
@@ -2660,6 +2676,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     self.send_json(404, {"error": "Файл не найден"})
                     return
                 lines = []
+                users_map = {}
+                try:
+                    users_map = load_users()
+                except Exception:
+                    users_map = {}
+                def _name(w):
+                    u = users_map.get(str(w), {})
+                    return u.get("username") or u.get("first_name") or ""
                 try:
                     with open(fpath, "r", encoding="utf-8") as f:
                         for ln in f:
@@ -2667,7 +2691,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                             if not ln:
                                 continue
                             try:
-                                lines.append(json.loads(ln))
+                                obj = json.loads(ln)
+                                w = obj.get("who", "")
+                                if w:
+                                    obj["who_name"] = _name(w)
+                                lines.append(obj)
                             except Exception:
                                 lines.append({"raw": ln})
                 except Exception as e:

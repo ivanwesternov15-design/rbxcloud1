@@ -382,17 +382,28 @@ def check_telegram_webapp_auth(init_data, bot_token):
                 params[k] = unquote(v)
         received_hash = params.pop("hash", None)
         if not received_hash:
+            log_error(f"Mini App: в initData нет поля hash (ключи: {list(params.keys())})")
             return False
         check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
         secret_key = hmac.new(bot_token.encode(), b"WebAppData", hashlib.sha256).digest()
         computed_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
         if computed_hash != received_hash:
+            auth_date_raw = params.get("auth_date", "?")
+            age_sec = (time.time() - int(auth_date_raw)) if str(auth_date_raw).isdigit() else "?"
+            masked_token = (bot_token[:8] + "..." + bot_token[-3:]) if len(bot_token) > 11 else "(empty)"
+            log_error(
+                f"WebAuth подпись не сошлась: получ=(...){received_hash[-6:]} "
+                f"вычисл=(...){computed_hash[-6:]}, auth_date={auth_date_raw} (возраст={age_sec}c), "
+                f"ключи={sorted(params.keys())}, токен={masked_token}"
+            )
             return False
         auth_date = int(params.get("auth_date", 0))
         if time.time() - auth_date > 86400:
+            log_error(f"WebAuth auth_date просрочен: {auth_date}, возраст={int(time.time()-auth_date)}c (>86400)")
             return False
         return True
-    except Exception:
+    except Exception as _e:
+        log_error(f"WebAuth исключение: {_e!r}")
         return False
 
 def process_telegram_webapp_login(init_data):

@@ -3038,6 +3038,7 @@ body::before {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap;
 }
 
 .admin-table th {
@@ -3061,6 +3062,22 @@ body::before {
 }
 
 .admin-input:focus { outline: none; border-color: var(--accent); }
+
+.admin-table .admin-input {
+    width: auto;
+    max-width: 120px;
+    display: inline-block;
+}
+
+/* Compact action buttons inside the users table */
+.admin-table .admin-icon-btn {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+}
+.admin-table td:last-child {
+    white-space: normal;
+    min-width: 170px;
+}
 
 .admin-btn {
     padding: 10px 20px;

@@ -1127,11 +1127,11 @@
                     <td style="color:var(--text-muted);font-size:11px;">${u.id}</td>
                     <td><strong>${u.first_name || '-'}</strong>${u.is_admin ? ' <img src="/assets/icons/admin.png" style="width:16px;height:16px;vertical-align:middle;border-radius:4px;" alt="admin">' : ''}</td>
                     <td style="color:var(--text-secondary);">${u.username ? '@'+u.username : '-'}</td>
-                    <td><input class="admin-input" value="${u.coins}" style="width:70px;padding:6px 10px;" data-uid="${u.id}" data-field="balance"></td>
-                    <td><input class="admin-input" value="${u.robux_balance || 0}" style="width:70px;padding:6px 10px;" data-uid="${u.id}" data-field="robux_balance"></td>
+                    <td><input class="admin-input" value="${u.coins}" style="width:76px;padding:6px 8px;" data-uid="${u.id}" data-field="balance"></td>
+                    <td><input class="admin-input" value="${u.robux_balance || 0}" style="width:76px;padding:6px 8px;" data-uid="${u.id}" data-field="robux_balance"></td>
                     <td><strong style="color:var(--gold);">${u.level || 1}</strong></td>
                     <td><strong>${u.referral_count || 0}</strong></td>
-                    <td><input class="admin-input" value="${u.exchange_count_today || 0}" style="width:60px;padding:6px 10px;" data-uid="${u.id}" data-field="exchange_count_today"></td>
+                    <td><input class="admin-input" value="${u.exchange_count_today || 0}" style="width:60px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_count_today"></td>
                     <td>${u.custom_title ? '<span style="color:var(--gold);font-size:11px;">'+u.custom_title.replace('.png','')+'</span>' : '-'}</td>
                     <td>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start;">

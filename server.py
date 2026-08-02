@@ -510,6 +510,7 @@ def get_or_create_user(telegram_id, user_data=None):
     config = load_config()
     
     if telegram_id not in users:
+        game = config.get("game", {})
         users[telegram_id] = {
             "id": telegram_id,
             "first_name": (user_data or {}).get("first_name", ""),
@@ -521,10 +522,10 @@ def get_or_create_user(telegram_id, user_data=None):
             "last_active": int(time.time()),
             "coins": 0,
             "total_earned": 0,
-            "energy": config["game"]["base_max_energy"],
-            "max_energy": config["game"]["base_max_energy"],
-            "energy_regen": config["game"]["base_energy_regen"],
-            "click_power": config["game"]["base_click_reward"],
+            "energy": game.get("base_max_energy", 1000),
+            "max_energy": game.get("base_max_energy", 1000),
+            "energy_regen": game.get("base_energy_regen", 2),
+            "click_power": game.get("base_click_reward", 1),
             "passive_income": 0,
             "level": 1,
             "total_clicks": 0,

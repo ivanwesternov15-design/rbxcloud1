@@ -2434,6 +2434,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 return
 
             # 6-hour cooldown between boost purchases
+            now = time.time()
             BOOST_COOLDOWN = 6 * 3600
             last_boosts = user.get("last_boost_purchase", {})
             last_bought = last_boosts.get(boost_id, 0)

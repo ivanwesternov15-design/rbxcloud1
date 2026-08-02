@@ -351,6 +351,7 @@ const App = {
                 this.updateEnergyUI();
                 this.updateHomeStatsUI();
                 if (this.currentScreen === 'home') this.renderHome();
+                this.checkAdminMessages();
             });
         }, 10000);
 
@@ -2113,7 +2114,6 @@ const App = {
 
     showWithdrawSelect() {
         const bal = (Auth.user.robux_balance || 0);
-        if (bal <= 0) { this.showToast('На аккаунте нет Robux для вывода', 'error'); return; }
         const base = [40, 80, 400, 800];
         const more = [1200, 1700, 3150, 4500, 10000, 22500];
         const cell = (amt) => `

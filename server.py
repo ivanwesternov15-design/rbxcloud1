@@ -2379,7 +2379,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             # Check task conditions
             can_complete = False
             if task_def["type"] == "telegram":
-                can_complete = True  # User clicked the link, we trust they did it
+                passed, verify_error = verify_telegram_task_channels(task_def, str(telegram_id))
+                if not passed:
+                    self.send_json(400, {"error": verify_error})
+                    return
+                can_complete = True
             elif task_def["type"] == "referral":
                 required = task_def.get("required_count", 1)
                 can_complete = user.get("referral_count", 0) >= required

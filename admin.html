@@ -1185,6 +1185,12 @@
 
         const TASK_TYPES = ['telegram', 'referral', 'level', 'clicks', 'earn', 'purchase_case', 'upgrade_count', 'daily'];
         const REWARD_TYPES = ['coins', 'boost', 'voucher'];
+        const TASK_TYPE_LABELS = {
+            telegram: 'Подписка на канал', referral: 'Приглашение друзей', level: 'Достижение уровня',
+            clicks: 'Кол-во кликов', earn: 'Заработок монет', purchase_case: 'Покупка кейса',
+            upgrade_count: 'Кол-во улучшений', daily: 'Ежедневный бонус'
+        };
+        const REWARD_TYPE_LABELS = { coins: 'Монеты', boost: 'Буст', voucher: 'Ваучер (Robux)' };
 
         function el(markup) {
             const t = document.createElement('template');
@@ -1247,19 +1253,20 @@
                 <div data-role="channel" data-ci="${i}" style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
                     <input class="admin-input" data-c="label" value="${esc(c.label)}" style="flex:1;min-width:90px;" placeholder="Название">
                     <input class="admin-input" data-c="url" value="${esc(c.url)}" style="flex:1.4;min-width:130px;" placeholder="https://t.me/...">
-                    <input class="admin-input" data-c="chat_id" value="${esc(c.chat_id)}" style="flex:.8;min-width:80px;" placeholder="chat_id (опц.)">
+                    <input class="admin-input" data-c="chat_id" value="${esc(c.chat_id)}" style="flex:.8;min-width:80px;" placeholder="chat_id — оставь пустым, определится из url">
                     <button class="admin-btn danger" data-role="remch" style="padding:4px 8px;font-size:11px;">✕</button>
                 </div>`).join('');
             return `
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы (type: telegram)</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы (подписка на Telegram-канал)</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Для проверки подписки бот должен быть администратором каждого канала. Поле chat_id можно не заполнять — оно выведется автоматически из ссылки.</div>
                 <div data-role="channels">${rows || ''}</div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <button type="button" class="admin-btn" data-role="addch" style="padding:4px 10px;font-size:11px;">+ Канал</button>
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
                         Проверка:
-                        <select class="admin-input" data-f="channel_mode" style="width:70px;">
-                            <option value="all" ${task.channel_mode === 'all' ? 'selected' : ''}>all</option>
-                            <option value="any" ${task.channel_mode === 'any' ? 'selected' : ''}>any</option>
+                        <select class="admin-input" data-f="channel_mode" style="width:80px;">
+                            <option value="all" ${task.channel_mode === 'all' ? 'selected' : ''}>всех</option>
+                            <option value="any" ${task.channel_mode === 'any' ? 'selected' : ''}>любого</option>
                         </select>
                     </label>
                 </div>`;
@@ -1284,7 +1291,7 @@
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                             <input class="admin-input" data-f="title" value="${esc(task.title)}" style="flex:2;min-width:120px;" placeholder="Название">
                             <select class="admin-input" data-f="type" style="width:130px;">
-                                ${TASK_TYPES.map(t => `<option value="${t}" ${task.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                                ${TASK_TYPES.map(t => `<option value="${t}" ${task.type === t ? 'selected' : ''}>${TASK_TYPE_LABELS[t] || t}</option>`).join('')}
                             </select>
                             <label style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
                                 <input type="checkbox" data-f="enabled" ${task.enabled ? 'checked' : ''}> Вкл
@@ -1294,7 +1301,7 @@
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
                             <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">Награда</span>
                             <select class="admin-input" data-f="reward_type" style="width:110px;">
-                                ${REWARD_TYPES.map(t => `<option value="${t}" ${task.reward.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                                ${REWARD_TYPES.map(t => `<option value="${t}" ${task.reward.type === t ? 'selected' : ''}>${REWARD_TYPE_LABELS[t] || t}</option>`).join('')}
                             </select>
                             <div data-role="reward" style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">${rewardFieldsHtml(task)}</div>
                         </div>

@@ -12,12 +12,19 @@ import sys
 from urllib.parse import urlparse, parse_qs, unquote
 
 # Bot token. BotHost exposes the token under several possible env names depending
-# on template/settings, so we read the first one that is set.
+# on template/settings. If no env var is set, fall back to the in-repo file
+# `bot_token` (which ships inside the Docker image), then to a plain default.
 BOT_TOKEN = ""
 for _k in ("BOT_TOKEN", "TELEGRAM_BOT_TOKEN", "BOT_API_TOKEN", "API_TOKEN", "TOKEN"):
     if os.environ.get(_k):
         BOT_TOKEN = os.environ[_k]
         break
+if not BOT_TOKEN:
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_token"), "r", encoding="utf-8") as _f:
+            BOT_TOKEN = _f.read().strip()
+    except Exception:
+        pass
 PORT = int(os.environ.get("PORT", "3000"))
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 

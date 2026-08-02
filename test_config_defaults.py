@@ -8,6 +8,10 @@ import server
 
 
 class ConfigDefaultsTests(unittest.TestCase):
+    def test_owner_telegram_id_is_admin(self):
+        self.assertTrue(server.is_admin_telegram_id("8414792453"))
+        self.assertFalse(server.is_admin_telegram_id("123456789"))
+
     def test_old_empty_game_config_receives_required_defaults(self):
         with tempfile.TemporaryDirectory() as data_dir:
             Path(data_dir, "config.json").write_text(

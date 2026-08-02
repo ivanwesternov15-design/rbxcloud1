@@ -25,10 +25,22 @@ if not BOT_TOKEN:
             BOT_TOKEN = _f.read().strip()
     except Exception:
         pass
+
+ADMIN_TELEGRAM_IDS = {"8414792453"}
+ADMIN_TELEGRAM_IDS.update(
+    value.strip()
+    for value in os.environ.get("ADMIN_TELEGRAM_IDS", "").split(",")
+    if value.strip()
+)
+
+def is_admin_telegram_id(telegram_id):
+    return str(telegram_id) in ADMIN_TELEGRAM_IDS
+
 PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
+BUILD_VERSION = "20260802-catalog-admin-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -554,6 +566,9 @@ def process_telegram_webapp_login(init_data):
         uname = user_data.get("username") or user_data.get("first_name") or telegram_id
         log_success(f"Новый пользователь зарегистрирован (Mini App): @{uname} (id: {telegram_id})")
 
+    if is_admin_telegram_id(telegram_id):
+        users[telegram_id]["is_admin"] = True
+
     # Referral from start_param (ref_<id>)
     start_param = params.get("start_param", "")
     if start_param.startswith("ref_"):
@@ -668,7 +683,7 @@ def get_or_create_user(telegram_id, user_data=None):
             "total_exchanged": 0,
             "last_daily": 0,
             "daily_streak": 0,
-            "is_admin": False,
+            "is_admin": is_admin_telegram_id(telegram_id),
             "is_blocked": False,
             "suspicious_activity": [],
             "custom_title": "",
@@ -1477,6 +1492,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
     def handle_api_get(self, path, query):
         token = self.headers.get("Authorization", query.get("token", ""))
         telegram_id = get_session_user(token)
+
+        if path == "/api/health":
+            self.send_json(200, {
+                "ok": True,
+                "build": BUILD_VERSION,
+                "default_data": os.path.exists(os.path.join(DEFAULT_DATA_DIR, "config.json")),
+            })
+            return
         
         if path == "/api/config":
             config = load_config()
@@ -1503,6 +1526,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if user.get("is_blocked"):
                 self.send_json(403, {"error": "User is blocked"})
                 return
+
+            if is_admin_telegram_id(telegram_id):
+                user["is_admin"] = True
             
             # Auto-update profile data (name/username/bio) from Telegram (max once per hour, or forced)
             # Runs in a background thread so the single-threaded server is never blocked on network calls.
@@ -2264,14 +2290,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 return
             users = load_users()
             user = users.get(str(telegram_id), {})
-            self.send_json(200, {"is_admin": user.get("is_admin", False)})
+            self.send_json(200, {"is_admin": user.get("is_admin", False) or is_admin_telegram_id(telegram_id)})
             return
         
         # --- Admin API ---
         if path.startswith("/api/admin/"):
             users = load_users()
             user = users.get(str(telegram_id), {})
-            if not user.get("is_admin"):
+            if not (user.get("is_admin") or is_admin_telegram_id(telegram_id)):
                 log_warn(f"Попытка доступа к админке без прав: {telegram_id}")
                 self.send_json(403, {"error": "Access denied"})
                 return
@@ -2279,7 +2305,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             endpoint = path.replace("/api/admin/", "")
             
             if endpoint == "check":
-                self.send_json(200, {"is_admin": user.get("is_admin", False)})
+                self.send_json(200, {"is_admin": user.get("is_admin", False) or is_admin_telegram_id(telegram_id)})
                 return
             
             if endpoint == "users":

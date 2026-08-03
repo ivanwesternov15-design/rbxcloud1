@@ -139,13 +139,13 @@
     },
     "passive_income": {
       "name": "Пассивный доход",
-      "description": "+0.06 монет в секунду",
+      "description": "+0.5 монет в секунду",
       "branch": "passive",
       "icon": "cash",
       "base_cost": 180,
       "cost_multiplier": 1.40,
       "max_level": 25,
-      "effect_per_level": 0.06,
+      "effect_per_level": 0.5,
       "requires": null
     },
     "lucky_click": {
@@ -259,7 +259,7 @@
       "id": "coins_x2",
       "name": "x2 монеты",
       "duration": 300,
-      "price": 1000,
+      "price": 2000,
       "multiplier": 2,
       "daily_limit": 2
     },

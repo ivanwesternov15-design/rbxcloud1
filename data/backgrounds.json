@@ -14,7 +14,7 @@
   {
     "id": "bg_space",
     "name": "Космос",
-    "rarity": "common",
+    "rarity": "rare",
     "bonus": 4,
     "price": 35000,
     "color_start": "#0a0a1a",
@@ -38,7 +38,7 @@
   {
     "id": "bg_ocean",
     "name": "Глубина океана",
-    "rarity": "rare",
+    "rarity": "epic",
     "bonus": 10,
     "price": 110000,
     "color_start": "#001018",
@@ -50,7 +50,7 @@
   {
     "id": "bg_lava",
     "name": "Вулкан",
-    "rarity": "rare",
+    "rarity": "epic",
     "bonus": 15,
     "price": 180000,
     "color_start": "#120a08",
@@ -62,7 +62,7 @@
   {
     "id": "bg_synthwave",
     "name": "Синтвейв",
-    "rarity": "rare",
+    "rarity": "legendary",
     "bonus": 20,
     "price": 250000,
     "color_start": "#140024",

@@ -747,20 +747,21 @@ const App = {
         const comboChance = Math.min((Auth.user.upgrades?.click_combo || 0) * (Auth.config?.upgrades?.click_combo?.effect_per_level || 2), 50);
         const critChance = Math.min((Auth.user.upgrades?.crit_chance || 0) * (Auth.config?.upgrades?.crit_chance?.effect_per_level || 3), 45);
         const cpw = document.getElementById('click-power-window');
+        const cpwBadges = document.getElementById('cpw-badges');
         if (cpw) {
-            cpw.querySelectorAll('.cpw-badge').forEach(b => b.remove());
+            if (cpwBadges) cpwBadges.innerHTML = '';
             document.getElementById('home-click-power').textContent = '+' + cp;
             if (comboChance > 0) {
                 const badge = document.createElement('span');
-                badge.className = 'cpw-cell cpw-badge';
-                badge.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><use href="#icon-cycle"/></svg>${comboChance}%`;
-                cpw.appendChild(badge);
+                badge.className = 'cpw-badge';
+                badge.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-cycle"/></svg><b>${comboChance}%</b><i>комбо</i>`;
+                if (cpwBadges) cpwBadges.appendChild(badge);
             }
             if (critChance > 0) {
                 const badge = document.createElement('span');
-                badge.className = 'cpw-cell cpw-badge cpw-crit';
-                badge.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><use href="#icon-explosion"/></svg>${critChance}%`;
-                cpw.appendChild(badge);
+                badge.className = 'cpw-badge cpw-crit';
+                badge.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-explosion"/></svg><b>${critChance}%</b><i>крит</i>`;
+                if (cpwBadges) cpwBadges.appendChild(badge);
             }
         }
         document.getElementById('home-total-earned').textContent = Auth.formatNumber(Auth.user.total_earned || 0);
@@ -1350,7 +1351,7 @@ const App = {
             case 'max_energy':
                 return `Сейчас: ${g((game.base_max_energy || 100) + level * effect)} энергии`;
             case 'energy_regen':
-                return `Сейчас: +${(game.base_energy_regen || 0) + level * effect} энергии/сек`;
+                return `Сейчас: +${Math.floor(((game.base_energy_regen || 0) + level * effect) * 1000) / 1000} энергии/сек`;
             case 'profit_mult':
                 return `Сейчас: +${level * effect}% ко всему доходу`;
             case 'crit_damage': {

@@ -798,59 +798,92 @@ body::before {
 }
 
 .click-power-window {
-    margin-top: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--glass-bg);
+    margin-top: 16px;
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    padding: 6px 8px;
-    box-shadow: var(--glass-inner);
+    border-radius: 18px;
+    padding: 8px 12px 8px 8px;
+    box-shadow: var(--glass-inner), 0 10px 26px rgba(0,0,0,0.28);
 }
 
-.click-power-window .cpw-cell {
+.click-power-window .cpw-main {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    border-radius: 999px;
-    padding: 6px 11px;
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text-primary);
+    gap: 6px;
+    padding: 6px 12px 6px 6px;
+    border-radius: 13px;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 228, 77, 0.16), rgba(255, 228, 77, 0.04));
+    border: 1px solid rgba(255, 228, 77, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .click-power-window .cpw-icon {
-    padding: 7px;
-    background: radial-gradient(circle at 35% 35%, rgba(255, 228, 77, 0.22), rgba(214, 163, 93, 0.1));
-    border: 1px solid rgba(255, 228, 77, 0.24);
+    width: 30px; height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: radial-gradient(circle at 35% 35%, rgba(255, 228, 77, 0.24), rgba(214, 163, 93, 0.1));
+    border: 1px solid rgba(255, 228, 77, 0.26);
 }
 
 .click-power-window .cpw-icon .icon { color: var(--gold); width: 16px; height: 16px; }
 
 .click-power-window .cpw-value {
-    background: rgba(255, 228, 77, 0.13);
-    border: 1px solid rgba(255, 228, 77, 0.22);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
     color: var(--gold);
-    font-size: 16px;
-    letter-spacing: -0.3px;
+    line-height: 1;
+}
+
+.click-power-window .cpw-unit {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-top: 2px;
+    white-space: nowrap;
+}
+
+.click-power-window .cpw-badges {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .click-power-window .cpw-badge {
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--cyan);
     background: rgba(96, 165, 250, 0.12);
     border: 1px solid rgba(96, 165, 250, 0.22);
+    border-radius: 9px;
+    padding: 3px 8px;
 }
+
+.click-power-window .cpw-badge .icon { color: var(--cyan); }
+
+.click-power-window .cpw-badge b { font-size: 12px; font-weight: 800; color: var(--cyan); line-height: 1; }
+.click-power-window .cpw-badge i { font-style: normal; font-weight: 500; opacity: 0.75; }
 
 .click-power-window .cpw-badge.cpw-crit {
     color: var(--purple);
-    background: rgba(37, 99, 235, 0.12);
-    border: 1px solid rgba(37, 99, 235, 0.22);
+    background: rgba(139, 92, 246, 0.13);
+    border: 1px solid rgba(139, 92, 246, 0.24);
 }
+.click-power-window .cpw-badge.cpw-crit .icon { color: var(--purple); }
+.click-power-window .cpw-badge.cpw-crit b { color: var(--purple); }
 
 @keyframes glowRing {
     0%,100% { transform: scale(0.92); opacity: 0.5; box-shadow: 0 0 34px rgba(255, 215, 0, 0.06); }

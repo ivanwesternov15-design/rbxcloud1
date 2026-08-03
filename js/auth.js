@@ -81,10 +81,6 @@ const Auth = {
         const upgrades = (this.config && this.config.upgrades) || {};
         let rate = this.user.passive_income || 0;
 
-        // Passive multiplier: +X% per level
-        const passiveMultLevel = (this.user.upgrades && this.user.upgrades.passive_mult) || 0;
-        rate *= 1 + passiveMultLevel * (upgrades.passive_mult ? upgrades.passive_mult.effect_per_level : 4) / 100;
-
         // Profit synergy: +X% to all income
         const profitLevel = (this.user.upgrades && this.user.upgrades.profit_mult) || 0;
         rate *= 1 + profitLevel * (upgrades.profit_mult ? upgrades.profit_mult.effect_per_level : 2) / 100;
@@ -110,10 +106,6 @@ const Auth = {
         const clickPowerLevel = (this.user.upgrades && this.user.upgrades.click_power) || 0;
         const clickPowerBonus = clickPowerLevel * (upgrades.click_power ? upgrades.click_power.effect_per_level : 1);
         let reward = baseReward + clickPowerBonus;
-
-        // Click surge: +X% to click power
-        const surgeLevel = (this.user.upgrades && this.user.upgrades.click_surge) || 0;
-        reward *= 1 + surgeLevel * (upgrades.click_surge ? upgrades.click_surge.effect_per_level : 3) / 100;
 
         // Profit synergy
         const profitLevel = (this.user.upgrades && this.user.upgrades.profit_mult) || 0;

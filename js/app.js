@@ -74,7 +74,7 @@ const App = {
         // Subscription gate: new / unsubscribed users must join channel+chat first.
         const gate = Auth.config && Auth.config.subscription_gate;
         let gatePassed = true;
-        if (!(Auth.user && Auth.user.is_admin) && gate && gate.enabled && gate.channels && gate.channels.length) {
+        if (gate && gate.enabled && gate.channels && gate.channels.length) {
             const gateRes = await API.post('/api/user/gate_check', {});
             gatePassed = !!(gateRes && gateRes.passed);
             if (!gatePassed) {
@@ -405,16 +405,18 @@ const App = {
         try {
             const res = await API.getConfig();
             if (!res || res.error) return;
-            const before = JSON.stringify({ tasks: Auth.tasks, config: Auth.config });
+            const before = JSON.stringify({ tasks: Auth.tasks, config: Auth.config, backgrounds: Auth.backgrounds, cases: Auth.cases });
             if (res.config) Auth.config = res.config;
             if (res.tasks) Auth.tasks = res.tasks;
             if (res.backgrounds) Auth.backgrounds = res.backgrounds;
             if (res.cases) Auth.cases = res.cases;
-            const after = JSON.stringify({ tasks: Auth.tasks, config: Auth.config });
+            const after = JSON.stringify({ tasks: Auth.tasks, config: Auth.config, backgrounds: Auth.backgrounds, cases: Auth.cases });
             if (before !== after) {
                 this.updateAllUI();
                 if (this.currentScreen === 'tasks') this.renderTasks();
-                if (this.currentScreen === 'boosts') this.renderBoosts();
+                if (this.currentScreen === 'boosts') this.renderBoostsShop();
+                if (this.currentScreen === 'upgrade') this.renderUpgrade();
+                if (this.currentScreen === 'backgrounds') this.renderBackgrounds();
                 if (this.currentScreen === 'cases') this.renderCases();
             }
         } catch (e) {}
@@ -519,9 +521,8 @@ const App = {
         const upgradeIcons = {
             click_power: 'icon-click', passive_income: 'icon-cash', max_energy: 'icon-battery',
             energy_regen: 'icon-lightning', lucky_click: 'icon-star', energy_save: 'icon-shield',
-            click_combo: 'icon-cycle', crit_chance: 'icon-explosion', click_surge: 'icon-muscle',
-            crit_damage: 'icon-target', energy_leech: 'icon-refresh', passive_mult: 'icon-chart',
-            profit_mult: 'icon-dice'
+            click_combo: 'icon-cycle', crit_chance: 'icon-explosion', crit_damage: 'icon-target',
+            energy_leech: 'icon-refresh', profit_mult: 'icon-dice', energy_synergy: 'icon-lightning'
         };
         const iconId = upgradeIcons[key] || 'icon-arrow-up';
         const container = document.getElementById('toast-container');
@@ -848,13 +849,12 @@ const App = {
 
         const now = Date.now() / 1000;
         const activeBoosts = Auth.user.active_boosts || [];
-        const lastPurchases = Auth.user.last_boost_purchase || {};
-        const BOOST_COOLDOWN = 6 * 3600;
+        const usage = Auth.user.boost_usage || {};
+        const today = new Date().toLocaleDateString('sv-SE');
         const boostIcons = {
             coins_x2: 'icon-lightning',
             coins_x3: 'icon-lightning',
             coins_x5: 'icon-lightning',
-            coins_x10: 'icon-lightning',
             energy_full: 'icon-battery',
             auto_clicker: 'icon-click'
         };
@@ -869,12 +869,10 @@ const App = {
 
             // Same boost is active -> cannot re-buy until it expires.
             const sameActive = !!(active);
-            // 6h cooldown since last purchase of this exact boost.
-            const lastBought = lastPurchases[b.id] || 0;
-            const cooldownLeft = Math.max(0, BOOST_COOLDOWN - (now - lastBought));
-            const inCooldown = cooldownLeft > 0 && !active && !sameActive;
+            const usedToday = (((usage[b.id] || {})[today]) || 0);
+            const limitReached = b.daily_limit > 0 && usedToday >= b.daily_limit;
 
-            const locked = lockedByMult || inCooldown || sameActive;
+            const locked = lockedByMult || limitReached || sameActive;
 
             const card = document.createElement('div');
             card.className = `boost-card ${active ? 'active' : ''} ${locked ? 'locked' : ''}`;
@@ -894,10 +892,8 @@ const App = {
                 buyHtml = `<div class="boost-active-tag">Активен</div>`;
             } else if (lockedByMult) {
                 buyHtml = `<div class="boost-lock-tag"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-lock"/></svg> Ждёт</div>`;
-            } else if (inCooldown) {
-                const ch = Math.floor(cooldownLeft / 3600);
-                const cm = Math.floor((cooldownLeft % 3600) / 60);
-                buyHtml = `<div class="boost-lock-tag cooldown"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-calendar"/></svg> Перезаряжается ${ch}ч ${cm}м</div>`;
+            } else if (limitReached) {
+                buyHtml = `<div class="boost-lock-tag cooldown"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-calendar"/></svg> Лимит на сегодня</div>`;
             } else {
                 buyHtml = `
                     <div class="boost-price">${Auth.formatNumber(b.price)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
@@ -910,6 +906,7 @@ const App = {
                     <div class="boost-name">${b.name}</div>
                     <div class="boost-desc">${sub}</div>
                     ${b.duration ? `<div class="boost-duration"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-calendar"/></svg> ${b.duration} сек</div>` : ''}
+                    ${b.daily_limit ? `<div class="boost-duration">Сегодня: ${usedToday}/${b.daily_limit}</div>` : ''}
                 </div>
                 <div class="boost-buy">
                     ${buyHtml}
@@ -939,6 +936,7 @@ const App = {
         Auth.user.coins = res.coins;
         if (res.energy !== undefined) Auth.user.energy = res.energy;
         Auth.user.active_boosts = res.active_boosts || [];
+        Auth.user.boost_usage = res.boost_usage || Auth.user.boost_usage || {};
         this.showToast(`${boost.name} активирован!`, 'success');
         this.updateAllUI();
         this.renderBoosts();
@@ -1236,9 +1234,8 @@ const App = {
         const icons = {
             click_power: 'icon-click', passive_income: 'icon-cash', max_energy: 'icon-battery',
             energy_regen: 'icon-lightning', lucky_click: 'icon-star', energy_save: 'icon-shield',
-            click_combo: 'icon-cycle', crit_chance: 'icon-explosion', click_surge: 'icon-muscle',
-            crit_damage: 'icon-target', energy_leech: 'icon-refresh', passive_mult: 'icon-chart',
-            profit_mult: 'icon-dice'
+            click_combo: 'icon-cycle', crit_chance: 'icon-explosion', crit_damage: 'icon-target',
+            energy_leech: 'icon-refresh', profit_mult: 'icon-dice', energy_synergy: 'icon-lightning'
         };
         const branchMeta = {
             click: { label: 'Сила клика', icon: 'icon-click', color: '#FF8C42', desc: 'Увеличивает награду за каждый клик' },
@@ -1349,15 +1346,11 @@ const App = {
             case 'click_power':
                 return `Сейчас: +${g((game.base_click_reward || 0) + level * effect)} монет за клик`;
             case 'passive_income':
-                return `Сейчас: +${g(level * effect)} монет/сек`;
+                return `Сейчас: +${(level * effect).toFixed(2)} монет/сек`;
             case 'max_energy':
-                return `Сейчас: ${g((game.base_max_energy || 1000) + level * effect)} энергии`;
+                return `Сейчас: ${g((game.base_max_energy || 100) + level * effect)} энергии`;
             case 'energy_regen':
                 return `Сейчас: +${(game.base_energy_regen || 0) + level * effect} энергии/сек`;
-            case 'click_surge':
-                return `Сейчас: +${level * effect}% к силе клика`;
-            case 'passive_mult':
-                return `Сейчас: +${level * effect}% к пассивному доходу`;
             case 'profit_mult':
                 return `Сейчас: +${level * effect}% ко всему доходу`;
             case 'crit_damage': {
@@ -1390,36 +1383,13 @@ const App = {
         const prevLevel = Auth.user.upgrades[key] || 0;
         Auth.user.coins = res.coins;
         Auth.user.upgrades[key] = res.upgrade_level;
+        for (const stat of ['energy', 'max_energy', 'energy_regen', 'click_power', 'passive_income']) {
+            if (res[stat] !== undefined) Auth.user[stat] = res[stat];
+        }
         
         // Show upgrade toast with animation
         this.showUpgradeNotification(key, prevLevel, res.upgrade_level);
         
-        // Apply effects locally
-        const def = Auth.config.upgrades[key];
-        const level = res.upgrade_level;
-        const effect = def.effect_per_level;
-        
-        if (key === 'click_power') Auth.user.click_power = Auth.config.game.base_click_reward + level * effect;
-        else if (key === 'passive_income') Auth.user.passive_income = level * effect;
-        else if (key === 'max_energy') {
-            Auth.user.max_energy = Auth.config.game.base_max_energy + level * effect;
-        } else if (key === 'energy_regen') {
-            Auth.user.energy_regen = Auth.config.game.base_energy_regen + level * effect;
-        } else if (key === 'energy_synergy') {
-            // +X% к макс. энергии и регену от базовой прокачки
-            const maxDef = Auth.config.upgrades.max_energy || {};
-            const maxLevels = Auth.user.upgrades.max_energy || 0;
-            const baseMax = (Auth.config.game.base_max_energy || 100) + maxLevels * (maxDef.effect_per_level || 5);
-            Auth.user.max_energy = Math.floor(baseMax * (1 + level * effect / 100));
-            if (Auth.user.energy > Auth.user.max_energy) Auth.user.energy = Auth.user.max_energy;
-            const regenDef = Auth.config.upgrades.energy_regen || {};
-            const regenLevels = Auth.user.upgrades.energy_regen || 0;
-            const baseRegen = (Auth.config.game.base_energy_regen || 0.0556) + regenLevels * (regenDef.effect_per_level || 0.0083);
-            Auth.user.energy_regen = baseRegen * (1 + level * effect / 100);
-        }
-        // click_surge, crit_damage, energy_leech, passive_mult, profit_mult are
-        // multiplier-type: read live from Auth.user.upgrades in auth.js calcs.
-
         this.updateAllUI();
         this.renderUpgrade();
     },
@@ -1689,10 +1659,11 @@ const App = {
         };
 
         let itemsHtml = caseData.items.map((item, idx) => {
-            const pct = (item.probability * 100).toFixed(1);
+            const rawPct = item.probability * 100;
+            const pct = rawPct < 0.1 ? rawPct.toFixed(2) : rawPct.toFixed(1);
             const ticon = typeIcon[item.type] || '#icon-gift';
             const tcol = typeColor[item.type] || '#4F8FFF';
-            const rarity = item.bg_rarity || item.type;
+            const rarity = item.title_rarity || item.bg_rarity || item.type;
             const rcol = rarityColors[rarity] || tcol;
             const isRare = (item.probability || 0) < 0.05;
             const glow = `0 0 8px ${rcol}`;
@@ -2847,6 +2818,11 @@ const App = {
         const countEl = document.getElementById('profile-titles-count');
         if (!grid) return;
         const owned = (Auth.user.titles || []);
+        const clearBtn = document.getElementById('profile-title-clear');
+        if (clearBtn) {
+            clearBtn.style.display = Auth.user.custom_title ? 'inline-flex' : 'none';
+            clearBtn.onclick = () => this._clearActiveTitle();
+        }
         countEl.textContent = owned.length ? `${owned.length}` : '';
         if (owned.length === 0) {
             grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:12px;padding:16px;">Выбивай титулы из Титульного кейса — они появятся здесь!</div>';
@@ -2870,15 +2846,6 @@ const App = {
                 ${isActive ? '<span class="pt-check"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></span>' : ''}
             </div>`;
         }).join('');
-        if (activeTitle) {
-            const clearBtn = document.createElement('button');
-            clearBtn.className = 'profile-title-clear';
-            clearBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> Снять титул';
-            clearBtn.addEventListener('click', () => this._clearActiveTitle());
-            const parent = grid.closest('.profile-titles-panel');
-            parent.querySelectorAll('.profile-title-clear').forEach(x => x.remove());
-            parent.appendChild(clearBtn);
-        }
         grid.querySelectorAll('.profile-title-item').forEach(item => {
             item.addEventListener('click', () => this._setActiveTitle(item));
         });

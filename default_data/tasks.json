@@ -5,7 +5,14 @@
     "description": "Подпишись на наш Telegram-канал и получи бонус",
     "reward": {"type": "coins", "min": 500, "max": 1200},
     "type": "telegram",
-    "link": "https://t.me/your_channel",
+    "link": "https://t.me/crobuxbot",
+    "channels": [
+      {
+        "label": "Telegram-канал",
+        "url": "https://t.me/crobuxbot",
+        "chat_id": "@crobuxbot"
+      }
+    ],
     "enabled": true,
     "expires": null,
     "icon": "telegram"

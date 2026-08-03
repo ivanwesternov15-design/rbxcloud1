@@ -23,20 +23,19 @@ try:
 except Exception:
     pass
 
-# Bot token. BotHost exposes the token under several possible env names depending
-# on template/settings. If no env var is set, fall back to the in-repo file
-# `bot_token` (which ships inside the Docker image), then to a plain default.
+# Prefer the deployed token file so stale BotHost environment variables cannot
+# keep the server connected to a previous bot. Fall back to environment values.
 BOT_TOKEN = ""
-for _k in ("BOT_TOKEN", "TELEGRAM_BOT_TOKEN", "BOT_API_TOKEN", "API_TOKEN", "TOKEN"):
-    if os.environ.get(_k):
-        BOT_TOKEN = os.environ[_k]
-        break
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_token"), "r", encoding="utf-8-sig") as _f:
+        BOT_TOKEN = _f.read().strip()
+except Exception:
+    pass
 if not BOT_TOKEN:
-    try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_token"), "r", encoding="utf-8") as _f:
-            BOT_TOKEN = _f.read().strip()
-    except Exception:
-        pass
+    for _k in ("BOT_TOKEN", "TELEGRAM_BOT_TOKEN", "BOT_API_TOKEN", "API_TOKEN", "TOKEN"):
+        if os.environ.get(_k):
+            BOT_TOKEN = os.environ[_k].strip()
+            break
 
 ADMIN_TELEGRAM_IDS = {"8414792453"}
 ADMIN_TELEGRAM_IDS.update(
@@ -52,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260803-crobux-gate-titles-1"
+BUILD_VERSION = "20260804-pdf-gate-title-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -226,10 +225,10 @@ def save_json(filename, data):
 
 GAME_DEFAULTS = {
     "base_click_reward": 1,
-    "base_max_energy": 1000,
+    "base_max_energy": 100,
     "energy_per_click": 1,
-    "base_energy_regen": 2,
-    "exchange_rate": 1500,
+    "base_energy_regen": 1 / 18,
+    "exchange_rate": 5000,
     "max_exchange_per_day": 3,
     "referral_bonus": 300,
     "referral_ref_bonus": 150,
@@ -243,21 +242,26 @@ GAME_DEFAULTS = {
     "max_clicks_per_second": 12,
     "passive_income_interval": 1000,
     "offline_cap_seconds": 28800,
-    "auto_click_per_sec": 5,
+    "auto_click_per_sec": 8,
 }
 
 UPGRADE_EFFECT_DEFAULTS = {
-    "energy_save": 1,
     "click_power": 1,
-    "click_surge": 3,
-    "profit_mult": 2,
+    "max_energy": 5,
+    "energy_regen": 0.0083,
+    "passive_income": 0.06,
     "lucky_click": 1,
-    "click_combo": 2,
-    "crit_chance": 3,
+    "click_combo": 1,
+    "crit_chance": 1,
     "crit_damage": 25,
+    "energy_save": 1,
     "energy_leech": 1,
+    "profit_mult": 2,
     "energy_synergy": 3,
 }
+
+ECONOMY_VERSION = "20260804-pdf-1"
+ECONOMY_CONFIG_KEYS = {"economy_version", "game", "levels", "upgrades", "boosts"}
 
 def load_default_json(filename):
     path = os.path.join(DEFAULT_DATA_DIR, filename)
@@ -273,27 +277,48 @@ def load_default_json(filename):
 def load_config():
     stored = load_json("config.json")
     defaults = load_default_json("config.json")
+    if not isinstance(stored, dict):
+        stored = {}
+    if not isinstance(defaults, dict):
+        defaults = {}
+
+    default_version = defaults.get("economy_version", ECONOMY_VERSION)
+    if defaults and default_version and stored.get("economy_version") != default_version:
+        # Persistent BotHost volumes can retain an old economy after git pull.
+        # Replace economy-owned catalogs while preserving operational settings.
+        preserved = {
+            key: value for key, value in stored.items()
+            if key not in ECONOMY_CONFIG_KEYS and key != "bot_username"
+        }
+        stored = dict(defaults)
+        stored.update(preserved)
+        stored["economy_version"] = default_version
+        save_json("config.json", stored)
+        for filename in ("backgrounds.json", "cases.json", "tasks.json"):
+            shipped = load_default_json(filename)
+            if isinstance(shipped, list):
+                save_json(filename, shipped)
+        log_ok(f"Экономика обновлена до версии {default_version}")
+
     config = dict(defaults) if isinstance(defaults, dict) else {}
-    if isinstance(stored, dict):
-        for key, value in stored.items():
-            if key == "game" and isinstance(value, dict):
-                merged = dict(config.get("game", {}))
-                merged.update(value)
-                config["game"] = merged
-            elif key == "upgrades" and isinstance(value, dict):
-                merged = dict(config.get("upgrades", {}))
-                for upgrade_key, upgrade_value in value.items():
-                    if isinstance(upgrade_value, dict) and isinstance(merged.get(upgrade_key), dict):
-                        definition = dict(merged[upgrade_key])
-                        definition.update(upgrade_value)
-                        merged[upgrade_key] = definition
-                    else:
-                        merged[upgrade_key] = upgrade_value
-                config["upgrades"] = merged
-            elif key in ("levels", "boosts") and not value and config.get(key):
-                continue
-            else:
-                config[key] = value
+    for key, value in stored.items():
+        if key == "game" and isinstance(value, dict):
+            merged = dict(config.get("game", {}))
+            merged.update(value)
+            config["game"] = merged
+        elif key == "upgrades" and isinstance(value, dict):
+            shipped_upgrades = config.get("upgrades", {})
+            merged = {}
+            for upgrade_key, default_definition in shipped_upgrades.items():
+                definition = dict(default_definition)
+                if isinstance(value.get(upgrade_key), dict):
+                    definition.update(value[upgrade_key])
+                merged[upgrade_key] = definition
+            config["upgrades"] = merged
+        elif key in ("levels", "boosts") and not value and config.get(key):
+            continue
+        else:
+            config[key] = value
 
     stored_game = config.get("game")
     game = dict(GAME_DEFAULTS)
@@ -356,6 +381,58 @@ def normalize_gate_config(gate):
 def get_upgrade_effect(config, upgrade_key):
     upgrade = config.get("upgrades", {}).get(upgrade_key, {})
     return upgrade.get("effect_per_level", UPGRADE_EFFECT_DEFAULTS.get(upgrade_key, 0))
+
+def reconcile_user_economy(user, config):
+    """Migrate persisted users to the current catalog without resetting progress."""
+    changed = False
+    old_upgrades = user.get("upgrades", {})
+    if not isinstance(old_upgrades, dict):
+        old_upgrades = {}
+    upgrades = {}
+    for key, definition in config.get("upgrades", {}).items():
+        try:
+            level = int(old_upgrades.get(key, 0) or 0)
+        except (TypeError, ValueError):
+            level = 0
+        upgrades[key] = max(0, min(level, int(definition.get("max_level", 0) or 0)))
+    if upgrades != user.get("upgrades"):
+        user["upgrades"] = upgrades
+        changed = True
+
+    game = config.get("game", {})
+    synergy = upgrades.get("energy_synergy", 0) * get_upgrade_effect(config, "energy_synergy") / 100
+    max_energy = game.get("base_max_energy", 100)
+    max_energy += upgrades.get("max_energy", 0) * get_upgrade_effect(config, "max_energy")
+    max_energy = int(max_energy * (1 + synergy))
+    energy_regen = game.get("base_energy_regen", 1 / 18)
+    energy_regen += upgrades.get("energy_regen", 0) * get_upgrade_effect(config, "energy_regen")
+    energy_regen *= 1 + synergy
+    derived = {
+        "max_energy": max_energy,
+        "energy_regen": energy_regen,
+        "click_power": game.get("base_click_reward", 1) + upgrades.get("click_power", 0) * get_upgrade_effect(config, "click_power"),
+        "passive_income": upgrades.get("passive_income", 0) * get_upgrade_effect(config, "passive_income"),
+        "economy_version": config.get("economy_version", ECONOMY_VERSION),
+    }
+    for key, value in derived.items():
+        if user.get(key) != value:
+            user[key] = value
+            changed = True
+
+    energy = max(0, min(float(user.get("energy", max_energy) or 0), max_energy))
+    if user.get("energy") != energy:
+        user["energy"] = energy
+        changed = True
+
+    valid_boosts = {boost.get("id") for boost in config.get("boosts", [])}
+    active_boosts = [
+        boost for boost in user.get("active_boosts", [])
+        if isinstance(boost, dict) and boost.get("boost_id") in valid_boosts
+    ]
+    if active_boosts != user.get("active_boosts", []):
+        user["active_boosts"] = active_boosts
+        changed = True
+    return changed
 
 def get_referral_bonus(config, ref_type):
     """Random referral bonus from configured min/max range."""
@@ -917,9 +994,9 @@ def get_or_create_user(telegram_id, user_data=None):
             "last_active": int(time.time()),
             "coins": 0,
             "total_earned": 0,
-            "energy": game.get("base_max_energy", 1000),
-            "max_energy": game.get("base_max_energy", 1000),
-            "energy_regen": game.get("base_energy_regen", 2),
+            "energy": game.get("base_max_energy", 100),
+            "max_energy": game.get("base_max_energy", 100),
+            "energy_regen": game.get("base_energy_regen", 1 / 18),
             "click_power": game.get("base_click_reward", 1),
             "passive_income": 0,
             "level": 1,
@@ -960,8 +1037,9 @@ def get_or_create_user(telegram_id, user_data=None):
             "last_avatar_check": 0,
             "last_profile_check": 0
         }
+    if reconcile_user_economy(users[telegram_id], config):
         save_json("users.json", users)
-    
+
     return users[telegram_id]
 
 def save_user(telegram_id, user_data):
@@ -1077,17 +1155,19 @@ def apply_task_reward(telegram_id, user, reward, config):
         if not boost_def:
             return None, "Указанный буст не найден"
         if boost_id == "energy_full":
-            user["energy"] = user.get("max_energy", 1000)
+            user["energy"] = user.get("max_energy", 100)
             return {"type": "boost", "boost_id": boost_id, "name": boost_def.get("name", boost_id), "duration": 0}, None
         duration = reward.get("duration", 0) or int(boost_def.get("duration", 0) or 0)
         if duration <= 0:
             return None, "Для буста не указана длительность"
         now = time.time()
         active_boosts = user.setdefault("active_boosts", [])
-        existing = next((item for item in active_boosts if item.get("boost_id") == boost_id), None)
-        starts_at = max(now, existing.get("expires_at", now)) if existing else now
-        user["active_boosts"] = [item for item in active_boosts if item.get("boost_id") != boost_id]
-        user["active_boosts"].append({"boost_id": boost_id, "started_at": now, "expires_at": starts_at + duration})
+        user["active_boosts"] = [
+            item for item in active_boosts
+            if item.get("boost_id") != boost_id
+            and not (boost_id.startswith("coins_x") and item.get("boost_id", "").startswith("coins_x"))
+        ]
+        user["active_boosts"].append({"boost_id": boost_id, "started_at": now, "expires_at": now + duration})
         return {"type": "boost", "boost_id": boost_id, "name": boost_def.get("name", boost_id), "duration": duration}, None
 
     amount = reward["amount"]
@@ -1244,7 +1324,7 @@ def calculate_boost_multiplier(user):
             if "coins_x" in boost.get("boost_id", ""):
                 m = re.search(r'x(\d+)', boost["boost_id"])
                 if m:
-                    multiplier *= int(m.group(1))
+                    multiplier = max(multiplier, int(m.group(1)))
     user["active_boosts"] = active
     return multiplier
 
@@ -1253,9 +1333,6 @@ def get_passive_income_per_sec(user, config, backgrounds=None):
     rate = user.get("passive_income", 0) or 0
     upgrades = config.get("upgrades", {})
     up = user.get("upgrades", {})
-    passive_mult_def = upgrades.get("passive_mult", {})
-    passive_mult = up.get("passive_mult", 0)
-    rate = rate * (1 + passive_mult * passive_mult_def.get("effect_per_level", 4) / 100)
     profit_def = upgrades.get("profit_mult", {})
     profit = up.get("profit_mult", 0)
     rate = rate * (1 + profit * profit_def.get("effect_per_level", 2) / 100)
@@ -1315,7 +1392,7 @@ def accrue_passive_income(user, config, backgrounds=None):
         # Energy regen (full on return)
         regen = user.get("energy_regen", 0) or 0
         if regen > 0:
-            user["energy"] = min(user.get("energy", 0) + regen * elapsed, user.get("max_energy", 1000))
+            user["energy"] = min(user.get("energy", 0) + regen * elapsed, user.get("max_energy", 100))
     user["last_passive"] = now
     return report
 
@@ -1324,15 +1401,13 @@ def get_click_reward(user, config, backgrounds=None):
     import random
     base_reward = config["game"]["base_click_reward"]
     click_power_bonus = user["upgrades"].get("click_power", 0) * get_upgrade_effect(config, "click_power")
-    surge_level = user["upgrades"].get("click_surge", 0)
-    surge_mult = 1 + surge_level * get_upgrade_effect(config, "click_surge") / 100
     profit_mult = 1 + user["upgrades"].get("profit_mult", 0) * get_upgrade_effect(config, "profit_mult") / 100
     level_mult = 1.0
     for lvl in config["levels"]:
         if user["total_earned"] >= lvl["coins_needed"]:
             level_mult = lvl["bonus"]
     bg_bonus = apply_background_bonus(user, backgrounds) if backgrounds else 0
-    return int(base_reward * (1 + click_power_bonus) * surge_mult * profit_mult * level_mult * (1 + bg_bonus / 100))
+    return int((base_reward + click_power_bonus) * profit_mult * level_mult * (1 + bg_bonus / 100))
 
 def check_anti_cheat(user):
     """Server-side click rate limiter.
@@ -2073,6 +2148,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             user["last_active"] = int(time.time())
             config = load_config()
             backgrounds = load_backgrounds()
+            reconcile_user_economy(user, config)
             _accrue = accrue_passive_income(user, config, backgrounds)
             save_user(telegram_id, user)
             record_login(telegram_id)
@@ -2247,6 +2323,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             config = load_config()
             backgrounds = load_backgrounds()
+            reconcile_user_economy(user, config)
             accrue_passive_income(user, config, backgrounds)
             
             energy_per_click = config["game"]["energy_per_click"]
@@ -2272,8 +2349,6 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             click_power_level = user["upgrades"].get("click_power", 0)
             click_power_bonus = click_power_level * get_upgrade_effect(config, "click_power")
             
-            surge_level = user["upgrades"].get("click_surge", 0)
-            surge_mult = 1 + surge_level * get_upgrade_effect(config, "click_surge") / 100
             profit_level = user["upgrades"].get("profit_mult", 0)
             profit_mult = 1 + profit_level * get_upgrade_effect(config, "profit_mult") / 100
             
@@ -2286,7 +2361,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             boost_mult = calculate_boost_multiplier(user)
             
             base_reward_per_click = base_reward + click_power_bonus
-            base_reward_per_click = int(base_reward_per_click * surge_mult * profit_mult * level_mult * boost_mult * (1 + bg_bonus / 100))
+            base_reward_per_click = int(base_reward_per_click * profit_mult * level_mult * boost_mult * (1 + bg_bonus / 100))
             
             # Per-tap random chances
             lucky_level = user["upgrades"].get("lucky_click", 0)
@@ -2413,34 +2488,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             user["coins"] -= cost
             user["upgrades"][upgrade_key] = current_level + 1
-            
-            # Apply upgrade effects
-            effect = upgrade_def["effect_per_level"]
-            if upgrade_key == "click_power":
-                user["click_power"] = config["game"]["base_click_reward"] + (current_level + 1) * effect
-            elif upgrade_key == "passive_income":
-                user["passive_income"] = (current_level + 1) * effect
-            elif upgrade_key == "max_energy":
-                user["max_energy"] = config["game"]["base_max_energy"] + (current_level + 1) * effect
-                user["energy"] = min(user["energy"], user["max_energy"])
-            elif upgrade_key == "energy_regen":
-                user["energy_regen"] = config["game"]["base_energy_regen"] + (current_level + 1) * effect
-            elif upgrade_key == "energy_synergy":
-                # +X% к макс. энергии и регену от базовой прокачки
-                base_max = config["game"]["base_max_energy"]
-                max_levels = user["upgrades"].get("max_energy", 0)
-                base_energy_def = config["upgrades"].get("max_energy", {})
-                base_max = base_max + max_levels * base_energy_def.get("effect_per_level", 5)
-                user["max_energy"] = int(base_max * (1 + (current_level + 1) * effect / 100))
-                user["energy"] = min(user["energy"], user["max_energy"])
-                base_regen = config["game"]["base_energy_regen"]
-                regen_levels = user["upgrades"].get("energy_regen", 0)
-                regen_def = config["upgrades"].get("energy_regen", {})
-                base_regen = base_regen + regen_levels * regen_def.get("effect_per_level", 0.0083)
-                user["energy_regen"] = base_regen * (1 + (current_level + 1) * effect / 100)
-            # Multiplier-type upgrades (click_surge, crit_damage, energy_leech,
-            # passive_mult, profit_mult) have no stored stat field - they are
-            # read live from user["upgrades"] in click/passive calculations.
+            reconcile_user_economy(user, config)
             
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)
@@ -2448,7 +2496,12 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             self.send_json(200, {
                 "coins": user["coins"],
                 "upgrade_level": user["upgrades"][upgrade_key],
-                "upgrade_key": upgrade_key
+                "upgrade_key": upgrade_key,
+                "energy": user["energy"],
+                "max_energy": user["max_energy"],
+                "energy_regen": user["energy_regen"],
+                "click_power": user["click_power"],
+                "passive_income": user["passive_income"]
             })
             return
         
@@ -2672,7 +2725,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             self.send_json(200, {
                 "coins": user["coins"],
                 "energy": user.get("energy"),
-                "active_boosts": user.get("active_boosts", [])
+                "active_boosts": user.get("active_boosts", []),
+                "boost_usage": user.get("boost_usage", {})
             })
             return
         
@@ -2755,7 +2809,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 boost_id = chosen_item["boost_id"]
                 duration = chosen_item.get("duration", 300)
                 now = time.time()
-                user["active_boosts"] = [b for b in user.get("active_boosts", []) if b.get("boost_id") != boost_id]
+                user["active_boosts"] = [
+                    b for b in user.get("active_boosts", [])
+                    if b.get("boost_id") != boost_id
+                    and not (boost_id.startswith("coins_x") and b.get("boost_id", "").startswith("coins_x"))
+                ]
                 user["active_boosts"].append({
                     "boost_id": boost_id,
                     "started_at": now,
@@ -3709,6 +3767,20 @@ if __name__ == "__main__":
             if me_data.get("ok"):
                 bot = me_data["result"]
                 log_ok(f"Бот @{bot.get('username')} авторизован в Telegram.")
+
+                webhook_url = f"{BASE_URL.rstrip('/')}/bot/webhook"
+                webhook_data = urlencode({"url": webhook_url}).encode()
+                webhook_req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook",
+                    data=webhook_data,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                webhook_resp = urllib.request.urlopen(webhook_req, timeout=8)
+                webhook_result = json.loads(webhook_resp.read().decode())
+                if webhook_result.get("ok"):
+                    log_ok(f"Вебхук @{bot.get('username')} установлен: {webhook_url}")
+                else:
+                    log_error(f"Не удалось установить вебхук: {webhook_result}")
             else:
                 log_error(f"Неверный BOT_TOKEN: {me_data}")
         except Exception as e:

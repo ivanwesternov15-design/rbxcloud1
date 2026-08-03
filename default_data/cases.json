@@ -371,13 +371,13 @@
         "type": "coins",
         "name": "2500000 монет",
         "amount": 2500000,
-        "probability": 0.038
+        "probability": 0.0399
       },
       {
         "type": "background",
         "name": "Эксклюзивный легендарный фон",
         "bg_rarity": "legendary",
-        "probability": 0.001
+        "probability": 0.0001
       }
     ]
   }

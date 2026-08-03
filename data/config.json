@@ -1,5 +1,6 @@
 {
   "bot_username": "crobux_bot",
+  "economy_version": "20260804-pdf-1",
   "subscription_gate": {
     "enabled": true,
     "title": "Подпишись на наш канал и чат",
@@ -21,11 +22,15 @@
     "base_click_reward": 1,
     "base_max_energy": 100,
     "energy_per_click": 1,
-    "base_energy_regen": 0.0556,
+    "base_energy_regen": 0.05555555555555555,
     "exchange_rate": 5000,
     "max_exchange_per_day": 3,
     "referral_bonus": 300,
     "referral_ref_bonus": 150,
+    "referral_bonus_min": 300,
+    "referral_bonus_max": 500,
+    "referral_ref_bonus_min": 150,
+    "referral_ref_bonus_max": 250,
     "referral_level_required": 3,
     "referral_coins_required": 100,
     "click_cooldown_ms": 60,

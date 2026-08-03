@@ -1,36 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>
-<linearGradient id="digital" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#040b14"/><stop offset="50%" stop-color="#081420"/><stop offset="100%" stop-color="#0d1f30"/></linearGradient>
-<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4f8fff" stop-opacity="0.4"/><stop offset="100%" stop-color="#4f8fff" stop-opacity="0"/></radialGradient>
-<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
-<pattern id="dots" width="80" height="80" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#4f8fff" opacity="0.2"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="4s" repeatCount="indefinite"/></circle></pattern>
+<linearGradient id="xl-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#150033"/><stop offset="50%" stop-color="#2a0a66"/><stop offset="100%" stop-color="#4a0f99"/></linearGradient>
+<radialGradient id="xl-glow" cx="50%" cy="42%" r="55%"><stop offset="0%" stop-color="#c084fc" stop-opacity="0.45"/><stop offset="100%" stop-color="#c084fc" stop-opacity="0"/></radialGradient>
+<filter id="xl-blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="40"/></filter>
 </defs>
-<rect width="1600" height="900" fill="url(#digital)"/>
-<circle cx="400" cy="300" r="300" fill="url(#glow)"><animate attributeName="opacity" values="0.6;1;0.6" dur="6s" repeatCount="indefinite"/></circle>
-<circle cx="1250" cy="600" r="280" fill="url(#glow)" opacity="0.7"><animate attributeName="opacity" values="0.4;0.9;0.4" dur="8s" repeatCount="indefinite"/></circle>
-<rect width="1600" height="900" fill="url(#dots)"/>
-<g filter="url(#blur)"><path d="M0 500 Q400 420 800 480 T1600 450 V900 H0 Z" fill="#4f8fff" opacity="0.1"><animate attributeName="opacity" values="0.06;0.15;0.06" dur="7s" repeatCount="indefinite"/></path></g>
-<g fill="none" stroke="#4f8fff" opacity="0.35">
-<path d="M250 900 L300 620 L520 560 L680 480 L900 520 L1100 440 L1300 500 L1500 380 L1600 410"><animate attributeName="stroke-dashoffset" from="0" to="2600" dur="22s" repeatCount="indefinite" stroke-dasharray="30 40"/></path>
-<path d="M250 900 L300 620 L520 560 L680 480 L900 520 L1100 440 L1300 500 L1500 380 L1600 410" transform="translate(0 60)" opacity="0.5" stroke-dasharray="4 6"><animate attributeName="stroke-dashoffset" from="0" to="2600" dur="28s" repeatCount="indefinite"/></path>
+<rect width="1600" height="900" fill="url(#xl-grad)"/>
+<circle cx="800" cy="420" r="430" fill="url(#xl-glow)"><animate attributeName="opacity" values="0.5;1;0.5" dur="7s" repeatCount="indefinite"/></circle>
+<g stroke="#ffd700" fill="none" opacity="0.5"><circle cx="800" cy="440" r="120" stroke-width="1.5"/><circle cx="800" cy="440" r="190" stroke-width="1"/><circle cx="800" cy="440" r="270" stroke-width="0.5"/></g>
+<g opacity="0.9"><circle cx="800" cy="440" r="5" fill="#fff"><animate attributeName="r" values="4;7;4" dur="2.5s" repeatCount="indefinite"/></circle><path d="M800 300 L830 420 L800 580 L770 420 Z" fill="#ffd700" opacity="0.9"/></g>
+<g fill="#fff" opacity="0.6">
+<circle cx="160" cy="150" r="1.6"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="3s" repeatCount="indefinite"/></circle>
+<circle cx="1420" cy="120" r="1.6"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="3.6s" repeatCount="indefinite"/></circle>
+<circle cx="1480" cy="760" r="1.6"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="120" cy="700" r="1.6"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="3.2s" repeatCount="indefinite"/></circle>
+<circle cx="500" cy="720" r="1.3"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.8s" repeatCount="indefinite"/></circle>
+<circle cx="1100" cy="140" r="1.3"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.4s" repeatCount="indefinite"/></circle>
+<circle cx="720" cy="90" r="1.2"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2.8s" repeatCount="indefinite"/></circle>
+<circle cx="980" cy="820" r="1.2"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4.2s" repeatCount="indefinite"/></circle>
 </g>
-<g fill="#4f8fff" opacity="0.7">
-<circle cx="300" cy="620" r="4"><animate attributeName="r" values="3;5;3" dur="3s" repeatCount="indefinite"/></circle>
-<circle cx="520" cy="560" r="4"><animate attributeName="r" values="3;5;3" dur="3.6s" begin="0.5s" repeatCount="indefinite"/></circle>
-<circle cx="680" cy="480" r="4"><animate attributeName="r" values="3;5;3" dur="4.2s" begin="1s" repeatCount="indefinite"/></circle>
-<circle cx="900" cy="520" r="4"><animate attributeName="r" values="3;5;3" dur="3.2s" begin="1.4s" repeatCount="indefinite"/></circle>
-<circle cx="1100" cy="440" r="4"><animate attributeName="r" values="3;5;3" dur="3.8s" begin="0.8s" repeatCount="indefinite"/></circle>
-<circle cx="1300" cy="500" r="4"><animate attributeName="r" values="3;5;3" dur="4.4s" begin="1.6s" repeatCount="indefinite"/></circle>
-<circle cx="1500" cy="380" r="4"><animate attributeName="r" values="3;5;3" dur="3.4s" begin="0.3s" repeatCount="indefinite"/></circle>
-</g>
-<g fill="#ffffff">
-<circle cx="120" cy="140" r="1.4"><animate attributeName="opacity" values="0.7;0.15;0.7" dur="3.2s" repeatCount="indefinite"/></circle>
-<circle cx="340" cy="90" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.5s" begin="1s" repeatCount="indefinite"/></circle>
-<circle cx="620" cy="160" r="1.3"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.8s" begin="0.5s" repeatCount="indefinite"/></circle>
-<circle cx="900" cy="100" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.8s" begin="2s" repeatCount="indefinite"/></circle>
-<circle cx="1160" cy="140" r="1.4"><animate attributeName="opacity" values="0.7;0.15;0.7" dur="3.5s" begin="1.4s" repeatCount="indefinite"/></circle>
-<circle cx="1420" cy="90" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="5.1s" begin="2.6s" repeatCount="indefinite"/></circle>
-<circle cx="200" cy="700" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.4s" begin="3s" repeatCount="indefinite"/></circle>
-<circle cx="720" cy="700" r="1.3"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="3.9s" begin="0.8s" repeatCount="indefinite"/></circle>
-<circle cx="1550" cy="650" r="1"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="4.9s" begin="2.4s" repeatCount="indefinite"/></circle>
-</g>
+<g filter="url(#xl-blur)"><path d="M0 640 Q400 560 800 620 T1600 580 V900 H0 Z" fill="#c084fc" opacity="0.18"><animate attributeName="opacity" values="0.08;0.2;0.08" dur="8s" repeatCount="indefinite"/></path></g>
 </svg>

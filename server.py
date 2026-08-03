@@ -52,7 +52,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260803-economy-pdf-rework-1"
+BUILD_VERSION = "20260803-crobux-gate-titles-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -306,7 +306,52 @@ def load_config():
         config["levels"] = []
     if not isinstance(config.get("boosts"), list):
         config["boosts"] = []
+    if not isinstance(config.get("subscription_gate"), dict):
+        config["subscription_gate"] = {
+            "enabled": False,
+            "title": "Подпишись на наш канал и чат",
+            "description": "Чтобы играть, подпишись на указанные канал и чат.",
+            "channels": []
+        }
     return config
+
+def load_defaults_config():
+    return load_default_json("config.json") or {}
+
+def save_json_default(filename, data):
+    path = os.path.join(DEFAULT_DATA_DIR, filename)
+    try:
+        os.makedirs(DEFAULT_DATA_DIR, exist_ok=True)
+        with get_lock(filename + "_default"):
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        log_warn(f"Ошибка сохранения default_data/{filename}: {e}")
+
+def normalize_gate_config(gate):
+    if not isinstance(gate, dict):
+        gate = {}
+    channels = []
+    for ch in gate.get("channels") or []:
+        if isinstance(ch, str):
+            ch = {"label": "Telegram", "url": ch}
+        if not isinstance(ch, dict):
+            continue
+        url = str(ch.get("url", "")).strip()
+        chat_id = str(ch.get("chat_id", "")).strip() or telegram_chat_id_from_url(url)
+        if not url and not chat_id:
+            continue
+        channels.append({
+            "label": str(ch.get("label", "Telegram")).strip()[:80] or "Telegram",
+            "url": url,
+            "chat_id": chat_id,
+        })
+    return {
+        "enabled": bool(gate.get("enabled", False)),
+        "title": str(gate.get("title", "Подпишись на наш канал и чат")).strip()[:120] or "Подпишись на наш канал и чат",
+        "description": str(gate.get("description", "")).strip()[:500],
+        "channels": channels,
+    }
 
 def get_upgrade_effect(config, upgrade_key):
     upgrade = config.get("upgrades", {}).get(upgrade_key, {})
@@ -907,6 +952,7 @@ def get_or_create_user(telegram_id, user_data=None):
             "suspicious_activity": [],
             "custom_title": "",
             "titles": [],
+            "subscriptions": {"channels": []},
             "bio": "",
             "host": "",
             "music": "",
@@ -971,6 +1017,47 @@ def verify_telegram_task_channels(task, telegram_id):
             return False, f"Не удалось проверить канал «{channel.get('label', chat_id)}»: {e}", True
     passed = any(results) if task.get("channel_mode") == "any" else all(results)
     return (True, "", False) if passed else (False, "Подпишитесь на указанные каналы и попробуйте снова", False)
+
+def check_gate_subscription(config, telegram_id):
+    """Check subscription gate channels. Returns (passed, channels_status, error).
+    channels_status: list of dicts {label, url, chat_id, subscribed, error}."""
+    gate = config.get("subscription_gate") or {}
+    channels = gate.get("channels") or []
+    if not gate.get("enabled", False) or not channels:
+        return True, [], ""
+    statuses = []
+    for channel in channels:
+        chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(channel.get("url", ""))
+        entry = {
+            "label": channel.get("label", "Telegram"),
+            "url": channel.get("url", ""),
+            "chat_id": chat_id,
+            "subscribed": False,
+            "error": "",
+        }
+        if not chat_id:
+            entry["error"] = "Не указан chat_id"
+            statuses.append(entry)
+            continue
+        try:
+            import urllib.request
+            query = urlencode({"chat_id": chat_id, "user_id": str(telegram_id)})
+            with urllib.request.urlopen(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember?{query}", timeout=8
+            ) as response:
+                payload = json.loads(response.read().decode())
+            member = payload.get("result", {})
+            status = member.get("status", "")
+            entry["subscribed"] = status in ("creator", "administrator", "member") or (
+                status == "restricted" and member.get("is_member") is True
+            )
+        except Exception as e:
+            entry["error"] = str(e)
+        statuses.append(entry)
+    passed = all(s["subscribed"] for s in statuses)
+    if not passed:
+        return False, statuses, "Подпишитесь на указанные каналы и нажмите «Проверить»"
+    return True, statuses, ""
 
 def apply_task_reward(telegram_id, user, reward, config):
     reward = normalize_task_reward(reward)
@@ -1924,7 +2011,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 "config": config,
                 "backgrounds": backgrounds,
                 "cases": cases,
-                "tasks": tasks
+                "tasks": tasks,
+                "subscription_gate": (config.get("subscription_gate") or {})
             })
             return
         
@@ -2460,6 +2548,35 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             self.send_json(200, {"custom_title": user["custom_title"]})
             return
+
+        if path == "/api/user/gate_check":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            config = load_config()
+            passed, statuses, error = check_gate_subscription(config, str(telegram_id))
+            users = load_users()
+            user = users.get(str(telegram_id))
+            if user is not None:
+                subs = user.setdefault("subscriptions", {})
+                channels = subs.setdefault("channels", [])
+                for st in statuses:
+                    cid = st.get("chat_id", "")
+                    if st.get("subscribed"):
+                        if cid not in channels:
+                            channels.append(cid)
+                    else:
+                        if cid in channels:
+                            channels.remove(cid)
+                user["last_active"] = int(time.time())
+                save_user(telegram_id, user)
+            self.send_json(200, {
+                "passed": passed,
+                "channels": statuses,
+                "error": error,
+                "enabled": bool((config.get("subscription_gate") or {}).get("enabled", False))
+            })
+            return
         
         if path == "/api/user/buy_boost":
             if not telegram_id:
@@ -2679,12 +2796,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     reward_result["title_file"] = title_file
                     reward_result["name"] = chosen_item.get("name", "Титул")
                 else:
-                    fallback = 25000
-                    user["coins"] += fallback
-                    user["total_earned"] += fallback
-                    reward_result["type"] = "coins"
-                    reward_result["name"] = f"{fallback} монет (титул уже есть)"
-                    reward_result["amount"] = fallback
+                    reward_result["title_file"] = title_file
+                    reward_result["already_owned"] = True
+                    reward_result["name"] = chosen_item.get("name", "Титул")
             
             user["cases_opened"] = user.get("cases_opened", 0) + 1
             user["last_active"] = int(time.time())
@@ -3273,6 +3387,54 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 save_json("config.json", current)
                 audit_admin(telegram_id, "update_economy", "config.json updated")
                 self.send_json(200, {"success": True})
+                return
+
+            if endpoint == "update_subscription_gate":
+                gate = data.get("subscription_gate", {})
+                current = load_config()
+                try:
+                    current["subscription_gate"] = normalize_gate_config(gate)
+                except ValueError as e:
+                    self.send_json(400, {"error": str(e)})
+                    return
+                save_json("config.json", current)
+                # keep default_data in sync
+                try:
+                    default_cfg = load_defaults_config()
+                    default_cfg["subscription_gate"] = current["subscription_gate"]
+                    save_json_default("config.json", default_cfg)
+                except Exception:
+                    pass
+                audit_admin(telegram_id, "update_subscription_gate", json.dumps(current["subscription_gate"], ensure_ascii=False))
+                self.send_json(200, {"success": True})
+                return
+
+            if endpoint == "subscription_stats":
+                config = load_config()
+                gate = config.get("subscription_gate") or {}
+                channels = gate.get("channels") or []
+                import time as _t
+                now = _t.time()
+                per_channel = []
+                for ch in channels:
+                    chat_id = str(ch.get("chat_id", "")).strip()
+                    if not chat_id:
+                        continue
+                    per_channel.append({
+                        "label": ch.get("label", "Telegram"),
+                        "url": ch.get("url", ""),
+                        "chat_id": chat_id,
+                        "count": sum(1 for u in users.values()
+                                     if chat_id in u.get("subscriptions", {}).get("channels", []))
+                    })
+                new_users = {
+                    "today": sum(1 for u in users.values() if _t.time() - u.get("registered_at", 0) < 86400),
+                    "week": sum(1 for u in users.values() if _t.time() - u.get("registered_at", 0) < 7 * 86400),
+                    "month": sum(1 for u in users.values() if _t.time() - u.get("registered_at", 0) < 30 * 86400),
+                    "year": sum(1 for u in users.values() if _t.time() - u.get("registered_at", 0) < 365 * 86400),
+                    "all": len(users),
+                }
+                self.send_json(200, {"channels": per_channel, "new_users": new_users})
                 return
             
             if endpoint == "save_tasks":

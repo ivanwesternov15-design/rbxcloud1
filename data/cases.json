@@ -221,7 +221,7 @@
       },
       {
         "type": "background",
-        "name": "Случайный легендарный фон",
+        "name": "Эксклюзивный легендарный фон",
         "bg_rarity": "legendary",
         "probability": 0.01
       }
@@ -232,7 +232,7 @@
     "name": "Титульный кейс",
     "price": 100000,
     "rarity": "rare",
-    "color": "#ff9e3d",
+    "color": "#a855f7",
     "min_win": 0,
     "items": [
       {
@@ -375,7 +375,7 @@
       },
       {
         "type": "background",
-        "name": "Случайный легендарный фон",
+        "name": "Эксклюзивный легендарный фон",
         "bg_rarity": "legendary",
         "probability": 0.001
       }

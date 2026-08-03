@@ -194,5 +194,9 @@ const API = {
 
     async adminSetTitle(userId, title) {
         return await this.post('/api/admin/set_title', { user_id: userId, title });
+    },
+
+    async gateCheck() {
+        return await this.post('/api/user/gate_check', {});
     }
 };

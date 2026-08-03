@@ -365,6 +365,147 @@ body::before {
     animation: pulse 1.4s ease-in-out infinite;
 }
 
+/* --- Subscription gate --- */
+.gate-screen {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    position: fixed; inset: 0; z-index: 110;
+    background: var(--bg-primary);
+    background-image:
+        radial-gradient(ellipse at 50% 20%, rgba(139, 92, 246, 0.10), transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(96, 165, 250, 0.04), transparent 50%);
+}
+.gate-card {
+    position: relative;
+    background: rgba(14, 20, 38, 0.75);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 28px;
+    padding: 36px 28px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 8px 60px rgba(0,0,0,0.5), 0 0 80px rgba(139, 92, 246, 0.08);
+}
+.gate-glow {
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.18), transparent 70%);
+    pointer-events: none;
+}
+.gate-icon {
+    position: relative;
+    font-size: 46px;
+    margin-bottom: 14px;
+    display: inline-flex;
+    width: 76px; height: 76px;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.14);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #c084fc;
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.2);
+}
+.gate-title {
+    position: relative;
+    font-size: 20px; font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+.gate-desc {
+    position: relative;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+.gate-channels {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.gate-channel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: all 0.2s;
+}
+.gate-channel.subscribed {
+    border-color: rgba(0, 230, 118, 0.35);
+    background: rgba(0, 230, 118, 0.06);
+}
+.gate-channel-label {
+    font-size: 14px; font-weight: 600;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
+}
+.gate-channel-link {
+    text-decoration: none;
+    font-size: 12px; font-weight: 700;
+    color: var(--accent);
+    border: 1px solid rgba(79, 143, 255, 0.35);
+    background: rgba(79, 143, 255, 0.08);
+    padding: 7px 12px;
+    border-radius: 10px;
+    display: inline-flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.gate-channel-link.done {
+    color: var(--success);
+    border-color: rgba(0, 230, 118, 0.35);
+    background: rgba(0, 230, 118, 0.08);
+    cursor: default;
+}
+.gate-error {
+    font-size: 12px;
+    color: var(--danger);
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.gate-check-btn {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    box-shadow: 0 4px 30px rgba(168, 85, 247, 0.3);
+    max-width: 220px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    gap: 6px;
+}
+.gate-check-btn:disabled {
+    opacity: 0.6;
+    transform: none;
+}
+
+.case-open-reward-img {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    margin-bottom: 14px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.25));
+}
+.slot-cell-img img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+
 /* Auth Loading Overlay */
 .auth-loading-overlay {
     position: fixed; inset: 0; z-index: 9999;

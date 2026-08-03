@@ -70,6 +70,19 @@ const App = {
         }
 
         document.getElementById('auth-screen').style.display = 'none';
+
+        // Subscription gate: new / unsubscribed users must join channel+chat first.
+        const gate = Auth.config && Auth.config.subscription_gate;
+        let gatePassed = true;
+        if (!(Auth.user && Auth.user.is_admin) && gate && gate.enabled && gate.channels && gate.channels.length) {
+            const gateRes = await API.post('/api/user/gate_check', {});
+            gatePassed = !!(gateRes && gateRes.passed);
+            if (!gatePassed) {
+                this.renderGate(gate, gateRes || {});
+                await new Promise(r => { this._gateResolve = r; });
+            }
+        }
+
         document.getElementById('app-shell').style.display = 'block';
         document.getElementById('dock').style.display = 'flex';
 
@@ -1579,7 +1592,7 @@ const App = {
             const rarityColors = { common: '#7F8A99', uncommon: '#4F8FFF', rare: '#BF00FF', epic: '#00D4FF', legendary: '#FFD700' };
             const rarityColor = c.id === 'case_platinum' ? '#00E584' : (rarityColors[c.rarity] || '#7F8A99');
 
-            const casePngs = { case_bronze: 'case_bronze.png', case_silver: 'case_silver.png', case_gold: 'case_gold.png', case_diamond: 'case_diamond.png', case_platinum: 'case_platinum.png' };
+            const casePngs = { case_bronze: 'case_bronze.png', case_silver: 'case_silver.png', case_gold: 'case_gold.png', case_diamond: 'case_diamond.png', case_platinum: 'case_platinum.png', case_title: 'title_case.png' };
             const pngFile = casePngs[c.id];
             const hasPng = !!pngFile;
 
@@ -1806,9 +1819,11 @@ const App = {
         Auth.user.coins = res.coins;
         Auth.user.cases_opened = res.total_cases;
         if (res.reward && res.reward.type === 'title' && res.reward.title_file) {
-            Auth.user.custom_title = res.reward.title_file;
-            if (!Auth.user.titles) Auth.user.titles = [];
-            if (!Auth.user.titles.includes(res.reward.title_file)) Auth.user.titles.push(res.reward.title_file);
+            if (!res.reward.already_owned) {
+                Auth.user.custom_title = res.reward.title_file;
+                if (!Auth.user.titles) Auth.user.titles = [];
+                if (!Auth.user.titles.includes(res.reward.title_file)) Auth.user.titles.push(res.reward.title_file);
+            }
         }
         this.updateAllUI();
 
@@ -1829,7 +1844,7 @@ const App = {
         for (let i = 0; i < beforeCount; i++) {
             stripCells.push(items[Math.floor(Math.random() * items.length)]);
         }
-        stripCells.push({ type: finalReward.type, name: finalReward.name, chosen: true });
+        stripCells.push({ type: finalReward.type, name: finalReward.name, chosen: true, title_file: finalReward.title_file || null });
         // Cells after the winner keep the strip "flowing" past the arrow
         for (let i = 0; i < afterCount; i++) {
             stripCells.push(items[Math.floor(Math.random() * items.length)]);
@@ -1839,11 +1854,18 @@ const App = {
         strip.className = 'slot-strip';
         strip.style.transform = 'translateX(0px)';
 
+        const cellInner = (cell) => {
+            if (cell.type === 'title' && cell.title_file) {
+                return `<span class="slot-cell-icon slot-cell-img"><img src="/assets/title/${cell.title_file}" alt=""></span>`;
+            }
+            return `<span class="slot-cell-icon">${cellIcon(cell.type)}</span>`;
+        };
+
         stripCells.forEach((cell) => {
             const el = document.createElement('div');
             el.className = `slot-cell ${cell.chosen ? 'chosen' : ''}`;
             el.innerHTML = `
-                <span class="slot-cell-icon">${cellIcon(cell.type)}</span>
+                ${cellInner(cell)}
                 <span class="slot-cell-name">${cell.name}</span>
             `;
             el.style.width = `${CELL}px`;
@@ -1903,21 +1925,26 @@ const App = {
         this.createConfetti();
 
         const rewardAmountText = rewardAmount ? `<div class="case-open-reward-amount" style="color:${col};">+${rewardAmount}</div>` : '';
+        const rewardIconHtml = (finalReward.type === 'title' && finalReward.title_file)
+            ? `<img src="/assets/title/${finalReward.title_file}" class="case-open-reward-img" alt="">`
+            : `<div class="case-open-reward-icon" style="color:${col};">${cellIcon(finalReward.type)}</div>`;
         overlay.innerHTML = '';
         overlay.appendChild(this.buildCaseRays(col));
         overlay.querySelector('.case-rays').classList.add('case-rays-reward');
+        const descText =
+            finalReward.type === 'coins' ? 'монет' :
+            finalReward.type === 'boost' ? `Буст на ${finalReward.duration} сек` :
+            finalReward.type === 'energy' ? `+${Auth.formatNumber(finalReward.amount)} энергии` :
+            finalReward.type === 'background' ? 'Эксклюзивный фон добавлен!' :
+            finalReward.type === 'title' ? (finalReward.already_owned ? 'Титул уже есть!' : 'Титул установлен!') : '';
         overlay.innerHTML += `
             <div class="case-open-container">
                 <div class="case-open-reward-card" style="border-color:${this.hexToRgba(col, 0.4)}; --ray-color:${this.hexToRgba(col, 0.8)}; box-shadow:0 0 90px ${this.hexToRgba(col, 0.22)}, var(--glass-inner);">
-                    <div class="case-open-reward-icon" style="color:${col};">${cellIcon(finalReward.type)}</div>
+                    ${rewardIconHtml}
                     <div class="case-open-reward-name" style="background:linear-gradient(135deg,#fff,${col});-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${finalReward.name}</div>
                     ${rewardAmountText}
                     <div class="case-open-reward-desc">
-                        ${finalReward.type === 'coins' ? 'монет' :
-                          finalReward.type === 'boost' ? `Буст на ${finalReward.duration} сек` :
-                          finalReward.type === 'energy' ? `+${Auth.formatNumber(finalReward.amount)} энергии` :
-                          finalReward.type === 'background' ? 'Новый фон добавлен!' :
-                          finalReward.type === 'title' ? 'Титул установлен!' : ''}
+                        ${descText}
                     </div>
                     <button class="claim-btn" onclick="document.getElementById('case-animation').classList.remove('active'); App.renderCases();">
                         <svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Забрать
@@ -2843,9 +2870,26 @@ const App = {
                 ${isActive ? '<span class="pt-check"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></span>' : ''}
             </div>`;
         }).join('');
+        if (activeTitle) {
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'profile-title-clear';
+            clearBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> Снять титул';
+            clearBtn.addEventListener('click', () => this._clearActiveTitle());
+            const parent = grid.closest('.profile-titles-panel');
+            parent.querySelectorAll('.profile-title-clear').forEach(x => x.remove());
+            parent.appendChild(clearBtn);
+        }
         grid.querySelectorAll('.profile-title-item').forEach(item => {
             item.addEventListener('click', () => this._setActiveTitle(item));
         });
+    },
+
+    async _clearActiveTitle() {
+        const res = await API.setTitle('');
+        if (res.error) { this.showToast(res.error, 'error'); return; }
+        Auth.user.custom_title = '';
+        this.showToast('Титул снят', 'success');
+        this.renderProfile();
     },
 
     async _setActiveTitle(itemEl) {
@@ -2873,33 +2917,67 @@ const App = {
             return;
         }
         alert('Эта игра работает внутри Telegram. Откройте её через кнопку меню бота.');
-    }
-};
-
-// --- Particle System ---
-const Particles = {
-    canvas: null,
-    ctx: null,
-    particles: [],
-    animFrame: null,
-    
-    init() {
-        this.canvas = document.getElementById('particle-canvas');
-        if (!this.canvas) return;
-        this.ctx = this.canvas.getContext('2d');
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-        // Pause the animation loop when the tab is hidden to save CPU/battery.
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                if (this.animFrame) { cancelAnimationFrame(this.animFrame); this.animFrame = null; }
-            } else if (!this.animFrame) {
-                this.animate();
-            }
-        });
-        this.createParticles();
-        this.animate();
     },
+
+    // --- Subscription gate ---
+    renderGate(gate, gateRes) {
+        const screen = document.getElementById('gate-screen');
+        const titleEl = document.getElementById('gate-title');
+        const descEl = document.getElementById('gate-desc');
+        const listEl = document.getElementById('gate-channels');
+        const errEl = document.getElementById('gate-error');
+        const checkBtn = document.getElementById('gate-check-btn');
+        if (titleEl) titleEl.textContent = gate.title || 'Подпишись на наш канал и чат';
+        if (descEl) descEl.textContent = gate.description || 'Чтобы играть, подпишись на указанные канал и чат.';
+
+        const channels = (gateRes.channels && gateRes.channels.length ? gateRes.channels : (gate.channels || []));
+        listEl.innerHTML = channels.map((ch) => `
+            <div class="gate-channel" data-chat="${ch.chat_id || ''}">
+                <span class="gate-channel-label">${ch.label || 'Telegram'}</span>
+                <a href="${ch.url || 'https://t.me/'}" target="_blank" class="gate-channel-link">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписаться
+                </a>
+            </div>
+        `).join('');
+
+        const updateState = () => {
+            listEl.querySelectorAll('.gate-channel').forEach(row => {
+                const cid = row.getAttribute('data-chat');
+                const st = (gateRes.channels || []).find(c => c.chat_id === cid);
+                row.classList.toggle('subscribed', !!(st && st.subscribed));
+                const link = row.querySelector('.gate-channel-link');
+                if (st && st.subscribed) {
+                    link.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Подписан';
+                    link.classList.add('done');
+                } else {
+                    link.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписаться';
+                    link.classList.remove('done');
+                }
+            });
+        };
+        updateState();
+
+        const onCheck = async () => {
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-cycle"/></svg> Проверяем...';
+            const res = await API.post('/api/user/gate_check', {});
+            if (res && res.passed) {
+                screen.style.display = 'none';
+                if (this._gateResolve) this._gateResolve();
+                return;
+            }
+            errEl.style.display = 'block';
+            errEl.textContent = (res && res.error) || 'Вы ещё не подписались на все каналы';
+            gateRes = res || gateRes;
+            updateState();
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Проверить';
+        };
+        checkBtn.onclick = onCheck;
+
+        screen.style.display = 'flex';
+    },
+
     
     resize() {
         this.canvas.width = window.innerWidth;

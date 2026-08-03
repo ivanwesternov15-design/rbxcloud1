@@ -171,6 +171,7 @@
                 <button class="admin-tab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</button>
                 <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
                 <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
+                <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписки</button>
             </div>
 
             <div class="admin-content-inner active" data-content="dashboard">
@@ -404,6 +405,53 @@
                     </div>
                 </div>
             </div>
+
+            <div class="admin-content-inner" data-content="subscriptions">
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Проверка подписки (вход в игру)</span>
+                        <button class="admin-btn" id="refresh-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:560px;">
+                        <div class="admin-flex">
+                            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="gate-enabled" style="width:16px;height:16px;"> Включить проверку подписки
+                            </label>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Заголовок окна</div>
+                            <input class="admin-input" id="gate-title" placeholder="Подпишись на наш канал и чат" style="width:100%;">
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Описание</div>
+                            <textarea class="admin-input" id="gate-desc" rows="2" placeholder="Чтобы играть, подпишись..." style="width:100%;"></textarea>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы / чаты для проверки</div>
+                            <div id="gate-channels-editor"></div>
+                            <button class="admin-btn" id="add-gate-channel" style="margin-top:8px;padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить канал</button>
+                        </div>
+                        <button class="admin-btn success" id="save-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить настройки подписки</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Статистика подписчиков</div>
+                    <div class="admin-grid" id="gate-sub-stats">
+                        <div class="admin-stat"><div class="num">—</div><div class="label">Каналы/чаты ещё не настроены или недоступны</div></div>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Новые пользователи</div>
+                    <div class="admin-grid" id="gate-new-users">
+                        <div class="admin-stat"><div class="num" id="nu-today">0</div><div class="label">За сегодня</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-week">0</div><div class="label">За неделю</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-month">0</div><div class="label">За месяц</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-year">0</div><div class="label">За год</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-all">0</div><div class="label">Всего</div></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="admin-denied" style="display:none;text-align:center;padding:60px 20px;">
@@ -514,6 +562,7 @@
                     if (tab.dataset.tab === 'cases') loadCasesEdit();
                     if (tab.dataset.tab === 'withdrawals') loadWithdrawals();
                     if (tab.dataset.tab === 'messages') loadMessageUsers();
+                    if (tab.dataset.tab === 'subscriptions') loadSubscriptionsTab();
                     if (tab.dataset.tab === 'dashboard') loadDashboard();
                 });
             });
@@ -1708,6 +1757,93 @@
                 
                 div.appendChild(card);
             });
+        }
+
+        // --- Subscription gate admin ---
+        let gateChannels = [];
+
+        function renderGateChannelsEditor() {
+            const div = document.getElementById('gate-channels-editor');
+            div.innerHTML = gateChannels.map((ch, i) => `
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
+                    <input class="admin-input" data-gch-label value="${esc(ch.label)}" placeholder="Название" style="padding:6px 8px;font-size:11px;">
+                    <input class="admin-input" data-gch-url value="${esc(ch.url)}" placeholder="https://t.me/..." style="padding:6px 8px;font-size:11px;">
+                    <input class="admin-input" data-gch-chat value="${esc(ch.chat_id)}" placeholder="@channel" style="padding:6px 8px;font-size:11px;">
+                    <button class="admin-btn danger" style="padding:4px 6px;font-size:11px;" onclick="removeGateChannel(${i})">✕</button>
+                </div>`).join('') || '<div style="font-size:12px;color:var(--text-muted);">Каналы не добавлены</div>';
+            div.querySelectorAll('[data-gch-label]').forEach((inp, i) => {
+                inp.addEventListener('input', () => gateChannels[i].label = inp.value);
+            });
+            div.querySelectorAll('[data-gch-url]').forEach((inp, i) => {
+                inp.addEventListener('input', () => gateChannels[i].url = inp.value.trim());
+            });
+            div.querySelectorAll('[data-gch-chat]').forEach((inp, i) => {
+                inp.addEventListener('input', () => gateChannels[i].chat_id = inp.value.trim());
+            });
+        }
+
+        function removeGateChannel(idx) {
+            gateChannels.splice(idx, 1);
+            renderGateChannelsEditor();
+        }
+
+        async function loadSubscriptionsTab() {
+            const configRes = await API.getConfig();
+            const gate = (configRes.subscription_gate) || (configRes.config && configRes.config.subscription_gate) || {};
+            document.getElementById('gate-enabled').checked = !!gate.enabled;
+            document.getElementById('gate-title').value = gate.title || 'Подпишись на наш канал и чат';
+            document.getElementById('gate-desc').value = gate.description || '';
+            gateChannels = (gate.channels || []).map(c => ({
+                label: c.label || 'Telegram',
+                url: c.url || '',
+                chat_id: c.chat_id || ''
+            }));
+            renderGateChannelsEditor();
+            const addBtn = document.getElementById('add-gate-channel');
+            if (addBtn && !addBtn.dataset.bound) {
+                addBtn.dataset.bound = '1';
+                addBtn.addEventListener('click', () => {
+                    gateChannels.push({ label: 'Telegram', url: '', chat_id: '' });
+                    renderGateChannelsEditor();
+                });
+            }
+            const saveBtn = document.getElementById('save-gate-btn');
+            if (saveBtn && !saveBtn.dataset.bound) {
+                saveBtn.dataset.bound = '1';
+                saveBtn.addEventListener('click', async () => {
+                    const payload = {
+                        enabled: document.getElementById('gate-enabled').checked,
+                        title: document.getElementById('gate-title').value.trim() || 'Подпишись на наш канал и чат',
+                        description: document.getElementById('gate-desc').value.trim(),
+                        channels: gateChannels
+                    };
+                    const res = await API.post('/api/admin/update_subscription_gate', { subscription_gate: payload });
+                    if (res.success) { toast('Настройки подписки сохранены', 'success'); loadSubscriptionsTab(); }
+                    else { toast('Ошибка: ' + (res.error || 'неизвестно'), 'error'); }
+                });
+            }
+            const refreshBtn = document.getElementById('refresh-gate-btn');
+            if (refreshBtn && !refreshBtn.dataset.bound) {
+                refreshBtn.dataset.bound = '1';
+                refreshBtn.addEventListener('click', () => { loadSubscriptionsTab(); loadSubscriptionStats(); });
+            }
+            await loadSubscriptionStats();
+        }
+
+        async function loadSubscriptionStats() {
+            const res = await API.post('/api/admin/subscription_stats', {});
+            const grid = document.getElementById('gate-sub-stats');
+            const channels = (res.channels || []);
+            if (!channels.length) {
+                grid.innerHTML = '<div class="admin-stat"><div class="num">—</div><div class="label">Каналы/чаты ещё не настроены или недоступны</div></div>';
+            } else {
+                grid.innerHTML = channels.map(c => `
+                    <div class="admin-stat"><div class="num">${c.count}</div><div class="label">${esc(c.label)} ${c.chat_id}</div></div>
+                `).join('');
+            }
+            const nu = res.new_users || {};
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v != null ? v : 0; };
+            set('nu-today', nu.today); set('nu-week', nu.week); set('nu-month', nu.month); set('nu-year', nu.year); set('nu-all', nu.all);
         }
 
         document.addEventListener('DOMContentLoaded', initAdmin);

@@ -1,5 +1,22 @@
 {
-  "bot_username": "erqwdas231bot",
+  "bot_username": "crobux_bot",
+  "subscription_gate": {
+    "enabled": true,
+    "title": "Подпишись на наш канал и чат",
+    "description": "Чтобы играть, подпишись на указанные канал и чат.",
+    "channels": [
+      {
+        "label": "Канал",
+        "url": "https://t.me/crobuxbot",
+        "chat_id": "@crobuxbot"
+      },
+      {
+        "label": "Чат",
+        "url": "https://t.me/crobuxchat",
+        "chat_id": "@crobuxchat"
+      }
+    ]
+  },
   "game": {
     "base_click_reward": 1,
     "base_max_energy": 100,

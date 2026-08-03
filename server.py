@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260804-ui-econ-tweaks-1"
+BUILD_VERSION = "20260804-bot-welcome-compact-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -1047,24 +1047,46 @@ def save_user(telegram_id, user_data):
     users[str(telegram_id)] = user_data
     save_json("users.json", users)
 
-def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True):
-    """Send a message via Telegram Bot API. Optionally attach a Mini App button."""
+def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True, extra_buttons=None):
+    """Send a message via Telegram Bot API. Optionally attach a Mini App button
+    plus extra inline buttons (list of {"text": ..., "url": ...})."""
     import urllib.request
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
+    keyboard = []
     if web_app_button and BASE_URL:
-        payload["reply_markup"] = {
-            "inline_keyboard": [[{
-                "text": "🚀 Открыть игру",
-                "web_app": {"url": BASE_URL}
-            }]]
-        }
+        keyboard.append([{
+            "text": "🚀 Открыть игру",
+            "web_app": {"url": BASE_URL}
+        }])
+    for btn in extra_buttons or []:
+        row = []
+        if btn.get("web_app") and BASE_URL:
+            row.append({"text": btn["text"], "web_app": {"url": BASE_URL}})
+        elif btn.get("url"):
+            row.append({"text": btn["text"], "url": btn["url"]})
+        if row:
+            keyboard.append(row)
+    if keyboard:
+        payload["reply_markup"] = {"inline_keyboard": keyboard}
     data = json.dumps(payload).encode()
     try:
         req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
         urllib.request.urlopen(req, timeout=5)
     except:
         pass
+
+def subscribe_buttons(config):
+    """Inline buttons for the subscription-gate channels (to paste into messages)."""
+    gate = (config or {}).get("subscription_gate") or {}
+    channels = gate.get("channels") or []
+    btns = []
+    for ch in channels:
+        url = ch.get("url", "")
+        label = ch.get("label", "Подписаться")
+        if url:
+            btns.append({"text": f"📢 {label}", "url": url})
+    return btns
 
 def verify_telegram_task_channels(task, telegram_id):
     """Return (passed, error, internal). `internal` is True for config/technical
@@ -1797,6 +1819,8 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
             
             # Process /start command
             if text.startswith("/start"):
+                config = load_config()
+                sub_btns = subscribe_buttons(config)
                 parts = text.split()
                 if len(parts) > 1:
                     ref_code = parts[1].strip()
@@ -1815,8 +1839,11 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                             old_name = old_ref.get("username") or old_ref.get("first_name") or str(old_ref_id)
                             send_telegram_message(
                                 chat_id,
-                                f"ℹ️ <b>Ты уже перешел по реферальной ссылке (@{old_name})</b>\n"
-                                f"Награда уже была выдана ранее.",
+                                f"ℹ️ <b>Ты уже переходил по реферальной ссылке (@{old_name})</b>\n\n"
+                                f"Награда уже была выдана ранее.\n"
+                                f"Но это не мешает тебе играть — жми кнопку ниже! 👇",
+                                web_app_button=True,
+                                extra_buttons=sub_btns,
                             )
                             self.send_json(200, {"ok": True})
                             return
@@ -1834,6 +1861,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 })
                                 users = load_users()
                                 config = load_config()
+                                sub_btns = subscribe_buttons(config)
                                 bonus = get_referral_bonus(config, "new")
                                 users[new_user_id]["coins"] = users[new_user_id].get("coins", 0) + bonus
                                 users[new_user_id]["total_earned"] = users[new_user_id].get("total_earned", 0) + bonus
@@ -1855,13 +1883,18 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
                                 send_telegram_message(
                                     new_user_id,
-                                    f"🎉 <b>Добро пожаловать!</b>\n\n"
-                                    f"Ты перешел по реферальной ссылке <b>{ref_name}</b> и получил <b>+{bonus} монет</b>! 🚀",
+                                    f"🎉 <b>Добро пожаловать в Робукс Клик!</b>\n\n"
+                                    f"Ты перешёл по реферальной ссылке <b>{ref_name}</b> и получил "
+                                    f"<b>+{bonus} монет</b>! 🤑\n\n"
+                                    f"Открывай игру и начни зарабатывать ещё больше! 🚀",
                                     web_app_button=True,
+                                    extra_buttons=sub_btns,
                                 )
                                 send_telegram_message(
                                     referrer_id,
-                                    f"🎉 Твой реферал @{new_user.get('username') or new_user.get('first_name') or new_user_id} присоединился!\n"
+                                    f"🎉 <b>Новый реферал!</b>\n\n"
+                                    f"@{new_user.get('username') or new_user.get('first_name') or new_user_id} "
+                                    f"присоединился по твоей ссылке!\n"
                                     f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
                                     web_app_button=True,
                                 )
@@ -1869,15 +1902,41 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                         if not granted:
                             PENDING_REFERRALS[str(chat_id)] = referrer_id
                             welcome_text = (
-                                f"🎉 <b>Добро пожаловать!</b>\n\n"
-                                f"Ты перешел по реферальной ссылке! 🚀\n"
-                                f"После авторизации в игре ты получишь бонус."
+                                f"🎉 <b>Добро пожаловать в Робукс Клик!</b>\n\n"
+                                f"Ты перешёл по реферальной ссылке! 🚀\n"
+                                f"После авторизации в игре ты получишь бонус. 🎁"
                             )
-                            send_telegram_message(chat_id, welcome_text, web_app_button=True)
+                            send_telegram_message(chat_id, welcome_text, web_app_button=True, extra_buttons=sub_btns)
                     else:
-                        send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
+                        send_telegram_message(
+                            chat_id,
+                            f"🪙 <b>Робукс Клик</b> 💎\n\n"
+                            f"Привет! Это кликер-игра, где ты тапаешь по монете "
+                            f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
+                            f"⚡️ <b>Что тебя ждёт:</b>\n"
+                            f"▫️ Тапай по монете и зарабатывай монеты\n"
+                            f"▫️ Прокачивай улучшения и открывай кейсы\n"
+                            f"▫️ Приглашай друзей и получай бонусы\n"
+                            f"▫️ Выводи Robux на свой аккаунт\n\n"
+                            f"Нажимай кнопку ниже и начинай зарабатывать! 👇",
+                            web_app_button=True,
+                            extra_buttons=sub_btns,
+                        )
                 else:
-                    send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
+                    send_telegram_message(
+                        chat_id,
+                        f"🪙 <b>Робукс Клик</b> 💎\n\n"
+                        f"Привет! Это кликер-игра, где ты тапаешь по монете "
+                        f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
+                        f"⚡️ <b>Что тебя ждёт:</b>\n"
+                        f"▫️ Тапай по монете и зарабатывай монеты\n"
+                        f"▫️ Прокачивай улучшения и открывай кейсы\n"
+                        f"▫️ Приглашай друзей и получай бонусы\n"
+                        f"▫️ Выводи Robux на свой аккаунт\n\n"
+                        f"Нажимай кнопку ниже и начинай зарабатывать! 👇",
+                        web_app_button=True,
+                        extra_buttons=sub_btns,
+                    )
             
             self.send_json(200, {"ok": True})
         except Exception as e:

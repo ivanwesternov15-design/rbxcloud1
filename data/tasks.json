@@ -3,7 +3,7 @@
     "id": "task_telegram_subscribe",
     "title": "Подпишись на канал",
     "description": "Подпишись на наш Telegram-канал и получи бонус",
-    "reward": 500,
+    "reward": {"type": "coins", "min": 500, "max": 1200},
     "type": "telegram",
     "link": "https://t.me/your_channel",
     "enabled": true,
@@ -77,6 +77,17 @@
     "icon": "star"
   },
   {
+    "id": "task_level_10",
+    "title": "Достигни 10 уровня",
+    "description": "Прокачай свой аккаунт до 10 уровня",
+    "reward": 100000,
+    "type": "level",
+    "required_level": 10,
+    "enabled": true,
+    "expires": null,
+    "icon": "star"
+  },
+  {
     "id": "task_clicks_1000",
     "title": "1000 кликов",
     "description": "Сделай 1000 кликов в игре",
@@ -99,21 +110,10 @@
     "icon": "click"
   },
   {
-    "id": "task_clicks_100000",
-    "title": "100000 кликов",
-    "description": "Сделай 100000 кликов в игре",
-    "reward": 15000,
-    "type": "clicks",
-    "required_count": 100000,
-    "enabled": true,
-    "expires": null,
-    "icon": "click"
-  },
-  {
     "id": "task_earn_10000",
     "title": "Заработай 10000 монет",
     "description": "Заработай в сумме 10000 монет",
-    "reward": 1000,
+    "reward": 3000,
     "type": "earn",
     "required_amount": 10000,
     "enabled": true,
@@ -124,7 +124,7 @@
     "id": "task_earn_100000",
     "title": "Заработай 100000 монет",
     "description": "Заработай в сумме 100000 монет",
-    "reward": 5000,
+    "reward": 5500,
     "type": "earn",
     "required_amount": 100000,
     "enabled": true,

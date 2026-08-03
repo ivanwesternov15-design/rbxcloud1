@@ -835,6 +835,8 @@ const App = {
 
         const now = Date.now() / 1000;
         const activeBoosts = Auth.user.active_boosts || [];
+        const lastPurchases = Auth.user.last_boost_purchase || {};
+        const BOOST_COOLDOWN = 6 * 3600;
         const boostIcons = {
             coins_x2: 'icon-lightning',
             coins_x3: 'icon-lightning',
@@ -852,8 +854,17 @@ const App = {
             const multActive = activeBoosts.some(x => x.boost_id.startsWith('coins_x') && x.expires_at > now);
             const lockedByMult = b.id.startsWith('coins_x') && !active && multActive;
 
+            // Same boost is active -> cannot re-buy until it expires.
+            const sameActive = !!(active);
+            // 6h cooldown since last purchase of this exact boost.
+            const lastBought = lastPurchases[b.id] || 0;
+            const cooldownLeft = Math.max(0, BOOST_COOLDOWN - (now - lastBought));
+            const inCooldown = cooldownLeft > 0 && !active && !sameActive;
+
+            const locked = lockedByMult || inCooldown || sameActive;
+
             const card = document.createElement('div');
-            card.className = `boost-card ${active ? 'active' : ''} ${lockedByMult ? 'locked' : ''}`;
+            card.className = `boost-card ${active ? 'active' : ''} ${locked ? 'locked' : ''}`;
             card.style.borderColor = active ? 'rgba(245,196,81,0.35)' : 'var(--glass-border)';
 
             let sub;
@@ -865,6 +876,21 @@ const App = {
                 sub = `x${b.multiplier} к доходу за клик`;
             }
 
+            let buyHtml;
+            if (active || sameActive) {
+                buyHtml = `<div class="boost-active-tag">Активен</div>`;
+            } else if (lockedByMult) {
+                buyHtml = `<div class="boost-lock-tag"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-lock"/></svg> Ждёт</div>`;
+            } else if (inCooldown) {
+                const ch = Math.floor(cooldownLeft / 3600);
+                const cm = Math.floor((cooldownLeft % 3600) / 60);
+                buyHtml = `<div class="boost-lock-tag cooldown"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-calendar"/></svg> Перезаряжается ${ch}ч ${cm}м</div>`;
+            } else {
+                buyHtml = `
+                    <div class="boost-price">${Auth.formatNumber(b.price)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
+                    <div class="boost-buy-btn">Купить</div>`;
+            }
+
             card.innerHTML = `
                 <div class="boost-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#${boostIcons[b.id] || 'icon-lightning'}"/></svg></div>
                 <div class="boost-info">
@@ -873,13 +899,11 @@ const App = {
                     ${b.duration ? `<div class="boost-duration"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-calendar"/></svg> ${b.duration} сек</div>` : ''}
                 </div>
                 <div class="boost-buy">
-                    ${active ? `<div class="boost-active-tag">Активен</div>` : lockedByMult ? `<div class="boost-lock-tag"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-lock"/></svg> Ждёт</div>` : `
-                    <div class="boost-price">${Auth.formatNumber(b.price)} <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div>
-                    <div class="boost-buy-btn">Купить</div>`}
+                    ${buyHtml}
                 </div>
             `;
 
-            if (!active && !lockedByMult) {
+            if (!locked) {
                 card.addEventListener('click', () => this.handleBoostClick(b, canAfford));
             }
             container.appendChild(card);
@@ -949,9 +973,13 @@ const App = {
             Auth.user.total_clicks = (Auth.user.total_clicks || 0) + 1;
             Auth.user.total_earned = (Auth.user.total_earned || 0) + estReward;
             this._lastReward = estReward;
+            // One physical tap always costs exactly energy_per_click energy.
+            const epc = (Auth.config && Auth.config.game && Auth.config.game.energy_per_click) || 1;
+            Auth.user.energy = Math.max(0, (Auth.user.energy || 0) - epc);
             this.updateBalanceUI();
             this.updateHeaderUI();
             this.updateHomeStatsUI();
+            this.updateEnergyUI();
             if (Logger) Logger.click(estReward);
             // Visual feedback on EVERY tap, instantly (not after server reply)
             if (this._fxOn) playFx();
@@ -969,10 +997,11 @@ const App = {
             if (!holdInterval) {
                 holdInterval = setInterval(() => {
                     if (isHolding) {
-                        // Only auto-repeat after a REAL hold. A quick tap (mouse
-                        // down+up under ~300ms) must count as exactly ONE click,
-                        // otherwise fast tapping inflates the click counter.
-                        if (Date.now() - this._holdStartedAt < 300) return;
+                        // Only auto-repeat after a REAL deliberate hold. A
+                        // normal tap (even a slow one up to ~600ms) must count
+                        // as exactly ONE click, otherwise slow taps on mobile
+                        // inflate the click counter and drain energy by 2-3+.
+                        if (Date.now() - this._holdStartedAt < 600) return;
                         this._clickQueue++;
                         applyOptimistic();
                         if (Date.now() >= this._offlineUntil) this.drainClickQueue();
@@ -1165,6 +1194,27 @@ const App = {
         if (this.currentScreen !== 'upgrade') return;
         if (!Auth.user || !Auth.config) return;
 
+        // Selected branch (Сила клика / Энергия / Доход) tab
+        let activeBranch = 'click';
+        try {
+            activeBranch = localStorage.getItem('upgrade_branch') || 'click';
+        } catch (e) {}
+        const order = ['click', 'energy', 'passive'];
+        if (!order.includes(activeBranch)) activeBranch = 'click';
+        this._upgradeBranch = activeBranch;
+
+        const tabs = document.getElementById('upgrade-tabs');
+        if (tabs) {
+            tabs.querySelectorAll('.screen-tab').forEach(t => {
+                const on = t.dataset.branch === activeBranch;
+                t.classList.toggle('active', on);
+                t.onclick = () => {
+                    try { localStorage.setItem('upgrade_branch', t.dataset.branch); } catch (e) {}
+                    this.renderUpgrade();
+                };
+            });
+        }
+
         const container = document.getElementById('upgrade-list');
         container.innerHTML = '';
 
@@ -1183,86 +1233,87 @@ const App = {
             passive: { label: 'Доход', icon: 'icon-cash', color: '#4F8FFF', desc: 'Пассивный заработок и множители' }
         };
 
-        const order = ['click', 'energy', 'passive'];
+        const meta = branchMeta[activeBranch] || branchMeta.click;
+        const branchKeys = Object.entries(upgrades).filter(([key, def]) => (def.branch || 'click') === activeBranch);
 
-        order.forEach(branch => {
-            const meta = branchMeta[branch];
-            const branchKeys = Object.entries(upgrades).filter(([key, def]) => (def.branch || 'click') === branch);
+        const header = document.createElement('div');
+        header.className = 'upgrade-branch-header';
+        header.style.setProperty('--branch-color', meta.color);
+        header.innerHTML = `
+            <span class="ubh-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#${meta.icon}"/></svg></span>
+            <div class="ubh-text">
+                <div class="ubh-title">${meta.label}</div>
+                <div class="ubh-desc">${meta.desc}</div>
+            </div>
+            <div class="ubh-line"></div>
+        `;
+        container.appendChild(header);
 
-            const header = document.createElement('div');
-            header.className = 'upgrade-branch-header';
-            header.style.setProperty('--branch-color', meta.color);
-            header.innerHTML = `
-                <span class="ubh-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#${meta.icon}"/></svg></span>
-                <div class="ubh-text">
-                    <div class="ubh-title">${meta.label}</div>
-                    <div class="ubh-desc">${meta.desc}</div>
-                </div>
-                <div class="ubh-line"></div>
-            `;
-            container.appendChild(header);
+        const grid = document.createElement('div');
+        grid.className = 'upgrade-grid';
 
-            const grid = document.createElement('div');
-            grid.className = 'upgrade-grid';
+        branchKeys.forEach(([key, def]) => {
+            const currentLevel = userUpgrades[key] || 0;
+            const maxLevel = def.max_level;
+            const isMaxed = currentLevel >= maxLevel;
 
-            branchKeys.forEach(([key, def]) => {
-                const currentLevel = userUpgrades[key] || 0;
-                const maxLevel = def.max_level;
-                const isMaxed = currentLevel >= maxLevel;
-
-                // Prerequisite / locked state
-                let locked = null;
-                const requires = def.requires;
-                if (requires) {
-                    for (const [reqKey, reqLevel] of Object.entries(requires)) {
-                        if ((userUpgrades[reqKey] || 0) < reqLevel) {
-                            const reqDef = upgrades[reqKey];
-                            locked = `Откроется после: ${reqDef ? reqDef.name : reqKey} ${reqLevel}+`;
-                            break;
-                        }
+            // Prerequisite / locked state
+            let locked = null;
+            const requires = def.requires;
+            if (requires) {
+                for (const [reqKey, reqLevel] of Object.entries(requires)) {
+                    if ((userUpgrades[reqKey] || 0) < reqLevel) {
+                        const reqDef = upgrades[reqKey];
+                        locked = `Откроется после: ${reqDef ? reqDef.name : reqKey} ${reqLevel}+`;
+                        break;
                     }
                 }
+            }
 
-                const cost = isMaxed ? 0 : this.getUpgradeCost(key, currentLevel);
-                const canAfford = Auth.user.coins >= cost;
+            const cost = isMaxed ? 0 : this.getUpgradeCost(key, currentLevel);
+            const canAfford = Auth.user.coins >= cost;
 
-                const card = document.createElement('div');
-                card.className = `upgrade-card ${locked ? 'locked' : (!canAfford && !isMaxed ? 'disabled' : '')} ${isMaxed ? 'maxed' : ''}`;
+            const card = document.createElement('div');
+            card.className = `upgrade-card ${locked ? 'locked' : (!canAfford && !isMaxed ? 'disabled' : '')} ${isMaxed ? 'maxed' : ''}`;
 
-                const levelPct = maxLevel > 0 ? Math.round((currentLevel / maxLevel) * 100) : 0;
-                const levelBarHtml = `<div class="upgrade-level-bar"><div class="upgrade-lvl-progress"><div class="upgrade-lvl-fill" style="width:${levelPct}%"></div></div></div>`;
+            const levelPct = maxLevel > 0 ? Math.round((currentLevel / maxLevel) * 100) : 0;
+            const levelBarHtml = `<div class="upgrade-level-bar"><div class="upgrade-lvl-progress"><div class="upgrade-lvl-fill" style="width:${levelPct}%"></div></div></div>`;
 
-                const reqHint = locked
-                    ? `<div class="upgrade-lock-hint"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lock"/></svg>${locked}</div>`
-                    : '';
+            const reqHint = locked
+                ? `<div class="upgrade-lock-hint"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lock"/></svg>${locked}</div>`
+                : '';
 
-                card.innerHTML = `
-                    <div class="upgrade-icon">${locked ? '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-lock"/></svg>' : `<svg class="icon" viewBox="0 0 24 24"><use href="#${icons[key] || 'icon-arrow-up'}"/></svg>`}</div>
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">${def.name}</div>
-                        <div class="upgrade-desc">${def.description}</div>
-                        ${levelBarHtml}
-                        ${reqHint}
-                    </div>
-                    <div class="upgrade-cost">
-                        ${isMaxed ? '<div style="color:var(--success);font-size:13px;font-weight:600;">MAX</div>' : `
-                            <div class="cost-amount">${Auth.formatNumber(cost)}</div>
-                            <div class="cost-label">УР. ${currentLevel}/${maxLevel}</div>
-                        `}
-                    </div>
-                `;
+            const curValue = this.getUpgradeCurrentValue(key, currentLevel);
+            const nextValue = !isMaxed && currentLevel < maxLevel ? this.getUpgradeCurrentValue(key, currentLevel + 1) : '';
 
-                if (!isMaxed && !locked) {
-                    card.addEventListener('click', () => this.buyUpgrade(key));
-                } else if (locked) {
-                    card.addEventListener('click', () => this.showToast(locked, 'info'));
-                }
+            card.innerHTML = `
+                <div class="upgrade-icon">${locked ? '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-lock"/></svg>' : `<svg class="icon" viewBox="0 0 24 24"><use href="#${icons[key] || 'icon-arrow-up'}"/></svg>`}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${def.name}</div>
+                    <div class="upgrade-desc">${def.description}</div>
+                    ${!locked && curValue ? `<div class="upgrade-cur-value">${curValue}</div>` : ''}
+                    ${!isMaxed && nextValue ? `<div class="upgrade-next-value">↓ ${nextValue.replace('Сейчас:', 'След:')}</div>` : ''}
+                    ${levelBarHtml}
+                    ${reqHint}
+                </div>
+                <div class="upgrade-cost">
+                    ${isMaxed ? '<div style="color:var(--success);font-size:13px;font-weight:600;">MAX</div>' : `
+                        <div class="cost-amount">${Auth.formatNumber(cost)}</div>
+                        <div class="cost-label">УР. ${currentLevel}/${maxLevel}</div>
+                    `}
+                </div>
+            `;
 
-                grid.appendChild(card);
-            });
+            if (!isMaxed && !locked) {
+                card.addEventListener('click', () => this.buyUpgrade(key));
+            } else if (locked) {
+                card.addEventListener('click', () => this.showToast(locked, 'info'));
+            }
 
-            container.appendChild(grid);
+            grid.appendChild(card);
         });
+
+        container.appendChild(grid);
     },
 
     getUpgradeCost(key, currentLevel) {
@@ -1270,6 +1321,51 @@ const App = {
         const def = Auth.config.upgrades[key];
         if (!def) return 999999;
         return Math.floor(def.base_cost * Math.pow(def.cost_multiplier, currentLevel));
+    },
+
+    // Human-readable description of what the CURRENT level of an upgrade gives,
+    // e.g. "+12 монет за клик", "+50% шанс крита", "1250 энергии".
+    getUpgradeCurrentValue(key, level) {
+        if (!Auth.config || !Auth.config.upgrades) return '';
+        const def = Auth.config.upgrades[key];
+        if (!def) return '';
+        const effect = def.effect_per_level || 0;
+        const game = (Auth.config.game || {});
+        const g = (v) => Math.floor(v);
+        switch (key) {
+            case 'click_power':
+                return `Сейчас: +${g((game.base_click_reward || 0) + level * effect)} монет за клик`;
+            case 'passive_income':
+                return `Сейчас: +${g(level * effect)} монет/сек`;
+            case 'max_energy':
+                return `Сейчас: ${g((game.base_max_energy || 1000) + level * effect)} энергии`;
+            case 'energy_regen':
+                return `Сейчас: +${(game.base_energy_regen || 0) + level * effect} энергии/сек`;
+            case 'click_surge':
+                return `Сейчас: +${level * effect}% к силе клика`;
+            case 'passive_mult':
+                return `Сейчас: +${level * effect}% к пассивному доходу`;
+            case 'profit_mult':
+                return `Сейчас: +${level * effect}% ко всему доходу`;
+            case 'crit_damage': {
+                const mult = (3 + level * effect / 100).toFixed(2).replace(/\.00$/, '');
+                return `Сейчас: крит ×${mult}`;
+            }
+            case 'energy_save':
+                return `Сейчас: ${Math.min(level * effect, 60)}% шанс без траты энергии`;
+            case 'energy_leech':
+                return `Сейчас: ${Math.min(level * effect, 40)}% шанс вернуть энергию`;
+            case 'lucky_click':
+                return `Сейчас: ${Math.min(level * effect, 50)}% шанс ×2`;
+            case 'click_combo':
+                return `Сейчас: ${Math.min(level * effect, 50)}% шанс комбо`;
+            case 'crit_chance':
+                return `Сейчас: ${Math.min(level * effect, 45)}% шанс крита`;
+            case 'energy_synergy':
+                return `Сейчас: +${level * effect}% к макс. энергии и регену`;
+            default:
+                return '';
+        }
     },
 
     async buyUpgrade(key) {
@@ -1296,6 +1392,17 @@ const App = {
             Auth.user.max_energy = Auth.config.game.base_max_energy + level * effect;
         } else if (key === 'energy_regen') {
             Auth.user.energy_regen = Auth.config.game.base_energy_regen + level * effect;
+        } else if (key === 'energy_synergy') {
+            // +X% к макс. энергии и регену от базовой прокачки
+            const maxDef = Auth.config.upgrades.max_energy || {};
+            const maxLevels = Auth.user.upgrades.max_energy || 0;
+            const baseMax = (Auth.config.game.base_max_energy || 100) + maxLevels * (maxDef.effect_per_level || 5);
+            Auth.user.max_energy = Math.floor(baseMax * (1 + level * effect / 100));
+            if (Auth.user.energy > Auth.user.max_energy) Auth.user.energy = Auth.user.max_energy;
+            const regenDef = Auth.config.upgrades.energy_regen || {};
+            const regenLevels = Auth.user.upgrades.energy_regen || 0;
+            const baseRegen = (Auth.config.game.base_energy_regen || 0.0556) + regenLevels * (regenDef.effect_per_level || 0.0083);
+            Auth.user.energy_regen = baseRegen * (1 + level * effect / 100);
         }
         // click_surge, crit_damage, energy_leech, passive_mult, profit_mult are
         // multiplier-type: read live from Auth.user.upgrades in auth.js calcs.
@@ -1556,6 +1663,7 @@ const App = {
             boost: '#icon-lightning',
             energy: '#icon-battery',
             background: '#icon-palette',
+            title: '#icon-star',
             voucher: '#icon-ticket',
         };
         const typeColor = {
@@ -1563,6 +1671,7 @@ const App = {
             boost: '#F59E0B',
             energy: '#00FF88',
             background: '#BF00FF',
+            title: '#FF9E3D',
             voucher: '#00D4FF',
         };
 
@@ -1696,10 +1805,15 @@ const App = {
 
         Auth.user.coins = res.coins;
         Auth.user.cases_opened = res.total_cases;
+        if (res.reward && res.reward.type === 'title' && res.reward.title_file) {
+            Auth.user.custom_title = res.reward.title_file;
+            if (!Auth.user.titles) Auth.user.titles = [];
+            if (!Auth.user.titles.includes(res.reward.title_file)) Auth.user.titles.push(res.reward.title_file);
+        }
         this.updateAllUI();
 
         const finalReward = res.reward;
-        const emojiMap = { coins: 'icon-coin', boost: 'icon-lightning', energy: 'icon-battery', background: 'icon-palette' };
+        const emojiMap = { coins: 'icon-coin', boost: 'icon-lightning', energy: 'icon-battery', background: 'icon-palette', title: 'icon-star' };
         const rewardAmount = finalReward.type === 'coins' ? Auth.formatNumber(finalReward.amount) : '';
 
         const cellIcon = (type) => `<svg class="icon" viewBox="0 0 24 24"><use href="#${emojiMap[type] || 'icon-gift'}"/></svg>`;
@@ -1802,7 +1916,8 @@ const App = {
                         ${finalReward.type === 'coins' ? 'монет' :
                           finalReward.type === 'boost' ? `Буст на ${finalReward.duration} сек` :
                           finalReward.type === 'energy' ? `+${Auth.formatNumber(finalReward.amount)} энергии` :
-                          finalReward.type === 'background' ? 'Новый фон добавлен!' : ''}
+                          finalReward.type === 'background' ? 'Новый фон добавлен!' :
+                          finalReward.type === 'title' ? 'Титул установлен!' : ''}
                     </div>
                     <button class="claim-btn" onclick="document.getElementById('case-animation').classList.remove('active'); App.renderCases();">
                         <svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Забрать
@@ -1849,19 +1964,54 @@ const App = {
         return `${Auth.formatNumber(r)} монет`;
     },
 
+    // Classify a task into one of the tab sections: subscriptions / referrals / progress
+    taskBranch(task) {
+        if (task.type === 'telegram' || task.type === 'subscription') return 'subscriptions';
+        if (task.type === 'referral') return 'referrals';
+        return 'progress';
+    },
+
     renderTasks() {
         if (this.currentScreen !== 'tasks') return;
         if (!Auth.tasks || !Auth.user) return;
+
+        let activeBranch = 'subscriptions';
+        try {
+            activeBranch = localStorage.getItem('task_branch') || 'subscriptions';
+        } catch (e) {}
+        this._taskBranch = activeBranch;
+
+        const tabs = document.getElementById('task-tabs');
+        if (tabs) {
+            tabs.querySelectorAll('.screen-tab').forEach(t => {
+                const on = t.dataset.taskBranch === activeBranch;
+                t.classList.toggle('active', on);
+                t.onclick = () => {
+                    try { localStorage.setItem('task_branch', t.dataset.taskBranch); } catch (e) {}
+                    this.renderTasks();
+                };
+            });
+        }
 
         const container = document.getElementById('tasks-list');
         container.innerHTML = '';
 
         const completed = Auth.user.completed_tasks || [];
 
-        Auth.tasks.forEach(task => {
-            if (!task.enabled) return;
+        const enabled = Auth.tasks.filter(task => task.enabled);
+        // Tasks in the current tab; completed ones sink to the bottom of it.
+        const tabTasks = enabled
+            .filter(task => this.taskBranch(task) === activeBranch)
+            .sort((a, b) => {
+                const ca = completed.includes(a.id) ? 1 : 0;
+                const cb = completed.includes(b.id) ? 1 : 0;
+                if (ca !== cb) return ca - cb;
+                return 0;
+            });
+
+        tabTasks.forEach(task => {
             const isCompleted = completed.includes(task.id);
-            
+
             const card = document.createElement('div');
             card.className = `task-card ${isCompleted ? 'completed' : ''}`;
 
@@ -1893,6 +2043,10 @@ const App = {
 
             container.appendChild(card);
         });
+
+        if (tabTasks.length === 0) {
+            container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Раздел пуст</div>';
+        }
     },
 
     taskChannelNamesHtml(task) {
@@ -1909,7 +2063,7 @@ const App = {
             if (started) {
                 return '<div class="task-actions">' +
                     '<button class="task-action-btn verify" data-task-id="' + task.id + '">Проверить</button>' +
-                    '<button class="task-action-btn expired" data-task-id="' + task.id + '">Истекло</button>' +
+                    '<button class="task-action-btn expired" data-task-id="' + task.id + '">Отменить</button>' +
                     '</div>';
             }
             return '<button class="task-action-btn" data-task-id="' + task.id + '">Выполнить</button>';
@@ -1955,7 +2109,7 @@ const App = {
             }
         } catch (e) {}
         this.renderTasks();
-        this.showToast('Задание сброшено, попробуй ещё раз', 'info');
+        this.showToast('Задание отменено', 'info');
     },
 
     navigateTaskLink(link) {
@@ -2648,6 +2802,9 @@ const App = {
             if (rankBadge) rankBadge.style.display = 'block';
         }
 
+        // Titles panel: all earned titles, click to set active
+        this.renderOwnedTitles();
+
         // Withdraw panel + operations history (withdrawals + exchanges)
         this.renderWithdrawPanel();
         this._renderHistory();
@@ -2656,6 +2813,48 @@ const App = {
         const tasksEl = document.getElementById('profile-tasks');
         const completed = Auth.user.completed_tasks || [];
         tasksEl.textContent = `${completed.length}/${(Auth.tasks || []).filter(t => t.enabled).length}`;
+    },
+
+    renderOwnedTitles() {
+        const grid = document.getElementById('profile-titles-grid');
+        const countEl = document.getElementById('profile-titles-count');
+        if (!grid) return;
+        const owned = (Auth.user.titles || []);
+        countEl.textContent = owned.length ? `${owned.length}` : '';
+        if (owned.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:12px;padding:16px;">Выбивай титулы из Титульного кейса — они появятся здесь!</div>';
+            return;
+        }
+        const activeTitle = Auth.user.custom_title || '';
+        const labelFor = (f) => {
+            const lc = String(f).toLowerCase();
+            if (['gfa.png','add.png'].includes(lc)) return 'Легендарный';
+            if (['adm11.png','adm12.png','sc.png'].includes(lc)) return 'Эпический';
+            if (['321.png','adm14.png','adm5.png'].includes(lc)) return 'Редкий';
+            return 'Обычный';
+        };
+        const rarityColors = { 'Легендарный': '#FFD700', 'Эпический': '#00D4FF', 'Редкий': '#BF00FF', 'Обычный': '#7F8A99' };
+        grid.innerHTML = owned.map(f => {
+            const col = rarityColors[labelFor(f)] || '#7F8A99';
+            const isActive = f === activeTitle;
+            return `<div class="profile-title-item ${isActive ? 'active' : ''}" data-title="${f}" title="${labelFor(f)}" style="border-color:${isActive ? col : 'rgba(255,255,255,0.08)'};box-shadow:${isActive ? `0 0 10px ${col}` : 'none'};">
+                <img src="/assets/title/${f}" alt="">
+                <span class="pt-label" style="background:${col};">${labelFor(f)}</span>
+                ${isActive ? '<span class="pt-check"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg></span>' : ''}
+            </div>`;
+        }).join('');
+        grid.querySelectorAll('.profile-title-item').forEach(item => {
+            item.addEventListener('click', () => this._setActiveTitle(item));
+        });
+    },
+
+    async _setActiveTitle(itemEl) {
+        const titleFile = itemEl.getAttribute('data-title');
+        const res = await API.setTitle(titleFile);
+        if (res.error) { this.showToast(res.error, 'error'); return; }
+        Auth.user.custom_title = res.custom_title;
+        this.showToast('Титул установлен', 'success');
+        this.renderProfile();
     },
 
     // --- LOGOUT ---

@@ -75,6 +75,10 @@ const API = {
         return await this.post('/api/user/select_background', { background_id: bgId });
     },
 
+    async setTitle(title) {
+        return await this.post('/api/user/set_title', { title });
+    },
+
     async buyBoost(boostId) {
         return await this.post('/api/user/buy_boost', { boost_id: boostId });
     },

@@ -52,7 +52,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260803-progression-hardcore-2"
+BUILD_VERSION = "20260803-economy-pdf-rework-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -231,10 +231,14 @@ GAME_DEFAULTS = {
     "base_energy_regen": 2,
     "exchange_rate": 1500,
     "max_exchange_per_day": 3,
-    "referral_bonus": 500,
-    "referral_ref_bonus": 1500,
+    "referral_bonus": 300,
+    "referral_ref_bonus": 150,
+    "referral_bonus_min": 300,
+    "referral_bonus_max": 500,
+    "referral_ref_bonus_min": 150,
+    "referral_ref_bonus_max": 250,
     "referral_level_required": 3,
-    "referral_coins_required": 500,
+    "referral_coins_required": 100,
     "click_cooldown_ms": 60,
     "max_clicks_per_second": 12,
     "passive_income_interval": 1000,
@@ -252,6 +256,7 @@ UPGRADE_EFFECT_DEFAULTS = {
     "crit_chance": 3,
     "crit_damage": 25,
     "energy_leech": 1,
+    "energy_synergy": 3,
 }
 
 def load_default_json(filename):
@@ -306,6 +311,20 @@ def load_config():
 def get_upgrade_effect(config, upgrade_key):
     upgrade = config.get("upgrades", {}).get(upgrade_key, {})
     return upgrade.get("effect_per_level", UPGRADE_EFFECT_DEFAULTS.get(upgrade_key, 0))
+
+def get_referral_bonus(config, ref_type):
+    """Random referral bonus from configured min/max range."""
+    import random
+    game = config.get("game", {})
+    if ref_type == "ref":
+        rmin = game.get("referral_ref_bonus_min", game.get("referral_ref_bonus", 150))
+        rmax = game.get("referral_ref_bonus_max", game.get("referral_ref_bonus", 250))
+    else:
+        rmin = game.get("referral_bonus_min", game.get("referral_bonus", 300))
+        rmax = game.get("referral_bonus_max", game.get("referral_bonus", 500))
+    rmin = max(1, int(rmin))
+    rmax = max(rmin, int(rmax))
+    return random.randint(rmin, rmax)
 
 TASK_TYPES = {"telegram", "referral", "level", "clicks", "earn", "purchase_case", "upgrade_count", "daily"}
 TASK_REWARD_TYPES = {"coins", "boost", "voucher"}
@@ -761,12 +780,12 @@ def process_telegram_webapp_login(init_data):
             new_user_data = users.get(telegram_id, {})
             if referrer and telegram_id not in existing and not new_user_data.get("referred_by"):
                 config = load_config()
-                bonus = config.get("game", {}).get("referral_bonus", 500)
+                bonus = get_referral_bonus(config, "new")
                 users[telegram_id]["coins"] = users[telegram_id].get("coins", 0) + bonus
                 users[telegram_id]["total_earned"] = users[telegram_id].get("total_earned", 0) + bonus
                 users[telegram_id]["referred_by"] = referrer_id
 
-                ref_bonus = config.get("game", {}).get("referral_ref_bonus", 1500)
+                ref_bonus = get_referral_bonus(config, "ref")
                 users[referrer_id]["coins"] = users[referrer_id].get("coins", 0) + ref_bonus
                 users[referrer_id]["total_earned"] = users[referrer_id].get("total_earned", 0) + ref_bonus
                 users[referrer_id]["referrals"] = existing + [telegram_id]
@@ -887,6 +906,7 @@ def get_or_create_user(telegram_id, user_data=None):
             "is_blocked": False,
             "suspicious_activity": [],
             "custom_title": "",
+            "titles": [],
             "bio": "",
             "host": "",
             "music": "",
@@ -1652,12 +1672,12 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 })
                                 users = load_users()
                                 config = load_config()
-                                bonus = config.get("game", {}).get("referral_bonus", 500)
+                                bonus = get_referral_bonus(config, "new")
                                 users[new_user_id]["coins"] = users[new_user_id].get("coins", 0) + bonus
                                 users[new_user_id]["total_earned"] = users[new_user_id].get("total_earned", 0) + bonus
                                 users[new_user_id]["referred_by"] = referrer_id
                                 
-                                ref_bonus = config.get("game", {}).get("referral_ref_bonus", 1500)
+                                ref_bonus = get_referral_bonus(config, "ref")
                                 users[referrer_id]["coins"] = users[referrer_id].get("coins", 0) + ref_bonus
                                 users[referrer_id]["total_earned"] = users[referrer_id].get("total_earned", 0) + ref_bonus
                                 users[referrer_id]["referrals"] = users[referrer_id].get("referrals", []) + [new_user_id]
@@ -1790,12 +1810,12 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 del PENDING_REFERRALS[telegram_id]
                 
                 config = load_config()
-                bonus = config.get("game", {}).get("referral_bonus", 500)
+                bonus = get_referral_bonus(config, "new")
                 users[telegram_id]["coins"] = users[telegram_id].get("coins", 0) + bonus
                 users[telegram_id]["total_earned"] = users[telegram_id].get("total_earned", 0) + bonus
                 users[telegram_id]["referred_by"] = referrer_id
                 
-                ref_bonus = config.get("game", {}).get("referral_ref_bonus", 1500)
+                ref_bonus = get_referral_bonus(config, "ref")
                 users[referrer_id]["coins"] = users[referrer_id].get("coins", 0) + ref_bonus
                 users[referrer_id]["total_earned"] = users[referrer_id].get("total_earned", 0) + ref_bonus
                 users[referrer_id]["referrals"] = existing + [telegram_id]
@@ -2317,6 +2337,19 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 user["energy"] = min(user["energy"], user["max_energy"])
             elif upgrade_key == "energy_regen":
                 user["energy_regen"] = config["game"]["base_energy_regen"] + (current_level + 1) * effect
+            elif upgrade_key == "energy_synergy":
+                # +X% к макс. энергии и регену от базовой прокачки
+                base_max = config["game"]["base_max_energy"]
+                max_levels = user["upgrades"].get("max_energy", 0)
+                base_energy_def = config["upgrades"].get("max_energy", {})
+                base_max = base_max + max_levels * base_energy_def.get("effect_per_level", 5)
+                user["max_energy"] = int(base_max * (1 + (current_level + 1) * effect / 100))
+                user["energy"] = min(user["energy"], user["max_energy"])
+                base_regen = config["game"]["base_energy_regen"]
+                regen_levels = user["upgrades"].get("energy_regen", 0)
+                regen_def = config["upgrades"].get("energy_regen", {})
+                base_regen = base_regen + regen_levels * regen_def.get("effect_per_level", 0.0083)
+                user["energy_regen"] = base_regen * (1 + (current_level + 1) * effect / 100)
             # Multiplier-type upgrades (click_surge, crit_damage, energy_leech,
             # passive_mult, profit_mult) have no stored stat field - they are
             # read live from user["upgrades"] in click/passive calculations.
@@ -2405,6 +2438,29 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             self.send_json(200, {"active_background": user["active_background"]})
             return
         
+        if path == "/api/user/set_title":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            
+            title_file = str(data.get("title", "") or "").strip()
+            users = load_users()
+            user = users.get(str(telegram_id))
+            if not user or user.get("is_blocked"):
+                self.send_json(403, {"error": "User not found or blocked"})
+                return
+            
+            if title_file and title_file not in user.get("titles", []):
+                self.send_json(400, {"error": "Этот титул не выбит"})
+                return
+            
+            user["custom_title"] = title_file
+            user["last_active"] = int(time.time())
+            save_user(telegram_id, user)
+            
+            self.send_json(200, {"custom_title": user["custom_title"]})
+            return
+        
         if path == "/api/user/buy_boost":
             if not telegram_id:
                 self.send_json(401, {"error": "Not authorized"})
@@ -2433,21 +2489,29 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 self.send_json(400, {"error": "Boost not found"})
                 return
 
-            # 6-hour cooldown between boost purchases
+            # Daily usage limit per boost (from config "daily_limit")
             now = time.time()
-            BOOST_COOLDOWN = 6 * 3600
+            today = time.strftime("%Y-%m-%d")
             last_boosts = user.get("last_boost_purchase", {})
             last_bought = last_boosts.get(boost_id, 0)
-            if now - last_bought < BOOST_COOLDOWN:
-                remaining = int(BOOST_COOLDOWN - (now - last_bought))
-                hrs = remaining // 3600
-                mins = (remaining % 3600) // 60
-                self.send_json(400, {"error": f"Кулдаун буста: подожди {hrs}ч {mins}мин"})
-                return
+            last_bought_day = time.strftime("%Y-%m-%d", time.localtime(last_bought)) if last_bought else ""
+            daily_limit = boost_def.get("daily_limit", 0) or 0
+            if daily_limit and last_bought_day == today:
+                count_today = user.get("boost_usage", {}).get(boost_id, {}).get(today, 0)
+                if count_today >= daily_limit:
+                    self.send_json(400, {"error": f"Лимит на сегодня ({daily_limit}) для этого буста исчерпан"})
+                    return
 
             if user["coins"] < boost_def["price"]:
                 self.send_json(400, {"error": "Недостаточно монет"})
                 return
+
+            # Same boost is already active -> cannot buy it again until it expires.
+            now_ts = time.time()
+            for active_b in user.get("active_boosts", []):
+                if active_b.get("boost_id") == boost_id and active_b.get("expires_at", 0) > now_ts:
+                    self.send_json(400, {"error": "Этот буст уже активен — дождись окончания!"})
+                    return
 
             user["coins"] -= boost_def["price"]
 
@@ -2464,7 +2528,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 # you cannot buy another one until it expires.
                 if "coins_x" in boost_id:
                     for active_b in user["active_boosts"]:
-                        if active_b.get("boost_id", "").startswith("coins_x") and active_b.get("expires_at", 0) > now:
+                        if active_b.get("boost_id", "").startswith("coins_x") and active_b.get("expires_at", 0) > now_ts:
                             self.send_json(400, {"error": "Сначала дождись окончания текущего множителя!"})
                             return
 
@@ -2478,6 +2542,12 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if "last_boost_purchase" not in user:
                 user["last_boost_purchase"] = {}
             user["last_boost_purchase"][boost_id] = time.time()
+            today = time.strftime("%Y-%m-%d")
+            if "boost_usage" not in user:
+                user["boost_usage"] = {}
+            if boost_id not in user["boost_usage"]:
+                user["boost_usage"][boost_id] = {}
+            user["boost_usage"][boost_id][today] = user["boost_usage"][boost_id].get(today, 0) + 1
             
             user["last_active"] = int(time.time())
             save_user(telegram_id, user)
@@ -2527,12 +2597,25 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             # Roll for reward
             import random
             items = case_def["items"]
+
+            # Diamond-case pity: displayed chance is 0.1%, but guarantee a
+            # legendary background around 350+ consecutive diamond opens.
+            force_legendary_bg = False
+            if case_id == "case_diamond":
+                since_bg = user.get("diamond_opens_since_bg", 0)
+                if since_bg >= 350:
+                    force_legendary_bg = True
+                user["diamond_opens_since_bg"] = since_bg + 1
+
             total_prob = sum(item["probability"] for item in items)
             roll = random.random() * total_prob
-            
+
             cum_prob = 0
             chosen_item = items[0]
             for item in items:
+                if force_legendary_bg and item.get("type") == "background" and item.get("bg_rarity") == "legendary":
+                    chosen_item = item
+                    break
                 cum_prob += item["probability"]
                 if roll <= cum_prob:
                     chosen_item = item
@@ -2577,6 +2660,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     user["backgrounds"].append(chosen_bg["id"])
                     reward_result["background_id"] = chosen_bg["id"]
                     reward_result["name"] = chosen_bg["name"]
+                    if case_id == "case_diamond" and bg_rarity == "legendary":
+                        user["diamond_opens_since_bg"] = 0
                 else:
                     coins_fallback = {"common": 200, "uncommon": 500, "rare": 1000, "epic": 3000, "legendary": 10000}
                     fallback = coins_fallback.get(bg_rarity, 500)
@@ -2584,6 +2669,21 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     user["total_earned"] += fallback
                     reward_result["type"] = "coins"
                     reward_result["name"] = f"{fallback} монет (фон не доступен)"
+                    reward_result["amount"] = fallback
+
+            elif chosen_item["type"] == "title":
+                title_file = chosen_item.get("title_file", "")
+                if title_file and title_file not in user.get("titles", []):
+                    user.setdefault("titles", []).append(title_file)
+                    user["custom_title"] = title_file
+                    reward_result["title_file"] = title_file
+                    reward_result["name"] = chosen_item.get("name", "Титул")
+                else:
+                    fallback = 25000
+                    user["coins"] += fallback
+                    user["total_earned"] += fallback
+                    reward_result["type"] = "coins"
+                    reward_result["name"] = f"{fallback} монет (титул уже есть)"
                     reward_result["amount"] = fallback
             
             user["cases_opened"] = user.get("cases_opened", 0) + 1
@@ -3039,9 +3139,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     preserved["last_active"] = now
                     preserved["coins"] = 0
                     preserved["total_earned"] = 0
-                    preserved["energy"] = game.get("base_max_energy", 1000)
-                    preserved["max_energy"] = game.get("base_max_energy", 1000)
-                    preserved["energy_regen"] = game.get("base_energy_regen", 2)
+                    preserved["energy"] = game.get("base_max_energy", 100)
+                    preserved["max_energy"] = game.get("base_max_energy", 100)
+                    preserved["energy_regen"] = game.get("base_energy_regen", 0.0556)
                     preserved["click_power"] = game.get("base_click_reward", 1)
                     preserved["passive_income"] = 0
                     preserved["level"] = 1

@@ -2901,9 +2901,9 @@ const App = {
         listEl.innerHTML = channels.map((ch) => `
             <div class="gate-channel" data-chat="${ch.chat_id || ''}">
                 <span class="gate-channel-label">${ch.label || 'Telegram'}</span>
-                <a href="${ch.url || 'https://t.me/'}" target="_blank" class="gate-channel-link">
+                <button type="button" class="gate-channel-link" data-url="${ch.url || 'https://t.me/'}">
                     <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписаться
-                </a>
+                </button>
             </div>
         `).join('');
 
@@ -2916,13 +2916,30 @@ const App = {
                 if (st && st.subscribed) {
                     link.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Подписан';
                     link.classList.add('done');
+                    link.disabled = true;
                 } else {
                     link.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписаться';
                     link.classList.remove('done');
+                    link.disabled = false;
                 }
             });
         };
         updateState();
+
+        // Открывать каналы через WebApp.openTelegramLink (как в заданиях), чтобы
+        // мини-апп не закрывался при переходе по ссылке подписки.
+        listEl.querySelectorAll('.gate-channel-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = btn.getAttribute('data-url');
+                const lg = window.Telegram && window.Telegram.WebApp;
+                if (lg && lg.openTelegramLink && (/t\.me\/|telegram\.me\//).test(url)) {
+                    lg.openTelegramLink(url);
+                } else {
+                    window.open(url, '_blank');
+                }
+            });
+        });
 
         const onCheck = async () => {
             checkBtn.disabled = true;

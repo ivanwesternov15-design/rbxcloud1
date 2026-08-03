@@ -454,8 +454,8 @@ body::before {
     display: flex; align-items: center; gap: 8px;
 }
 .gate-channel-link {
+    font: 700 12px/1 var(--font);
     text-decoration: none;
-    font-size: 12px; font-weight: 700;
     color: var(--accent);
     border: 1px solid rgba(79, 143, 255, 0.35);
     background: rgba(79, 143, 255, 0.08);
@@ -464,7 +464,9 @@ body::before {
     display: inline-flex; align-items: center; gap: 5px;
     white-space: nowrap;
     transition: all 0.2s;
+    cursor: pointer;
 }
+.gate-channel-link:disabled,
 .gate-channel-link.done {
     color: var(--success);
     border-color: rgba(0, 230, 118, 0.35);

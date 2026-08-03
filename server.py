@@ -1,4 +1,4 @@
-﻿import http.server
+import http.server
 import socketserver
 import json
 import os
@@ -73,34 +73,34 @@ class Log:
     GRAY = "\033[90m"
 
 def log_info(msg):
-    print(f"{Log.CYAN}[РРќР¤Рћ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.CYAN}[ИНФО]{Log.RESET} {msg}", flush=True)
 
 def log_ok(msg):
-    print(f"{Log.GREEN}[РћРљ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.GREEN}[ОК]{Log.RESET} {msg}", flush=True)
 
 def log_warn(msg):
-    print(f"{Log.YELLOW}[РџР Р•Р”РЈРџР Р•Р–Р”Р•РќРР•]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.YELLOW}[ПРЕДУПРЕЖДЕНИЕ]{Log.RESET} {msg}", flush=True)
 
 def log_error(msg):
-    print(f"{Log.RED}[РћРЁРР‘РљРђ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.RED}[ОШИБКА]{Log.RESET} {msg}", flush=True)
 
 def log_success(msg):
-    print(f"{Log.GREEN}[РЈРЎРџР•РҐ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.GREEN}[УСПЕХ]{Log.RESET} {msg}", flush=True)
 
 def log_auth(msg):
-    print(f"{Log.MAGENTA}[РђР’РўРћР РР—РђР¦РРЇ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.MAGENTA}[АВТОРИЗАЦИЯ]{Log.RESET} {msg}", flush=True)
 
 def log_admin(msg):
-    print(f"{Log.BLUE}[РђР”РњРРќ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.BLUE}[АДМИН]{Log.RESET} {msg}", flush=True)
 
 def log_avatar(msg):
-    print(f"{Log.CYAN}[РђР’РђРўРђР ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.CYAN}[АВАТАР]{Log.RESET} {msg}", flush=True)
 
 def log_bot(msg):
-    print(f"{Log.MAGENTA}[Р‘РћРў]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.MAGENTA}[БОТ]{Log.RESET} {msg}", flush=True)
 
 def log_request(msg):
-    print(f"{Log.GRAY}[Р—РђРџР РћРЎ]{Log.RESET} {msg}", flush=True)
+    print(f"{Log.GRAY}[ЗАПРОС]{Log.RESET} {msg}", flush=True)
 
 # File locks for thread safety
 file_locks = {}
@@ -175,7 +175,7 @@ def audit(telegram_id, action, detail=""):
 def audit_admin(telegram_id, action, detail=""):
     audit(telegram_id, "admin:" + action, detail)
 
-# --- Server load tracking (admin "РќР°РіСЂСѓР·РєР° СЃРµСЂРІРµСЂР°") ---
+# --- Server load tracking (admin "Нагрузка сервера") ---
 LOAD_STATE = {"db_reads": 0, "db_writes": 0}
 DB_OPS = {"reads": [], "writes": []}   # timestamps of recent db operations
 REQUEST_LOG = []                        # [timestamp, duration_ms]
@@ -271,7 +271,7 @@ def load_default_json(filename):
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        log_warn(f"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё default_data/{filename}: {e}")
+        log_warn(f"Ошибка загрузки default_data/{filename}: {e}")
         return None
 
 def load_config():
@@ -298,7 +298,7 @@ def load_config():
             shipped = load_default_json(filename)
             if isinstance(shipped, list):
                 save_json(filename, shipped)
-        log_ok(f"Р­РєРѕРЅРѕРјРёРєР° РѕР±РЅРѕРІР»РµРЅР° РґРѕ РІРµСЂСЃРёРё {default_version}")
+        log_ok(f"Экономика обновлена до версии {default_version}")
 
     config = dict(defaults) if isinstance(defaults, dict) else {}
     for key, value in stored.items():
@@ -334,8 +334,8 @@ def load_config():
     if not isinstance(config.get("subscription_gate"), dict):
         config["subscription_gate"] = {
             "enabled": False,
-            "title": "РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚",
-            "description": "Р§С‚РѕР±С‹ РёРіСЂР°С‚СЊ, РїРѕРґРїРёС€РёСЃСЊ РЅР° СѓРєР°Р·Р°РЅРЅС‹Рµ РєР°РЅР°Р» Рё С‡Р°С‚.",
+            "title": "Подпишись на наш канал и чат",
+            "description": "Чтобы играть, подпишись на указанные канал и чат.",
             "channels": []
         }
     return config
@@ -351,7 +351,7 @@ def save_json_default(filename, data):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        log_warn(f"РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ default_data/{filename}: {e}")
+        log_warn(f"Ошибка сохранения default_data/{filename}: {e}")
 
 def normalize_gate_config(gate):
     if not isinstance(gate, dict):
@@ -373,7 +373,7 @@ def normalize_gate_config(gate):
         })
     return {
         "enabled": bool(gate.get("enabled", False)),
-        "title": str(gate.get("title", "РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚")).strip()[:120] or "РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚",
+        "title": str(gate.get("title", "Подпишись на наш канал и чат")).strip()[:120] or "Подпишись на наш канал и чат",
         "description": str(gate.get("description", "")).strip()[:500],
         "channels": channels,
     }
@@ -467,7 +467,7 @@ def normalize_task_reward(raw_reward):
     if isinstance(raw_reward, dict):
         reward_type = str(raw_reward.get("type", "coins")).strip().lower()
         if reward_type not in TASK_REWARD_TYPES:
-            raise ValueError("РќРµРёР·РІРµСЃС‚РЅС‹Р№ С‚РёРї РЅР°РіСЂР°РґС‹")
+            raise ValueError("Неизвестный тип награды")
         reward = {"type": reward_type}
         if reward_type == "coins":
             rmin = raw_reward.get("min")
@@ -481,7 +481,7 @@ def normalize_task_reward(raw_reward):
             reward["boost_id"] = str(raw_reward.get("boost_id", "")).strip()
             reward["duration"] = max(0, int(float(raw_reward.get("duration", 0) or 0)))
             if not reward["boost_id"]:
-                raise ValueError("Р”Р»СЏ РЅР°РіСЂР°РґС‹-Р±СѓСЃС‚a РЅСѓР¶РµРЅ boost_id")
+                raise ValueError("Для награды-бустa нужен boost_id")
         else:
             reward["amount"] = max(1, int(float(raw_reward.get("amount", 1) or 1)))
         return reward
@@ -489,16 +489,16 @@ def normalize_task_reward(raw_reward):
 
 def normalize_task(task, index=0):
     if not isinstance(task, dict):
-        raise ValueError("Р—Р°РґР°РЅРёРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РѕР±СЉРµРєС‚РѕРј")
+        raise ValueError("Задание должно быть объектом")
     task_type = str(task.get("type", "daily")).strip().lower()
     if task_type not in TASK_TYPES:
-        raise ValueError(f"РќРµРёР·РІРµСЃС‚РЅС‹Р№ С‚РёРї Р·Р°РґР°РЅРёСЏ: {task_type}")
+        raise ValueError(f"Неизвестный тип задания: {task_type}")
     task_id = re.sub(r"[^a-zA-Z0-9_-]", "_", str(task.get("id", "")).strip())
     if not task_id:
         task_id = f"task_{int(time.time())}_{index}"
     result = {
         "id": task_id,
-        "title": str(task.get("title", "РќРѕРІРѕРµ Р·Р°РґР°РЅРёРµ")).strip()[:120],
+        "title": str(task.get("title", "Новое задание")).strip()[:120],
         "description": str(task.get("description", "")).strip()[:500],
         "type": task_type,
         "enabled": bool(task.get("enabled", True)),
@@ -514,7 +514,7 @@ def normalize_task(task, index=0):
         if not isinstance(channels, list):
             channels = []
         if not channels and task.get("link"):
-            channels = [{"label": "Telegram-РєР°РЅР°Р»", "url": task.get("link"), "chat_id": telegram_chat_id_from_url(task.get("link"))}]
+            channels = [{"label": "Telegram-канал", "url": task.get("link"), "chat_id": telegram_chat_id_from_url(task.get("link"))}]
         normalized_channels = []
         for channel in channels:
             if isinstance(channel, str):
@@ -525,7 +525,7 @@ def normalize_task(task, index=0):
             chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(url)
             if url:
                 normalized_channels.append({
-                    "label": str(channel.get("label", "Telegram-РєР°РЅР°Р»")).strip()[:80] or "Telegram-РєР°РЅР°Р»",
+                    "label": str(channel.get("label", "Telegram-канал")).strip()[:80] or "Telegram-канал",
                     "url": url,
                     "chat_id": chat_id,
                 })
@@ -536,11 +536,11 @@ def normalize_task(task, index=0):
 
 def normalize_tasks(tasks):
     if not isinstance(tasks, list):
-        raise ValueError("РЎРїРёСЃРѕРє Р·Р°РґР°РЅРёР№ РёРјРµРµС‚ РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚")
+        raise ValueError("Список заданий имеет неверный формат")
     normalized = [normalize_task(task, index) for index, task in enumerate(tasks)]
     ids = [task["id"] for task in normalized]
     if len(ids) != len(set(ids)):
-        raise ValueError("ID Р·Р°РґР°РЅРёР№ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ СѓРЅРёРєР°Р»СЊРЅС‹РјРё")
+        raise ValueError("ID заданий должны быть уникальными")
     return normalized
 
 def load_backgrounds():
@@ -563,13 +563,13 @@ def load_tasks():
         try:
             return normalize_tasks(data)
         except ValueError as e:
-            log_warn(f"РћС€РёР±РєР° Р·Р°РґР°РЅРёР№ РІ volume: {e}")
+            log_warn(f"Ошибка заданий в volume: {e}")
     defaults = load_default_json("tasks.json")
     if isinstance(defaults, list):
         try:
             return normalize_tasks(defaults)
         except ValueError as e:
-            log_warn(f"РћС€РёР±РєР° default_data/tasks.json: {e}")
+            log_warn(f"Ошибка default_data/tasks.json: {e}")
     return []
 
 def load_vouchers():
@@ -636,7 +636,7 @@ def record_login(user_id):
 
         save_json(STATS_FILE, stats)
     except Exception as e:
-        log_error(f"РћС€РёР±РєР° Р·Р°РїРёСЃРё СЃС‚Р°С‚РёСЃС‚РёРєРё: {e}")
+        log_error(f"Ошибка записи статистики: {e}")
 
 def record_online_sample(count):
     """Track max online count per hour and per day for dashboard charts."""
@@ -654,7 +654,7 @@ def record_online_sample(count):
         stats["online_daily"][date_key] = max(stats["online_daily"].get(date_key, 0), count)
         save_json(STATS_FILE, stats)
     except Exception as e:
-        log_error(f"РћС€РёР±РєР° Р·Р°РїРёСЃРё РѕРЅР»Р°Р№РЅР°: {e}")
+        log_error(f"Ошибка записи онлайна: {e}")
 
 def get_daily_logins():
     """Return list of (date, count) for the last 30 days."""
@@ -810,7 +810,7 @@ def check_telegram_webapp_auth(init_data, bot_token):
                 params[k] = unquote(v)
         received_hash = params.pop("hash", None)
         if not received_hash:
-            log_error(f"Mini App: РІ initData РЅРµС‚ РїРѕР»СЏ hash (РєР»СЋС‡Рё: {list(params.keys())})")
+            log_error(f"Mini App: в initData нет поля hash (ключи: {list(params.keys())})")
             return False
         check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
         secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
@@ -835,20 +835,20 @@ def check_telegram_webapp_auth(init_data, bot_token):
                 f"{name}=(...){value[-6:]}" for name, value in computed_hashes.items()
             )
             log_error(
-                f"WebAuth РїРѕРґРїРёСЃСЊ РЅРµ СЃРѕС€Р»Р°СЃСЊ: РїРѕР»СѓС‡=(...){received_hash[-6:]} "
-                f"РІС‹С‡РёСЃР»=[{computed_suffixes}], auth_date={auth_date_raw} (РІРѕР·СЂР°СЃС‚={age_sec}c), "
-                f"РєР»СЋС‡Рё={sorted(params.keys())}, С‚РѕРєРµРЅ={masked_token}"
+                f"WebAuth подпись не сошлась: получ=(...){received_hash[-6:]} "
+                f"вычисл=[{computed_suffixes}], auth_date={auth_date_raw} (возраст={age_sec}c), "
+                f"ключи={sorted(params.keys())}, токен={masked_token}"
             )
             return False
         if matched_variant != "standard":
-            log_info(f"WebAuth РїСЂРёРЅСЏС‚ С‡РµСЂРµР· РІР°СЂРёР°РЅС‚ {matched_variant}")
+            log_info(f"WebAuth принят через вариант {matched_variant}")
         auth_date = int(params.get("auth_date", 0))
         if time.time() - auth_date > 86400:
-            log_error(f"WebAuth auth_date РїСЂРѕСЃСЂРѕС‡РµРЅ: {auth_date}, РІРѕР·СЂР°СЃС‚={int(time.time()-auth_date)}c (>86400)")
+            log_error(f"WebAuth auth_date просрочен: {auth_date}, возраст={int(time.time()-auth_date)}c (>86400)")
             return False
         return True
     except Exception as _e:
-        log_error(f"WebAuth РёСЃРєР»СЋС‡РµРЅРёРµ: {_e!r}")
+        log_error(f"WebAuth исключение: {_e!r}")
         return False
 
 def process_telegram_webapp_login(init_data):
@@ -887,7 +887,7 @@ def process_telegram_webapp_login(init_data):
         created = get_or_create_user(telegram_id, user_data)
         users[telegram_id] = created
         uname = user_data.get("username") or user_data.get("first_name") or telegram_id
-        log_success(f"РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ (Mini App): @{uname} (id: {telegram_id})")
+        log_success(f"Новый пользователь зарегистрирован (Mini App): @{uname} (id: {telegram_id})")
 
     if is_admin_telegram_id(telegram_id):
         users[telegram_id]["is_admin"] = True
@@ -922,13 +922,13 @@ def process_telegram_webapp_login(init_data):
                     ref_uname = users[telegram_id].get("username") or users[telegram_id].get("first_name") or telegram_id
                     send_telegram_message(
                         referrer_id,
-                        f"рџЋ‰ РўРІРѕР№ СЂРµС„РµСЂР°Р» @{ref_uname} РїСЂРёСЃРѕРµРґРёРЅРёР»СЃСЏ!\n"
-                        f"РўС‹ РїРѕР»СѓС‡РёР» <b>+{ref_bonus} РјРѕРЅРµС‚</b>! рџ’°",
+                        f"🎉 Твой реферал @{ref_uname} присоединился!\n"
+                        f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
                         parse_mode="HTML",
                         web_app_button=True,
                     )
                 except Exception as e:
-                    log_warn(f"РќРµ СѓРґР°Р»РѕСЃСЊ СѓРІРµРґРѕРјРёС‚СЊ СЂРµС„РµСЂРµСЂР°: {e}")
+                    log_warn(f"Не удалось уведомить реферера: {e}")
 
     save_json("users.json", users)
 
@@ -955,7 +955,7 @@ def load_sessions():
                 if isinstance(data, dict):
                     SESSIONS.update(data)
     except Exception as e:
-        log_warn(f"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё СЃРµСЃСЃРёР№: {e}")
+        log_warn(f"Ошибка загрузки сессий: {e}")
 
 def save_sessions():
     """Persist sessions to disk (so they survive server restarts)."""
@@ -964,7 +964,7 @@ def save_sessions():
             with open(SESSIONS_FILE, "w", encoding="utf-8") as f:
                 json.dump(SESSIONS, f, ensure_ascii=False)
     except Exception as e:
-        log_warn(f"РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃРµСЃСЃРёР№: {e}")
+        log_warn(f"Ошибка сохранения сессий: {e}")
 
 def set_session(token, user_id):
     SESSIONS[token] = user_id
@@ -1055,7 +1055,7 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True)
     if web_app_button and BASE_URL:
         payload["reply_markup"] = {
             "inline_keyboard": [[{
-                "text": "рџљЂ РћС‚РєСЂС‹С‚СЊ РёРіСЂСѓ",
+                "text": "🚀 Открыть игру",
                 "web_app": {"url": BASE_URL}
             }]]
         }
@@ -1071,12 +1071,12 @@ def verify_telegram_task_channels(task, telegram_id):
     errors that only admins should see in detail."""
     channels = task.get("channels", [])
     if not channels:
-        return False, "Р’ Р·Р°РґР°РЅРёРё РЅРµ РЅР°СЃС‚СЂРѕРµРЅС‹ Telegram-РєР°РЅР°Р»С‹", True
+        return False, "В задании не настроены Telegram-каналы", True
     results = []
     for channel in channels:
         chat_id = str(channel.get("chat_id", "")).strip() or telegram_chat_id_from_url(channel.get("url", ""))
         if not chat_id:
-            return False, f"Р”Р»СЏ РєР°РЅР°Р»Р° В«{channel.get('label', 'Telegram')}В» РЅРµ СѓРєР°Р·Р°РЅ chat_id", True
+            return False, f"Для канала «{channel.get('label', 'Telegram')}» не указан chat_id", True
         try:
             import urllib.request
             query = urlencode({"chat_id": chat_id, "user_id": str(telegram_id)})
@@ -1091,10 +1091,10 @@ def verify_telegram_task_channels(task, telegram_id):
             )
             results.append(joined)
         except Exception as e:
-            log_warn(f"РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ РїРѕРґРїРёСЃРєСѓ {chat_id} РґР»СЏ {telegram_id}: {e}")
-            return False, f"РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ РєР°РЅР°Р» В«{channel.get('label', chat_id)}В»: {e}", True
+            log_warn(f"Не удалось проверить подписку {chat_id} для {telegram_id}: {e}")
+            return False, f"Не удалось проверить канал «{channel.get('label', chat_id)}»: {e}", True
     passed = any(results) if task.get("channel_mode") == "any" else all(results)
-    return (True, "", False) if passed else (False, "РџРѕРґРїРёС€РёС‚РµСЃСЊ РЅР° СѓРєР°Р·Р°РЅРЅС‹Рµ РєР°РЅР°Р»С‹ Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°", False)
+    return (True, "", False) if passed else (False, "Подпишитесь на указанные каналы и попробуйте снова", False)
 
 def check_gate_subscription(config, telegram_id):
     """Check subscription gate channels. Returns (passed, channels_status, error).
@@ -1114,7 +1114,7 @@ def check_gate_subscription(config, telegram_id):
             "error": "",
         }
         if not chat_id:
-            entry["error"] = "РќРµ СѓРєР°Р·Р°РЅ chat_id"
+            entry["error"] = "Не указан chat_id"
             statuses.append(entry)
             continue
         try:
@@ -1134,7 +1134,7 @@ def check_gate_subscription(config, telegram_id):
         statuses.append(entry)
     passed = all(s["subscribed"] for s in statuses)
     if not passed:
-        return False, statuses, "РџРѕРґРїРёС€РёС‚РµСЃСЊ РЅР° СѓРєР°Р·Р°РЅРЅС‹Рµ РєР°РЅР°Р»С‹ Рё РЅР°Р¶РјРёС‚Рµ В«РџСЂРѕРІРµСЂРёС‚СЊВ»"
+        return False, statuses, "Подпишитесь на указанные каналы и нажмите «Проверить»"
     return True, statuses, ""
 
 def apply_task_reward(telegram_id, user, reward, config):
@@ -1153,13 +1153,13 @@ def apply_task_reward(telegram_id, user, reward, config):
         boost_id = reward["boost_id"]
         boost_def = next((item for item in config.get("boosts", []) if item.get("id") == boost_id), None)
         if not boost_def:
-            return None, "РЈРєР°Р·Р°РЅРЅС‹Р№ Р±СѓСЃС‚ РЅРµ РЅР°Р№РґРµРЅ"
+            return None, "Указанный буст не найден"
         if boost_id == "energy_full":
             user["energy"] = user.get("max_energy", 100)
             return {"type": "boost", "boost_id": boost_id, "name": boost_def.get("name", boost_id), "duration": 0}, None
         duration = reward.get("duration", 0) or int(boost_def.get("duration", 0) or 0)
         if duration <= 0:
-            return None, "Р”Р»СЏ Р±СѓСЃС‚Р° РЅРµ СѓРєР°Р·Р°РЅР° РґР»РёС‚РµР»СЊРЅРѕСЃС‚СЊ"
+            return None, "Для буста не указана длительность"
         now = time.time()
         active_boosts = user.setdefault("active_boosts", [])
         user["active_boosts"] = [
@@ -1177,7 +1177,7 @@ def apply_task_reward(telegram_id, user, reward, config):
         None,
     )
     if not voucher:
-        return None, f"РќРµС‚ РґРѕСЃС‚СѓРїРЅРѕРіРѕ РІР°СѓС‡РµСЂР° РЅРѕРјРёРЅР°Р»РѕРј {amount} Robux"
+        return None, f"Нет доступного ваучера номиналом {amount} Robux"
     voucher["status"] = "claimed"
     voucher["claimed_by"] = str(telegram_id)
     voucher["claim_date"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -1198,25 +1198,25 @@ def notify_task_completed(telegram_id, task, reward_result):
         return
     rtype = reward_result.get("type")
     if rtype == "coins":
-        reward_text = f"<b>+{int(reward_result.get('amount', 0))} РјРѕРЅРµС‚</b>"
+        reward_text = f"<b>+{int(reward_result.get('amount', 0))} монет</b>"
     elif rtype == "boost":
-        name = reward_result.get("name") or reward_result.get("boost_id") or "Р±СѓСЃС‚"
+        name = reward_result.get("name") or reward_result.get("boost_id") or "буст"
         dur = reward_result.get("duration", 0)
         if dur:
             mins = max(1, round(dur / 60))
-            reward_text = f"<b>Р‘СѓСЃС‚ В«{name}В» РЅР° {mins} РјРёРЅ</b>"
+            reward_text = f"<b>Буст «{name}» на {mins} мин</b>"
         else:
-            reward_text = f"<b>Р‘СѓСЃС‚ В«{name}В»</b>"
+            reward_text = f"<b>Буст «{name}»</b>"
     elif rtype == "voucher":
         reward_text = (
-            f"рџЋџ <b>Р’Р°СѓС‡РµСЂ РЅР° {int(reward_result.get('amount', 0))} Robux</b>\n"
+            f"🎟 <b>Ваучер на {int(reward_result.get('amount', 0))} Robux</b>\n"
             f"<code>{str(reward_result.get('voucher_code', ''))}</code>"
         )
     else:
         return
     text = (
-        f"в­ђ <b>Р—Р°РґР°РЅРёРµ РІС‹РїРѕР»РЅРµРЅРѕ:</b> {str(task.get('title', '')).strip()}\n"
-        f"РќР°РіСЂР°РґР°: {reward_text}"
+        f"⭐ <b>Задание выполнено:</b> {str(task.get('title', '')).strip()}\n"
+        f"Награда: {reward_text}"
     )
     send_telegram_message(str(telegram_id), text, parse_mode="HTML", web_app_button=True)
 
@@ -1246,7 +1246,7 @@ def sync_profile_from_telegram(telegram_id):
         if changed:
             save_json("users.json", users)
     except Exception as e:
-        log_warn(f"РћС€РёР±РєР° СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёРё РїСЂРѕС„РёР»СЏ {telegram_id}: {e}")
+        log_warn(f"Ошибка синхронизации профиля {telegram_id}: {e}")
 
 def sync_avatar_from_telegram(telegram_id):
     """Check for a changed Telegram photo and update it in a background thread."""
@@ -1289,7 +1289,7 @@ def sync_avatar_from_telegram(telegram_id):
                             pass
             save_json("users.json", users)
     except Exception as e:
-        log_error(f"РћС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ Р°РІР°С‚Р°СЂР° РґР»СЏ {telegram_id}: {e}")
+        log_error(f"Ошибка обновления аватара для {telegram_id}: {e}")
 
 def get_user_level(coins, config):
     levels = config.get("levels", [])
@@ -1348,7 +1348,7 @@ def get_passive_income_per_sec(user, config, backgrounds=None):
 def accrue_passive_income(user, config, backgrounds=None):
     """Accrue offline/elapsed passive income + auto-clicks + energy regen since
     last check. Returns a dict describing what was earned while away, so the
-    client can show a "РІС‹ РЅРµ Р·Р°С…РѕРґРёР»Рё" screen (like the Roblox-withdrawal popup)."""
+    client can show a "вы не заходили" screen (like the Roblox-withdrawal popup)."""
     now = time.time()
     last = user.get("last_passive", 0)
     report = {"offline_seconds": 0, "passive_gained": 0, "auto_clicks": 0, "auto_gained": 0, "total_gained": 0}
@@ -1651,7 +1651,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         msg = f"{self.address_string()} - {format % args}"
         code = str(format % args).split(" ")[-1]
         if code.startswith(("4", "5")):
-            log_warn(f"Р—Р°РїСЂРѕСЃ СЃ РѕС€РёР±РєРѕР№: {format % args}")
+            log_warn(f"Запрос с ошибкой: {format % args}")
     
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -1791,9 +1791,9 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 return
 
             if text.startswith("/start"):
-                log_bot(f"РџРѕР»СѓС‡РµРЅ /start РѕС‚ {chat_id}")
+                log_bot(f"Получен /start от {chat_id}")
             else:
-                log_bot(f"РЎРѕРѕР±С‰РµРЅРёРµ РѕС‚ {chat_id}: {text[:40]}")
+                log_bot(f"Сообщение от {chat_id}: {text[:40]}")
             
             # Process /start command
             if text.startswith("/start"):
@@ -1815,8 +1815,8 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                             old_name = old_ref.get("username") or old_ref.get("first_name") or str(old_ref_id)
                             send_telegram_message(
                                 chat_id,
-                                f"в„№пёЏ <b>РўС‹ СѓР¶Рµ РїРµСЂРµС€РµР» РїРѕ СЂРµС„РµСЂР°Р»СЊРЅРѕР№ СЃСЃС‹Р»РєРµ (@{old_name})</b>\n"
-                                f"РќР°РіСЂР°РґР° СѓР¶Рµ Р±С‹Р»Р° РІС‹РґР°РЅР° СЂР°РЅРµРµ.",
+                                f"ℹ️ <b>Ты уже перешел по реферальной ссылке (@{old_name})</b>\n"
+                                f"Награда уже была выдана ранее.",
                             )
                             self.send_json(200, {"ok": True})
                             return
@@ -1855,33 +1855,33 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
                                 send_telegram_message(
                                     new_user_id,
-                                    f"рџЋ‰ <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ!</b>\n\n"
-                                    f"РўС‹ РїРµСЂРµС€РµР» РїРѕ СЂРµС„РµСЂР°Р»СЊРЅРѕР№ СЃСЃС‹Р»РєРµ <b>{ref_name}</b> Рё РїРѕР»СѓС‡РёР» <b>+{bonus} РјРѕРЅРµС‚</b>! рџљЂ",
+                                    f"🎉 <b>Добро пожаловать!</b>\n\n"
+                                    f"Ты перешел по реферальной ссылке <b>{ref_name}</b> и получил <b>+{bonus} монет</b>! 🚀",
                                     web_app_button=True,
                                 )
                                 send_telegram_message(
                                     referrer_id,
-                                    f"рџЋ‰ РўРІРѕР№ СЂРµС„РµСЂР°Р» @{new_user.get('username') or new_user.get('first_name') or new_user_id} РїСЂРёСЃРѕРµРґРёРЅРёР»СЃСЏ!\n"
-                                    f"РўС‹ РїРѕР»СѓС‡РёР» <b>+{ref_bonus} РјРѕРЅРµС‚</b>! рџ’°",
+                                    f"🎉 Твой реферал @{new_user.get('username') or new_user.get('first_name') or new_user_id} присоединился!\n"
+                                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
                                     web_app_button=True,
                                 )
                         
                         if not granted:
                             PENDING_REFERRALS[str(chat_id)] = referrer_id
                             welcome_text = (
-                                f"рџЋ‰ <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ!</b>\n\n"
-                                f"РўС‹ РїРµСЂРµС€РµР» РїРѕ СЂРµС„РµСЂР°Р»СЊРЅРѕР№ СЃСЃС‹Р»РєРµ! рџљЂ\n"
-                                f"РџРѕСЃР»Рµ Р°РІС‚РѕСЂРёР·Р°С†РёРё РІ РёРіСЂРµ С‚С‹ РїРѕР»СѓС‡РёС€СЊ Р±РѕРЅСѓСЃ."
+                                f"🎉 <b>Добро пожаловать!</b>\n\n"
+                                f"Ты перешел по реферальной ссылке! 🚀\n"
+                                f"После авторизации в игре ты получишь бонус."
                             )
                             send_telegram_message(chat_id, welcome_text, web_app_button=True)
                     else:
-                        send_telegram_message(chat_id, "рџ‘‹ <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ РёРіСЂСѓ!</b>\n\nРќР°Р¶РјРё РєРЅРѕРїРєСѓ РЅРёР¶Рµ Рё РЅР°С‡РёРЅР°Р№ Р·Р°СЂР°Р±Р°С‚С‹РІР°С‚СЊ РјРѕРЅРµС‚С‹!")
+                        send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
                 else:
-                    send_telegram_message(chat_id, "рџ‘‹ <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ РёРіСЂСѓ!</b>\n\nРќР°Р¶РјРё РєРЅРѕРїРєСѓ РЅРёР¶Рµ Рё РЅР°С‡РёРЅР°Р№ Р·Р°СЂР°Р±Р°С‚С‹РІР°С‚СЊ РјРѕРЅРµС‚С‹!")
+                    send_telegram_message(chat_id, "👋 <b>Добро пожаловать в игру!</b>\n\nНажми кнопку ниже и начинай зарабатывать монеты!")
             
             self.send_json(200, {"ok": True})
         except Exception as e:
-            log_error(f"РћС€РёР±РєР° РІРµР±С…СѓРєР° Р±РѕС‚Р°: {e}")
+            log_error(f"Ошибка вебхука бота: {e}")
             self.send_json(200, {"ok": True})
     
     # --- Telegram Auth Handler ---
@@ -1889,7 +1889,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         # parse_qs returns lists, extract scalars
         query = {k: (v[0] if isinstance(v, list) and len(v) > 0 else v) for k, v in query.items()}
         if not check_telegram_auth(query, BOT_TOKEN):
-            self.send_html(403, "<h1>РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё</h1><p>РќРµРІРµСЂРЅС‹Рµ РґР°РЅРЅС‹Рµ Telegram</p>")
+            self.send_html(403, "<h1>Ошибка авторизации</h1><p>Неверные данные Telegram</p>")
             return
         
         user_data = {
@@ -1936,7 +1936,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         users = load_users()
         uname = user_data.get("username") or user_data.get("first_name") or telegram_id
         if telegram_id in users:
-            log_auth(f"Р’С…РѕРґ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ @{uname} (id: {telegram_id})")
+            log_auth(f"Вход пользователя @{uname} (id: {telegram_id})")
             old = users[telegram_id]
             if user_data.get("photo_path") and old.get("photo_path") and user_data["photo_path"] != old["photo_path"]:
                 old_photo = os.path.join(os.path.dirname(os.path.abspath(__file__)), old["photo_path"])
@@ -1960,7 +1960,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
             if telegram_bio:
                 user["bio"] = telegram_bio
             users[telegram_id] = user
-            log_success(f"РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ: @{uname} (id: {telegram_id})")
+            log_success(f"Новый пользователь зарегистрирован: @{uname} (id: {telegram_id})")
         
         # Process pending referral if this is a new user
         if telegram_id in PENDING_REFERRALS:
@@ -1990,8 +1990,8 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 new_name = new_user_data.get("first_name") or new_user_data.get("username") or telegram_id
                 send_telegram_message(
                     referrer_id,
-                    f"рџЋ‰ РўРІРѕР№ СЂРµС„РµСЂР°Р» @{new_name} РїСЂРёСЃРѕРµРґРёРЅРёР»СЃСЏ!\n"
-                    f"РўС‹ РїРѕР»СѓС‡РёР» <b>+{ref_bonus} РјРѕРЅРµС‚</b>! рџ’°"
+                    f"🎉 Твой реферал @{new_name} присоединился!\n"
+                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰"
                 )
         
         save_json("users.json", users)
@@ -2005,7 +2005,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>РђРІС‚РѕСЂРёР·Р°С†РёСЏ...</title>
+            <title>Авторизация...</title>
             <style>
                 body {{ background: #0B0F16; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: system-ui; margin: 0; }}
                 .loader {{ width: 48px; height: 48px; border: 3px solid #2A3342; border-top-color: #4F8FFF; border-radius: 50%; animation: spin 1s linear infinite; }}
@@ -2031,7 +2031,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Р’С‹С…РѕРґ...</title>
+<title>Выход...</title>
 <style>
 body{{background:#070a14;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;font-family:system-ui;flex-direction:column;gap:16px;margin:0}}
 .loader{{width:40px;height:40px;border:3px solid #2a3342;border-top-color:#4F8FFF;border-radius:50%;animation:spin 1s linear infinite}}
@@ -2039,7 +2039,7 @@ body{{background:#070a14;color:#fff;display:flex;justify-content:center;align-it
 p{{color:#8892b0;font-size:14px;text-align:center;max-width:320px;line-height:1.5}}
 </style></head><body>
 <div class="loader"></div>
-<p>РћС‡РёС‰Р°РµРј СЃРµСЃСЃРёСЋ Telegram...</p>
+<p>Очищаем сессию Telegram...</p>
 <iframe src="https://oauth.telegram.org/auth?bot_id={bot_id}&origin={origin}&logout=1" style="width:0;height:0;border:0;position:absolute;visibility:hidden;"></iframe>
 <script>
 document.cookie.split(';').forEach(function(c){{ document.cookie=c.replace(/^ +/,'').replace(/=.*/,'=;expires='+new Date(0).toUTCString()+';path=/'); }});
@@ -2052,16 +2052,16 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
     def handle_webapp_login(self, data):
         init_data = data.get("init_data", "") or data.get("initData", "")
         if not init_data:
-            self.send_json(400, {"error": "РќРµС‚ РґР°РЅРЅС‹С… Р°РІС‚РѕСЂРёР·Р°С†РёРё Telegram"})
+            self.send_json(400, {"error": "Нет данных авторизации Telegram"})
             return
         if not check_telegram_webapp_auth(init_data, BOT_TOKEN):
-            self.send_json(403, {"error": "РќРµРІРµСЂРЅР°СЏ РїРѕРґРїРёСЃСЊ РґР°РЅРЅС‹С… Telegram"})
+            self.send_json(403, {"error": "Неверная подпись данных Telegram"})
             return
         token, telegram_id = process_telegram_webapp_login(init_data)
         if not token:
-            self.send_json(500, {"error": "РћС€РёР±РєР° СЂРµРіРёСЃС‚СЂР°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ"})
+            self.send_json(500, {"error": "Ошибка регистрации пользователя"})
             return
-        log_auth(f"Mini App РІС…РѕРґ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ (id: {telegram_id})")
+        log_auth(f"Mini App вход пользователя (id: {telegram_id})")
         self.send_json(200, {"success": True, "token": token, "user_id": telegram_id})
 
     # --- API GET Handler ---
@@ -2318,7 +2318,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 return
             
             if not check_anti_cheat(user):
-                self.send_json(429, {"error": "РЎР»РёС€РєРѕРј Р±С‹СЃС‚СЂРѕ! РџРѕРґРѕР¶РґРёС‚Рµ."})
+                self.send_json(429, {"error": "Слишком быстро! Подождите."})
                 return
             
             config = load_config()
@@ -2341,7 +2341,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             # Pre-check energy budget so we can reject the whole batch up front
             est_energy_needed = energy_per_click * batch_count
             if user["energy"] < est_energy_needed:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЌРЅРµСЂРіРёРё"})
+                self.send_json(400, {"error": "Недостаточно энергии"})
                 return
             
             # Calculate static reward components once (they don't change per tap)
@@ -2467,7 +2467,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             current_level = user["upgrades"].get(upgrade_key, 0)
             if current_level >= upgrade_def["max_level"]:
-                self.send_json(400, {"error": "РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ СѓСЂРѕРІРµРЅСЊ РґРѕСЃС‚РёРіРЅСѓС‚"})
+                self.send_json(400, {"error": "Максимальный уровень достигнут"})
                 return
             
             # Prerequisite check
@@ -2477,13 +2477,13 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     if user["upgrades"].get(req_key, 0) < req_level:
                         req_def = config["upgrades"].get(req_key, {})
                         req_name = req_def.get("name", req_key)
-                        self.send_json(400, {"error": f"РќСѓР¶РЅРѕ: {req_name} {req_level}+ СѓСЂРѕРІРЅСЏ"})
+                        self.send_json(400, {"error": f"Нужно: {req_name} {req_level}+ уровня"})
                         return
             
             cost = get_upgrade_cost(upgrade_key, current_level, config)
             
             if user["coins"] < cost:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРѕРЅРµС‚"})
+                self.send_json(400, {"error": "Недостаточно монет"})
                 return
             
             user["coins"] -= cost
@@ -2535,11 +2535,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             accrue_passive_income(user, load_config(), backgrounds)
             
             if bg_id in user.get("backgrounds", []):
-                self.send_json(400, {"error": "Р¤РѕРЅ СѓР¶Рµ РєСѓРїР»РµРЅ"})
+                self.send_json(400, {"error": "Фон уже куплен"})
                 return
             
             if user["coins"] < bg["price"]:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРѕРЅРµС‚"})
+                self.send_json(400, {"error": "Недостаточно монет"})
                 return
             
             user["coins"] -= bg["price"]
@@ -2569,7 +2569,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 user["active_background"] = None
             else:
                 if bg_id not in user.get("backgrounds", []):
-                    self.send_json(400, {"error": "Р¤РѕРЅ РЅРµ РєСѓРїР»РµРЅ"})
+                    self.send_json(400, {"error": "Фон не куплен"})
                     return
                 user["active_background"] = bg_id
             
@@ -2592,7 +2592,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 return
             
             if title_file and title_file not in user.get("titles", []):
-                self.send_json(400, {"error": "Р­С‚РѕС‚ С‚РёС‚СѓР» РЅРµ РІС‹Р±РёС‚"})
+                self.send_json(400, {"error": "Этот титул не выбит"})
                 return
             
             user["custom_title"] = title_file
@@ -2669,18 +2669,18 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if daily_limit and last_bought_day == today:
                 count_today = user.get("boost_usage", {}).get(boost_id, {}).get(today, 0)
                 if count_today >= daily_limit:
-                    self.send_json(400, {"error": f"Р›РёРјРёС‚ РЅР° СЃРµРіРѕРґРЅСЏ ({daily_limit}) РґР»СЏ СЌС‚РѕРіРѕ Р±СѓСЃС‚Р° РёСЃС‡РµСЂРїР°РЅ"})
+                    self.send_json(400, {"error": f"Лимит на сегодня ({daily_limit}) для этого буста исчерпан"})
                     return
 
             if user["coins"] < boost_def["price"]:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРѕРЅРµС‚"})
+                self.send_json(400, {"error": "Недостаточно монет"})
                 return
 
             # Same boost is already active -> cannot buy it again until it expires.
             now_ts = time.time()
             for active_b in user.get("active_boosts", []):
                 if active_b.get("boost_id") == boost_id and active_b.get("expires_at", 0) > now_ts:
-                    self.send_json(400, {"error": "Р­С‚РѕС‚ Р±СѓСЃС‚ СѓР¶Рµ Р°РєС‚РёРІРµРЅ вЂ” РґРѕР¶РґРёСЃСЊ РѕРєРѕРЅС‡Р°РЅРёСЏ!"})
+                    self.send_json(400, {"error": "Этот буст уже активен — дождись окончания!"})
                     return
 
             user["coins"] -= boost_def["price"]
@@ -2699,7 +2699,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if "coins_x" in boost_id:
                     for active_b in user["active_boosts"]:
                         if active_b.get("boost_id", "").startswith("coins_x") and active_b.get("expires_at", 0) > now_ts:
-                            self.send_json(400, {"error": "РЎРЅР°С‡Р°Р»Р° РґРѕР¶РґРёСЃСЊ РѕРєРѕРЅС‡Р°РЅРёСЏ С‚РµРєСѓС‰РµРіРѕ РјРЅРѕР¶РёС‚РµР»СЏ!"})
+                            self.send_json(400, {"error": "Сначала дождись окончания текущего множителя!"})
                             return
 
                 user["active_boosts"].append({
@@ -2760,7 +2760,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             accrue_passive_income(user, load_config(), load_backgrounds())
             
             if user["coins"] < case_def["price"]:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРѕРЅРµС‚"})
+                self.send_json(400, {"error": "Недостаточно монет"})
                 return
             
             user["coins"] -= case_def["price"]
@@ -2800,7 +2800,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 min_win = case_def.get("min_win", 0)
                 if min_win and amount < min_win:
                     amount = min_win
-                    reward_result["name"] = f"{amount} РјРѕРЅРµС‚"
+                    reward_result["name"] = f"{amount} монет"
                 user["coins"] += amount
                 user["total_earned"] += amount
                 reward_result["amount"] = amount
@@ -2843,7 +2843,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     user["coins"] += fallback
                     user["total_earned"] += fallback
                     reward_result["type"] = "coins"
-                    reward_result["name"] = f"{fallback} РјРѕРЅРµС‚ (С„РѕРЅ РЅРµ РґРѕСЃС‚СѓРїРµРЅ)"
+                    reward_result["name"] = f"{fallback} монет (фон не доступен)"
                     reward_result["amount"] = fallback
 
             elif chosen_item["type"] == "title":
@@ -2852,11 +2852,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     user.setdefault("titles", []).append(title_file)
                     user["custom_title"] = title_file
                     reward_result["title_file"] = title_file
-                    reward_result["name"] = chosen_item.get("name", "РўРёС‚СѓР»")
+                    reward_result["name"] = chosen_item.get("name", "Титул")
                 else:
                     reward_result["title_file"] = title_file
                     reward_result["already_owned"] = True
-                    reward_result["name"] = chosen_item.get("name", "РўРёС‚СѓР»")
+                    reward_result["name"] = chosen_item.get("name", "Титул")
             
             user["cases_opened"] = user.get("cases_opened", 0) + 1
             user["last_active"] = int(time.time())
@@ -2900,7 +2900,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             accrue_passive_income(user, load_config())
             
             if task_id in user.get("completed_tasks", []):
-                self.send_json(400, {"error": "Р—Р°РґР°РЅРёРµ СѓР¶Рµ РІС‹РїРѕР»РЅРµРЅРѕ"})
+                self.send_json(400, {"error": "Задание уже выполнено"})
                 return
             
             # Check task conditions
@@ -2909,7 +2909,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 passed, verify_error, internal = verify_telegram_task_channels(task_def, str(telegram_id))
                 if not passed:
                     if internal and not is_admin_telegram_id(telegram_id):
-                        self.send_json(400, {"error": "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ РїРѕРґРїРёСЃРєСѓ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РЅРµРјРЅРѕРіРѕ РїРѕР·Р¶Рµ."})
+                        self.send_json(400, {"error": "Не удалось проверить подписку. Попробуйте немного позже."})
                         return
                     self.send_json(400, {"error": verify_error})
                     return
@@ -2936,7 +2936,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 can_complete = True
             
             if not can_complete:
-                self.send_json(400, {"error": "РЈСЃР»РѕРІРёСЏ РЅРµ РІС‹РїРѕР»РЅРµРЅС‹"})
+                self.send_json(400, {"error": "Условия не выполнены"})
                 return
             
             if "completed_tasks" not in user:
@@ -2954,7 +2954,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             try:
                 notify_task_completed(str(telegram_id), task_def, reward_result)
             except Exception as e:
-                log_warn(f"РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ СѓРІРµРґРѕРјР»РµРЅРёРµ Рѕ Р·Р°РґР°РЅРёРё: {e}")
+                log_warn(f"Не удалось отправить уведомление о задании: {e}")
             audit(telegram_id, "complete_task", f"{task_def.get('title')} reward={reward_result.get('type')}")
 
             self.send_json(200, {
@@ -2987,7 +2987,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             price_coins = voucher_amount * exchange_rate
             
             if user["coins"] < price_coins:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРѕРЅРµС‚"})
+                self.send_json(400, {"error": "Недостаточно монет"})
                 return
             
             # Daily limit check
@@ -2998,14 +2998,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             max_per_day = user.get("exchange_limit", 0) or config["game"].get("max_exchange_per_day", 5)
             if user.get("exchange_count_today", 0) >= max_per_day:
-                self.send_json(400, {"error": f"Р›РёРјРёС‚ РѕР±РјРµРЅРѕРІ РЅР° СЃРµРіРѕРґРЅСЏ ({max_per_day})"})
+                self.send_json(400, {"error": f"Лимит обменов на сегодня ({max_per_day})"})
                 return
             
             vouchers = load_vouchers()
             available = [v for v in vouchers if v["status"] == "available" and v["amount"] == voucher_amount]
             
             if not available:
-                self.send_json(400, {"error": "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РІР°СѓС‡РµСЂРѕРІ РЅР° СЌС‚Сѓ СЃСѓРјРјСѓ"})
+                self.send_json(400, {"error": "Нет доступных ваучеров на эту сумму"})
                 return
             
             voucher = available[0]
@@ -3071,19 +3071,19 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 return
             config = load_config()
             if not config.get("game", {}).get("robux_withdraw_enabled", False):
-                self.send_json(400, {"error": "Р’С‹РґР°С‡Р° Robux СЃРµР№С‡Р°СЃ РѕС‚РєР»СЋС‡РµРЅР°"})
+                self.send_json(400, {"error": "Выдача Robux сейчас отключена"})
                 return
             amount = int(data.get("amount", 0) or 0)
             rusername = str(data.get("roblox_username", "")).strip()
             if amount <= 0:
-                self.send_json(400, {"error": "РќРµРєРѕСЂСЂРµРєС‚РЅР°СЏ СЃСѓРјРјР°"})
+                self.send_json(400, {"error": "Некорректная сумма"})
                 return
             if not rusername:
-                self.send_json(400, {"error": "РЈРєР°Р¶РёС‚Рµ РЅРёРєРЅРµР№Рј Roblox"})
+                self.send_json(400, {"error": "Укажите никнейм Roblox"})
                 return
             balance = user.get("robux_balance", 0) or 0
             if balance < amount:
-                self.send_json(400, {"error": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ Robux РЅР° Р°РєРєР°СѓРЅС‚Рµ"})
+                self.send_json(400, {"error": "Недостаточно Robux на аккаунте"})
                 return
             withdrawal = {
                 "id": f"W{int(time.time())}{uuid.uuid4().hex[:4]}",
@@ -3132,7 +3132,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 _key = data.get("key")
                 _tok = logs_issue_token(_key)
                 if not _tok:
-                    self.send_json(403, {"error": "РќРµРІРµСЂРЅС‹Р№ РєР»СЋС‡"})
+                    self.send_json(403, {"error": "Неверный ключ"})
                     return
                 self.send_json(200, {"token": _tok})
                 return
@@ -3164,11 +3164,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     return
                 fname = str(data.get("file") or params.get("file", ""))
                 if not fname or "/" in fname or "\\" in fname or not fname.startswith("audit-"):
-                    self.send_json(400, {"error": "РќРµРґРѕРїСѓСЃС‚РёРјРѕРµ РёРјСЏ С„Р°Р№Р»Р°"})
+                    self.send_json(400, {"error": "Недопустимое имя файла"})
                     return
                 fpath = os.path.join(LOG_DIR, fname)
                 if not os.path.exists(fpath):
-                    self.send_json(404, {"error": "Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ"})
+                    self.send_json(404, {"error": "Файл не найден"})
                     return
                 lines = []
                 users_map = {}
@@ -3213,7 +3213,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             users = load_users()
             user = users.get(str(telegram_id), {})
             if not (user.get("is_admin") or is_admin_telegram_id(telegram_id)):
-                log_warn(f"РџРѕРїС‹С‚РєР° РґРѕСЃС‚СѓРїР° Рє Р°РґРјРёРЅРєРµ Р±РµР· РїСЂР°РІ: {telegram_id}")
+                log_warn(f"Попытка доступа к админке без прав: {telegram_id}")
                 self.send_json(403, {"error": "Access denied"})
                 return
             
@@ -3264,8 +3264,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if target_id and target_id in users:
                     users[target_id]["is_blocked"] = not users[target_id].get("is_blocked", False)
                     save_json("users.json", users)
-                    action = "Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ" if users[target_id]["is_blocked"] else "СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅ"
-                    log_admin(f"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ {target_id} {action} (Р°РґРјРёРЅ: {telegram_id})")
+                    action = "заблокирован" if users[target_id]["is_blocked"] else "разблокирован"
+                    log_admin(f"Пользователь {target_id} {action} (админ: {telegram_id})")
                     self.send_json(200, {"success": True, "is_blocked": users[target_id]["is_blocked"]})
                     return
             
@@ -3279,7 +3279,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         users[target_id]["total_earned"] += diff
                     users[target_id]["coins"] = new_balance
                     save_json("users.json", users)
-                    log_admin(f"Р‘Р°Р»Р°РЅСЃ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ {target_id}: {old_balance} -> {new_balance} (Р°РґРјРёРЅ: {telegram_id})")
+                    log_admin(f"Баланс пользователя {target_id}: {old_balance} -> {new_balance} (админ: {telegram_id})")
                     audit_admin(telegram_id, "set_balance", f"{target_id}: {old_balance} -> {new_balance}")
                     self.send_json(200, {"success": True, "new_balance": new_balance})
                     return
@@ -3290,9 +3290,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 try:
                     os.makedirs(DATA_DIR, exist_ok=True)
                     shutil.copyfile(os.path.join(DATA_DIR, "users.json"), backup_path)
-                    log_admin(f"Р‘СЌРєР°Рї РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РїРµСЂРµРґ СЃР±СЂРѕСЃРѕРј: {backup_path}")
+                    log_admin(f"Бэкап пользователей перед сбросом: {backup_path}")
                 except Exception as e:
-                    log_error(f"РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ Р±СЌРєР°Рї users.json: {e}")
+                    log_error(f"Не удалось создать бэкап users.json: {e}")
 
                 config = load_config()
                 game = config.get("game", {})
@@ -3339,7 +3339,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     users[uid] = preserved
                 save_json("users.json", users)
                 audit_admin(telegram_id, "reset_stats", f"reset {len(users)} users")
-                log_admin(f"РЎС‚Р°С‚РёСЃС‚РёРєР° РІСЃРµС… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ СЃР±СЂРѕС€РµРЅР° (Р°РґРјРёРЅ: {telegram_id})")
+                log_admin(f"Статистика всех пользователей сброшена (админ: {telegram_id})")
                 self.send_json(200, {"success": True, "reseted": len(users), "backup": "users_backup_before_reset.json"})
                 return
             
@@ -3365,7 +3365,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     if "exchange_limit" in data:
                         users[target_id]["exchange_limit"] = int(data.get("exchange_limit", 0))
                     save_json("users.json", users)
-                    log_admin(f"РћР±РЅРѕРІР»РµРЅС‹ РїРѕР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ {target_id} (Р°РґРјРёРЅ: {telegram_id})")
+                    log_admin(f"Обновлены поля пользователя {target_id} (админ: {telegram_id})")
                     audit_admin(telegram_id, "update_user", f"{target_id}: {json.dumps(data, ensure_ascii=False)}")
                     self.send_json(200, {"success": True})
                     return
@@ -3545,8 +3545,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if target_id and target_id in users:
                     users[target_id]["custom_title"] = title_file
                     save_json("users.json", users)
-                    title_name = title_file if title_file else "РЅРµС‚ С‚РёС‚СѓР»Р°"
-                    log_admin(f"РўРёС‚СѓР» РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ {target_id}: {title_name} (Р°РґРјРёРЅ: {telegram_id})")
+                    title_name = title_file if title_file else "нет титула"
+                    log_admin(f"Титул пользователю {target_id}: {title_name} (админ: {telegram_id})")
                     audit_admin(telegram_id, "set_title", f"{target_id}: {title_name}")
                     self.send_json(200, {"success": True, "title": title_file})
                     return
@@ -3558,8 +3558,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if target_id and target_id in users:
                     users[target_id]["is_admin"] = not users[target_id].get("is_admin", False)
                     save_json("users.json", users)
-                    action = "РЅР°Р·РЅР°С‡РµРЅ Р°РґРјРёРЅРѕРј" if users[target_id]["is_admin"] else "СЃРЅСЏС‚ СЃ Р°РґРјРёРЅР°"
-                    log_admin(f"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ {target_id} {action} (Р°РґРјРёРЅ: {telegram_id})")
+                    action = "назначен админом" if users[target_id]["is_admin"] else "снят с админа"
+                    log_admin(f"Пользователь {target_id} {action} (админ: {telegram_id})")
                     audit_admin(telegram_id, "toggle_admin", f"{target_id}: {action}")
                     self.send_json(200, {"success": True, "is_admin": users[target_id]["is_admin"]})
                     return
@@ -3624,7 +3624,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     resp = urllib.request.urlopen(req, timeout=10)
                     result = json.loads(resp.read().decode())
                     if result.get("ok"):
-                        send_telegram_message(str(telegram_id), 'вњ… Р’РµР±С…СѓРє СѓСЃРїРµС€РЅРѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅ!')
+                        send_telegram_message(str(telegram_id), '✅ Вебхук успешно установлен!')
                     self.send_json(200, {"success": result.get("ok", False), "result": result})
                 except Exception as e:
                     self.send_json(500, {"error": str(e)})
@@ -3680,14 +3680,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                                 send_telegram_message(
                                     target_id,
                                     status == "approved" and (
-                                        f"вњ… <b>Р’С‹РІРѕРґ РѕРґРѕР±СЂРµРЅ!</b>\n"
-                                        f"{found.get('amount')} Robux РїРѕСЃС‚СѓРїРёР»Рё РЅР° РІР°С€ Roblox Р°РєРєР°СѓРЅС‚ <b>{found.get('roblox_username', '')}</b>."
+                                        f"✅ <b>Вывод одобрен!</b>\n"
+                                        f"{found.get('amount')} Robux поступили на ваш Roblox аккаунт <b>{found.get('roblox_username', '')}</b>."
                                     ) or (
-                                        f"в„№пёЏ Р’С‹РІРѕРґ <b>{found.get('amount')} Robux</b> РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ.\n"
-                                        f"РђРґРјРёРЅРёСЃС‚СЂР°С†РёСЏ РїС‹С‚Р°РµС‚СЃСЏ РІС‹РІРµСЃС‚Рё РёС… РІ РєСЂР°С‚С‡Р°Р№С€РёРµ СЃСЂРѕРєРё РЅР° РІР°С€ Р°РєРєР°СѓРЅС‚ {found.get('roblox_username', '')}."
+                                        f"ℹ️ Вывод <b>{found.get('amount')} Robux</b> обрабатывается.\n"
+                                        f"Администрация пытается вывести их в кратчайшие сроки на ваш аккаунт {found.get('roblox_username', '')}."
                                         if status == "pending" else
-                                        f"вќЊ Р’С‹РІРѕРґ <b>{found.get('amount')} Robux</b> РѕС‚РєР»РѕРЅС‘РЅ Р°РґРјРёРЅРёСЃС‚СЂР°С†РёРµР№.\n"
-                                        f"Robux Р±С‹Р»Рё РІРѕР·РІСЂР°С‰РµРЅС‹ РЅР° РІР°С€ Р°РєРєР°СѓРЅС‚. РџРѕРїСЂРѕР±СѓР№С‚Рµ РѕС‚РїСЂР°РІРёС‚СЊ Р·Р°СЏРІРєСѓ РµС‰С‘ СЂР°Р·."
+                                        f"❌ Вывод <b>{found.get('amount')} Robux</b> отклонён администрацией.\n"
+                                        f"Robux были возвращены на ваш аккаунт. Попробуйте отправить заявку ещё раз."
                                     ),
                                     parse_mode="HTML",
                                     web_app_button=True,
@@ -3749,15 +3749,15 @@ if __name__ == "__main__":
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump([], f)
     
-    log_success(f"РЎРµСЂРІРµСЂ Р·Р°РїСѓС‰РµРЅ РЅР° http://localhost:{PORT}")
-    log_info("РћС‚РєСЂРѕР№С‚Рµ РІ Р±СЂР°СѓР·РµСЂРµ: http://localhost:" + str(PORT))
-    log_info("РќР°Р¶РјРёС‚Рµ CTRL+C С‡С‚РѕР±С‹ РѕСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРµСЂРІРµСЂ")
-    log_ok(f"[Р”Р•РџР›РћР™] РћР±РЅРѕРІР»РµРЅРёРµ РїСЂРёРЅСЏС‚Рѕ. РўРµРєСѓС‰Р°СЏ РІРµСЂСЃРёСЏ: {BUILD_VERSION}")
+    log_success(f"Сервер запущен на http://localhost:{PORT}")
+    log_info("Откройте в браузере: http://localhost:" + str(PORT))
+    log_info("Нажмите CTRL+C чтобы остановить сервер")
+    log_ok(f"[ДЕПЛОЙ] Обновление принято. Текущая версия: {BUILD_VERSION}")
     print("")
 
     # Diagnostic: confirm the bot token is configured and reachable.
     if not BOT_TOKEN:
-        log_error("BOT_TOKEN РЅРµ Р·Р°РґР°РЅ! Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРµРјРµРЅРЅСѓСЋ РѕРєСЂСѓР¶РµРЅРёСЏ BOT_TOKEN РІ РїР°РЅРµР»Рё BotHost.")
+        log_error("BOT_TOKEN не задан! Добавьте переменную окружения BOT_TOKEN в панели BotHost.")
     else:
         try:
             import urllib.request
@@ -3766,7 +3766,7 @@ if __name__ == "__main__":
             me_data = json.loads(me_resp.read().decode())
             if me_data.get("ok"):
                 bot = me_data["result"]
-                log_ok(f"Р‘РѕС‚ @{bot.get('username')} Р°РІС‚РѕСЂРёР·РѕРІР°РЅ РІ Telegram.")
+                log_ok(f"Бот @{bot.get('username')} авторизован в Telegram.")
 
                 webhook_url = f"{BASE_URL.rstrip('/')}/bot/webhook"
                 webhook_data = urlencode({"url": webhook_url}).encode()
@@ -3778,13 +3778,13 @@ if __name__ == "__main__":
                 webhook_resp = urllib.request.urlopen(webhook_req, timeout=8)
                 webhook_result = json.loads(webhook_resp.read().decode())
                 if webhook_result.get("ok"):
-                    log_ok(f"Р’РµР±С…СѓРє @{bot.get('username')} СѓСЃС‚Р°РЅРѕРІР»РµРЅ: {webhook_url}")
+                    log_ok(f"Вебхук @{bot.get('username')} установлен: {webhook_url}")
                 else:
-                    log_error(f"РќРµ СѓРґР°Р»РѕСЃСЊ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РІРµР±С…СѓРє: {webhook_result}")
+                    log_error(f"Не удалось установить вебхук: {webhook_result}")
             else:
-                log_error(f"РќРµРІРµСЂРЅС‹Р№ BOT_TOKEN: {me_data}")
+                log_error(f"Неверный BOT_TOKEN: {me_data}")
         except Exception as e:
-            log_warn(f"РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ С‚РѕРєРµРЅ Р±РѕС‚Р°: {e}")
+            log_warn(f"Не удалось проверить токен бота: {e}")
     print("")
     
     def online_reporter():
@@ -3794,7 +3794,7 @@ if __name__ == "__main__":
                 users = load_users()
                 now = time.time()
                 online = sum(1 for u in users.values() if now - u.get("last_active", 0) < 60)
-                log_info(f"РћРЅР»Р°Р№РЅ: {online} РёР· {len(users)} РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№")
+                log_info(f"Онлайн: {online} из {len(users)} пользователей")
             except:
                 pass
     

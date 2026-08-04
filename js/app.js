@@ -1107,28 +1107,13 @@ const App = {
         };
 
         const startClick = () => {
-            isHolding = true;
-            this._holdStartedAt = Date.now();
+            // Только одиночные клики: зажатие больше не фармит.
             this._clickQueue++;
             applyOptimistic();
             // Cooldown after a network failure: don't spam a dead server, but
             // ALWAYS show the optimistic counter feedback on every tap.
             if (Date.now() < this._offlineUntil) return;
             this.drainClickQueue();
-            if (!holdInterval) {
-                holdInterval = setInterval(() => {
-                    if (isHolding) {
-                        // Only auto-repeat after a REAL deliberate hold. A
-                        // normal tap (even a slow one up to ~600ms) must count
-                        // as exactly ONE click, otherwise slow taps on mobile
-                        // inflate the click counter and drain energy by 2-3+.
-                        if (Date.now() - this._holdStartedAt < 600) return;
-                        this._clickQueue++;
-                        applyOptimistic();
-                        if (Date.now() >= this._offlineUntil) this.drainClickQueue();
-                    }
-                }, 55);
-            }
         };
 
         const stopClick = () => { stopHold(); };

@@ -1684,6 +1684,20 @@ body::before {
 .more-icon { color: var(--accent); display: flex; }
 .more-icon svg { width: 22px; height: 22px; }
 .more-label { font-size: 11px; font-weight: 600; }
+.more-support-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px;
+    margin-top: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: var(--grad-accent-soft);
+    color: var(--accent); font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: var(--font);
+    transition: all 0.2s var(--ease-out);
+}
+.more-support-btn:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--glow-accent); }
+.more-support-btn.active { border-color: var(--accent); box-shadow: var(--glow-accent); background: var(--grad-accent); color: #fff; }
+.more-support-btn .icon { width: 18px; height: 18px; }
 
 @keyframes navPop {
     0% { transform: scale(0.9); }
@@ -1920,6 +1934,50 @@ body::before {
 .ticket-badge.st-answered { background: rgba(255, 228, 77, 0.15); color: #FFE44D; }
 .ticket-badge.st-closed { background: rgba(0, 255, 136, 0.12); color: #00FF88; }
 .ticket-badge.st-rejected { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+
+/* --- Support create panel --- */
+.support-create { padding: 16px; }
+.support-sub-label {
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    letter-spacing: 0.4px; text-transform: uppercase;
+    margin: 12px 0 8px;
+}
+.support-sub-label:first-of-type { margin-top: 0; }
+.support-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.support-cat {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px; font-weight: 600; color: var(--text-primary);
+    transition: all 0.2s var(--ease-out);
+    font-family: var(--font); text-align: left;
+}
+.support-cat .cat-icon { width: 22px; height: 22px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--accent-dim); }
+.support-cat .cat-icon .icon { width: 13px; height: 13px; color: var(--accent); }
+.support-cat:hover { border-color: var(--glass-border-hover); transform: translateY(-1px); }
+.support-cat.active {
+    background: var(--grad-accent-soft);
+    border-color: var(--accent);
+    box-shadow: var(--glow-accent);
+}
+.support-cat.active .cat-icon { background: var(--grad-accent); }
+.support-cat.active .cat-icon .icon { color: #fff; }
+.support-send {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 13px 16px;
+    border: none; border-radius: var(--radius-md);
+    background: var(--grad-accent);
+    color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: var(--font);
+    box-shadow: var(--glow-accent);
+    transition: all 0.2s var(--ease-out);
+}
+.support-send:hover { transform: translateY(-1px); box-shadow: var(--glow-accent), 0 6px 20px rgba(59,130,246,0.35); }
+.support-send:active { transform: translateY(0); }
+.support-send:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 
 /* --- Tasks --- */
 .task-list { display: grid; gap: 10px; margin-bottom: 20px; }

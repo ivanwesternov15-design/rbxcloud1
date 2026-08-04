@@ -172,7 +172,7 @@
                 <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
                 <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
                 <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписки</button>
-                <button class="admin-tab" data-tab="support" onclick="window.open('/admin-tickets.html','_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты</button>
+                <button class="admin-tab" data-tab="support" onclick="window.open('/admin-tickets.html?token='+encodeURIComponent(localStorage.getItem('session_token')||''),'_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты</button>
             </div>
 
             <div class="admin-content-inner active" data-content="dashboard">
@@ -694,7 +694,8 @@
             document.getElementById('save-upgrades-btn').addEventListener('click', async () => {
                 const upgrades = {};
                 document.querySelectorAll('#admin-upgrades-list .upgrade-entry').forEach(entry => {
-                    const key = entry.querySelector('[data-ufield="key"]').value.trim();
+                    const keyInput = entry.querySelector('[data-ufield="key"]');
+                    const key = (keyInput ? keyInput.value : entry.dataset.key || '').trim();
                     if (!key) return;
                     let requires = null;
                     try {
@@ -1573,20 +1574,52 @@
         function upgradeRow(key, u) {
             const div = document.createElement('div');
             div.className = 'upgrade-entry';
-            div.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;align-items:center;margin-bottom:6px;';
+            div.style.cssText = 'background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:12px;padding:12px;margin-bottom:10px;';
             const requires = u.requires ? JSON.stringify(u.requires) : '';
+            div.dataset.key = key;
             div.innerHTML = `
-                <input class="admin-input" data-ufield="key" value="${esc(key)}" placeholder="Ключ">
-                <input class="admin-input" data-ufield="name" value="${esc(u.name || '')}" placeholder="Название">
-                <input class="admin-input" data-ufield="description" value="${esc(u.description || '')}" placeholder="Описание">
-                <input class="admin-input" data-ufield="branch" value="${esc(u.branch || '')}" placeholder="Ветка">
-                <input class="admin-input" data-ufield="icon" value="${esc(u.icon || '')}" placeholder="Иконка">
-                <input class="admin-input" data-ufield="base_cost" type="number" value="${esc(u.base_cost || 0)}" placeholder="Цена">
-                <input class="admin-input" data-ufield="cost_multiplier" type="number" step="any" value="${esc(u.cost_multiplier || 1)}" placeholder="x роста">
-                <input class="admin-input" data-ufield="max_level" type="number" value="${esc(u.max_level || 0)}" placeholder="Макс.">
-                <input class="admin-input" data-ufield="effect_per_level" type="number" step="any" value="${esc(u.effect_per_level || 0)}" placeholder="Эффект/ур.">
-                <input class="admin-input" data-ufield="requires" value="${esc(requires)}" placeholder='{"upgr": 5}'>
-                <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+                    <input class="admin-input" data-ufield="key" value="${esc(key)}" style="width:auto;max-width:200px;font-size:11px;font-weight:700;color:var(--accent);background:transparent;border-color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;" placeholder="Ключ">
+                    <button class="admin-btn danger" style="padding:3px 8px;font-size:11px;" onclick="this.closest('.upgrade-entry').remove()">Удалить</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Название</div>
+                        <input class="admin-input" data-ufield="name" value="${esc(u.name || '')}" placeholder="Сила клика" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Описание</div>
+                        <input class="admin-input" data-ufield="description" value="${esc(u.description || '')}" placeholder="+0.5 к награде за клик" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Ветка (click/energy/passive)</div>
+                        <input class="admin-input" data-ufield="branch" value="${esc(u.branch || '')}" placeholder="click" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Иконка</div>
+                        <input class="admin-input" data-ufield="icon" value="${esc(u.icon || '')}" placeholder="icon-click" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Базовая цена</div>
+                        <input class="admin-input" data-ufield="base_cost" type="number" value="${esc(u.base_cost || 0)}" placeholder="60" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Множитель цены</div>
+                        <input class="admin-input" data-ufield="cost_multiplier" type="number" step="any" value="${esc(u.cost_multiplier || 1)}" placeholder="1.38" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Макс. уровень</div>
+                        <input class="admin-input" data-ufield="max_level" type="number" value="${esc(u.max_level || 0)}" placeholder="20" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Бонус за уровень</div>
+                        <input class="admin-input" data-ufield="effect_per_level" type="number" step="any" value="${esc(u.effect_per_level || 0)}" placeholder="0.5" style="width:100%;">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Требования</div>
+                        <input class="admin-input" data-ufield="requires" value="${esc(requires)}" placeholder='{"upgr": 5}' style="width:100%;">
+                    </div>
+                </div>
             `;
             return div;
         }
@@ -1844,46 +1877,85 @@
             adminCases = configRes.cases || [];
             const div = document.getElementById('admin-cases-list');
             div.innerHTML = '';
-            adminCases.forEach((c, i) => {
+            const itemTypes = ['coins', 'energy', 'boost', 'background'];
+            adminCases.forEach((c, ci) => {
                 const card = document.createElement('div');
-                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;';
-                
-                // Header with case name and price
-                let itemsHtml = c.items.map((item, idx) => {
-                    const pct = (item.probability * 100).toFixed(1);
-                    const colors = ['#4F8FFF','#10B981','#F59E0B','#EF4444','#BF00FF','#FFD700','#06B6D4','#EC4899'];
-                    const col = colors[idx % colors.length];
-                    return `<div style="margin-bottom:8px;padding:8px;background:rgba(0,0,0,0.15);border-radius:6px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <span style="font-size:12px;font-weight:600;">${item.name}</span>
-                            <span style="font-size:12px;font-weight:700;color:${col};">${pct}%</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <input type="range" min="0.1" max="100" step="0.1" value="${pct}" data-case-idx="${i}" data-item-idx="${idx}" style="flex:1;height:4px;-webkit-appearance:none;background:rgba(255,255,255,0.08);border-radius:2px;outline:none;" oninput="this.nextElementSibling.textContent = parseFloat(this.value).toFixed(1)+'%'; adminCases[${i}].items[${idx}].probability = parseFloat((this.value/100).toFixed(3));">
-                            <span style="font-size:11px;color:var(--text-secondary);min-width:40px;text-align:right;">${pct}%</span>
-                        </div>
+                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;';
+                let itemsHtml = (c.items || []).map((item, ii) => {
+                    const pct = ((item.probability || 0) * 100).toFixed(1);
+                    return `<div style="display:grid;grid-template-columns:1fr 100px 70px 50px 28px;gap:6px;align-items:center;padding:6px 8px;background:rgba(0,0,0,0.15);border-radius:6px;margin-bottom:6px;">
+                        <input class="admin-input" value="${esc(item.name || '')}" placeholder="Название" data-ci="${ci}" data-ii="${ii}" data-ifield="name" style="padding:4px 6px;font-size:11px;width:100%;">
+                        <input class="admin-input" value="${esc(item.amount || 0)}" type="number" placeholder="Кол-во" data-ci="${ci}" data-ii="${ii}" data-ifield="amount" style="padding:4px 6px;font-size:11px;width:100%;">
+                        <select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="type" style="padding:4px 6px;font-size:11px;width:100%;">
+                            ${itemTypes.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                        <input type="number" min="0.1" max="100" step="0.1" value="${pct}" data-ci="${ci}" data-ii="${ii}" data-ifield="probability" style="padding:4px 6px;font-size:11px;width:100%;">
+                        <button class="admin-btn danger" style="padding:3px 6px;font-size:10px;" onclick="removeCaseItem(${ci},${ii})">✕</button>
                     </div>`;
                 }).join('');
-                
                 card.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <strong style="font-size:15px;">${c.name}</strong>
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <span style="font-size:12px;color:var(--text-secondary);">Цена:</span>
-                            <input class="admin-input" value="${c.price}" style="width:80px;padding:4px 8px;font-size:11px;" data-case-idx="${i}" data-cfield="price">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                        <input class="admin-input" value="${esc(c.name)}" data-cfield="name" data-ci="${ci}" style="font-size:14px;font-weight:700;width:auto;max-width:200px;padding:4px 8px;">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span style="font-size:11px;color:var(--text-secondary);">Цена:</span>
+                            <input class="admin-input" value="${c.price || 0}" data-cfield="price" data-ci="${ci}" type="number" style="width:80px;padding:4px 8px;font-size:11px;">
+                            <span style="font-size:11px;color:var(--text-secondary);">Мин.выигрыш:</span>
+                            <input class="admin-input" value="${c.min_win || 0}" data-cfield="min_win" data-ci="${ci}" type="number" style="width:80px;padding:4px 8px;font-size:11px;">
+                            <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="removeCase(${ci})">Удалить кейс</button>
                         </div>
                     </div>
-                    <div>${itemsHtml}</div>
+                    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Предметы</div>
+                    <div style="display:grid;grid-template-columns:1fr 100px 70px 50px 28px;gap:6px;margin-bottom:4px;">
+                        <span style="font-size:10px;color:var(--text-muted);">Название</span>
+                        <span style="font-size:10px;color:var(--text-muted);">Кол-во</span>
+                        <span style="font-size:10px;color:var(--text-muted);">Тип</span>
+                        <span style="font-size:10px;color:var(--text-muted);">Шанс%</span>
+                        <span></span>
+                    </div>
+                    ${itemsHtml}
+                    <button class="admin-btn" style="margin-top:6px;padding:5px 12px;font-size:11px;" onclick="addCaseItem(${ci})">+ Добавить предмет</button>
                 `;
-                
-                card.querySelectorAll('[data-cfield="price"]').forEach(inp => {
+                card.querySelectorAll('[data-cfield]').forEach(inp => {
                     inp.addEventListener('change', () => {
-                        adminCases[parseInt(inp.dataset.caseIdx)].price = parseInt(inp.value) || 0;
+                        const idx = parseInt(inp.dataset.ci);
+                        const field = inp.dataset.cfield;
+                        adminCases[idx][field] = field === 'price' || field === 'min_win' ? (parseInt(inp.value) || 0) : inp.value;
                     });
                 });
-                
+                card.querySelectorAll('[data-ifield]').forEach(inp => {
+                    inp.addEventListener('change', () => {
+                        const ci = parseInt(inp.dataset.ci);
+                        const ii = parseInt(inp.dataset.ii);
+                        const field = inp.dataset.ifield;
+                        if (field === 'probability') adminCases[ci].items[ii].probability = parseFloat(inp.value) / 100 || 0.01;
+                        else if (field === 'amount') adminCases[ci].items[ii].amount = parseInt(inp.value) || 0;
+                        else adminCases[ci].items[ii][field] = inp.value;
+                    });
+                });
                 div.appendChild(card);
             });
+            // Add case button
+            const addBtn = document.createElement('button');
+            addBtn.className = 'admin-btn success';
+            addBtn.style.cssText = 'margin-top:8px;padding:8px 16px;font-size:12px;';
+            addBtn.textContent = '+ Добавить кейс';
+            addBtn.onclick = () => {
+                adminCases.push({ id: 'case_' + Date.now(), name: 'Новый кейс', price: 1000, min_win: 0, items: [{ type: 'coins', name: 'Приз', amount: 100, probability: 1 }] });
+                loadCasesEdit();
+            };
+            div.appendChild(addBtn);
+        }
+        function addCaseItem(ci) {
+            adminCases[ci].items.push({ type: 'coins', name: 'Новый предмет', amount: 100, probability: 0.1 });
+            loadCasesEdit();
+        }
+        function removeCaseItem(ci, ii) {
+            adminCases[ci].items.splice(ii, 1);
+            loadCasesEdit();
+        }
+        function removeCase(ci) {
+            adminCases.splice(ci, 1);
+            loadCasesEdit();
         }
 
         // --- Subscription gate admin ---

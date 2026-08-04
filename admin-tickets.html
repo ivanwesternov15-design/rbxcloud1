@@ -201,6 +201,11 @@ async function loadTickets() {
 }
 
 async function init() {
+    // Read token from URL if provided (passed from admin.html)
+    const urlToken = new URLSearchParams(location.search).get('token');
+    if (urlToken && !localStorage.getItem('session_token')) {
+        localStorage.setItem('session_token', urlToken);
+    }
     API.init();
     const token = API.getToken();
     if (!token) {

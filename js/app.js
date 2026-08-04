@@ -241,6 +241,15 @@ const App = {
             });
         });
 
+        document.querySelectorAll('.more-support-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!this._wasTap()) return;
+                const screen = btn.dataset.screen;
+                this.closeMoreSheet();
+                this.showScreen(screen);
+            });
+        });
+
         // More sheet toggle
         const moreBtn = document.getElementById('dock-more');
         if (moreBtn) moreBtn.addEventListener('click', () => {
@@ -276,13 +285,18 @@ const App = {
         if (supportSendBtn) {
             supportSendBtn.addEventListener('click', async () => {
                 if (!this._wasTap()) return;
-                const category = document.getElementById('support-category').value;
+                const category = this._selectedCategory || '';
                 const subject = document.getElementById('support-subject').value.trim();
                 const message = document.getElementById('support-message').value.trim();
+                if (!category) { this.showToast('Выбери причину', 'error'); return; }
+                if (!category) { this.showToast('Выбери причину', 'error'); return; }
                 if (!message) { this.showToast('Опиши проблему', 'error'); return; }
                 const res = await API.ticketCreate(category, subject, message);
                 if (res.error) { this.showToast(res.error, 'error'); return; }
                 this.showToast('Тикет #' + res.ticket.number + ' создан', 'success');
+                this._selectedCategory = '';
+                const cats = document.getElementById('support-category');
+                if (cats) cats.querySelectorAll('.support-cat').forEach(b => b.classList.remove('active'));
                 document.getElementById('support-subject').value = '';
                 document.getElementById('support-message').value = '';
                 document.getElementById('support-create-panel').style.display = 'none';
@@ -338,6 +352,9 @@ const App = {
         // Update more sheet items
         document.querySelectorAll('.more-item').forEach(item => {
             item.classList.toggle('active', item.dataset.screen === screen);
+        });
+        document.querySelectorAll('.more-support-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.screen === screen);
         });
 
         // Show screen
@@ -741,7 +758,7 @@ const App = {
         const earnedEl = document.getElementById('home-total-earned');
         const clickPowerEl = document.getElementById('home-click-power');
         if (clicksEl) clicksEl.textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome());
+        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' /сек';
         if (earnedEl) earnedEl.textContent = Auth.formatNumber(Auth.user.total_earned || 0);
         if (clickPowerEl) clickPowerEl.textContent = '+' + Auth.calculateClickReward();
     },
@@ -773,7 +790,7 @@ const App = {
         document.getElementById('home-level').textContent = `${Auth.user.level || 1}`;
         document.getElementById('home-level-name').textContent = Auth.getLevelName(Auth.user.level || 1);
         document.getElementById('home-clicks').textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome());
+        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' /сек';
         const cp = Auth.calculateClickReward();
         const comboChance = Math.min((Auth.user.upgrades?.click_combo || 0) * (Auth.config?.upgrades?.click_combo?.effect_per_level || 2), 50);
         const critChance = Math.min((Auth.user.upgrades?.crit_chance || 0) * (Auth.config?.upgrades?.crit_chance?.effect_per_level || 3), 45);
@@ -2494,19 +2511,29 @@ const App = {
     // --- SUPPORT / TICKETS ---
     async renderSupport() {
         if (this.currentScreen !== 'support') return;
-        const cat = document.getElementById('support-category');
+        const catContainer = document.getElementById('support-category');
         const res = await API.ticketsList();
         if (res.error) {
             document.getElementById('support-tickets').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Не удалось загрузить тикеты</div>';
             return;
         }
-        if (cat && cat.options.length === 0) {
+        if (catContainer && !catContainer.dataset.ready) {
+            this._selectedCategory = '';
+            const catIcons = { robux: 'icon-coin', withdraw: 'icon-send', purchase: 'icon-gift', bug: 'icon-explosion', suggestion: 'icon-star', other: 'icon-dice' };
             Object.entries(res.categories || {}).forEach(([val, label]) => {
-                const o = document.createElement('option');
-                o.value = val;
-                o.textContent = label;
-                cat.appendChild(o);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'support-cat';
+                btn.dataset.val = val;
+                btn.innerHTML = `<span class="cat-icon"><svg class="icon" viewBox="0 0 24 24"><use href="#${catIcons[val] || 'icon-ticket'}"/></svg></span><span>${label}</span>`;
+                btn.onclick = () => {
+                    catContainer.querySelectorAll('.support-cat').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    this._selectedCategory = val;
+                };
+                catContainer.appendChild(btn);
             });
+            catContainer.dataset.ready = '1';
         }
         const tickets = res.tickets || [];
         this._tickets = tickets;

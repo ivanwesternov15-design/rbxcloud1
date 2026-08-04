@@ -12,11 +12,11 @@ set "YEL=%ESC%[93m"
 set "BLU=%ESC%[94m"
 set "CYN=%ESC%[96m"
 
-title Clicker Farm - Server and tunnel
+title Roblox Clicker - Server and tunnel
 
 echo.
 echo %B%%CYN%====================================================%R%
-echo %B%%CYN%            CLICKER FARM - LAUNCHER               %R%
+echo %B%%CYN%            ROBLOX CLICKER - LAUNCHER             %R%
 echo %B%%CYN%====================================================%R%
 echo.
 

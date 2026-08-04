@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel — Clicker Farm</title>
+    <title>Admin Panel — Roblox Clicker</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body { min-height: 100vh; background: var(--bg-primary); }
@@ -172,6 +172,7 @@
                 <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
                 <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
                 <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписки</button>
+                <button class="admin-tab" data-tab="support" onclick="window.open('/admin-tickets.html','_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты</button>
             </div>
 
             <div class="admin-content-inner active" data-content="dashboard">
@@ -327,6 +328,22 @@
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Задаёт суточный лимит обменов у выбранного пользователя (переопределяет глобальный). Поставь 0 — чтобы использовать глобальный лимит.</div>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Бусты</span>
+                        <button class="admin-btn" id="add-boost-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
+                    </div>
+                    <div id="admin-boosts-list"></div>
+                    <button class="admin-btn success" id="save-boosts-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить бусты</button>
+                </div>
+                <div class="admin-section">
+                    <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-arrow-up"/></svg> Улучшения</span>
+                        <button class="admin-btn" id="add-upgrade-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
+                    </div>
+                    <div id="admin-upgrades-list"></div>
+                    <button class="admin-btn success" id="save-upgrades-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить улучшения</button>
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
@@ -647,6 +664,58 @@
                     <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
                 `;
                 list.appendChild(div);
+            });
+            document.getElementById('add-boost-btn').addEventListener('click', () => {
+                document.getElementById('admin-boosts-list').appendChild(boostRow({
+                    id: 'boost_' + Date.now(), name: '', duration: 60, price: 1000, multiplier: 2, daily_limit: 1
+                }));
+            });
+            document.getElementById('save-boosts-btn').addEventListener('click', async () => {
+                const boosts = [];
+                document.querySelectorAll('#admin-boosts-list .boost-entry').forEach(entry => {
+                    boosts.push({
+                        id: entry.querySelector('[data-bfield="id"]').value.trim(),
+                        name: entry.querySelector('[data-bfield="name"]').value.trim(),
+                        duration: parseInt(entry.querySelector('[data-bfield="duration"]').value) || 0,
+                        price: parseInt(entry.querySelector('[data-bfield="price"]').value) || 0,
+                        multiplier: parseFloat(entry.querySelector('[data-bfield="multiplier"]').value) || 1,
+                        daily_limit: parseInt(entry.querySelector('[data-bfield="daily_limit"]').value) || 0
+                    });
+                });
+                await API.adminUpdateConfig({ boosts });
+                toast('Бусты сохранены', 'success');
+                loadConfigEdit();
+            });
+            document.getElementById('add-upgrade-btn').addEventListener('click', () => {
+                document.getElementById('admin-upgrades-list').appendChild(upgradeRow('upgrade_' + Date.now(), {
+                    name: '', description: '', base_cost: 100, cost_multiplier: 1.4, max_level: 20, effect_per_level: 1
+                }));
+            });
+            document.getElementById('save-upgrades-btn').addEventListener('click', async () => {
+                const upgrades = {};
+                document.querySelectorAll('#admin-upgrades-list .upgrade-entry').forEach(entry => {
+                    const key = entry.querySelector('[data-ufield="key"]').value.trim();
+                    if (!key) return;
+                    let requires = null;
+                    try {
+                        const raw = entry.querySelector('[data-ufield="requires"]').value.trim();
+                        requires = raw ? JSON.parse(raw) : null;
+                    } catch (e) {}
+                    upgrades[key] = {
+                        name: entry.querySelector('[data-ufield="name"]').value.trim(),
+                        description: entry.querySelector('[data-ufield="description"]').value.trim(),
+                        branch: entry.querySelector('[data-ufield="branch"]').value.trim(),
+                        icon: entry.querySelector('[data-ufield="icon"]').value.trim(),
+                        base_cost: parseInt(entry.querySelector('[data-ufield="base_cost"]').value) || 0,
+                        cost_multiplier: parseFloat(entry.querySelector('[data-ufield="cost_multiplier"]').value) || 1,
+                        max_level: parseInt(entry.querySelector('[data-ufield="max_level"]').value) || 0,
+                        effect_per_level: parseFloat(entry.querySelector('[data-ufield="effect_per_level"]').value) || 0,
+                        requires
+                    };
+                });
+                await API.adminUpdateConfig({ upgrades });
+                toast('Улучшения сохранены', 'success');
+                loadConfigEdit();
             });
             document.getElementById('save-tasks-btn').addEventListener('click', saveAdminTasks);
             document.getElementById('refresh-tasks-btn').addEventListener('click', loadTasksEdit);
@@ -1430,13 +1499,20 @@
                 'base_energy_regen': 'Регенерация/сек',
                 'exchange_rate': 'Курс (монет за 1 Robux)',
                 'max_exchange_per_day': 'Макс. обменов/день',
+                'subscription_reward_total': 'Награда за все подписки',
                 'referral_bonus': 'Бонус новичку за реферала',
                 'referral_ref_bonus': 'Бонус рефереру за реферала',
+                'referral_bonus_min': 'Мин. бонус новичку',
+                'referral_bonus_max': 'Макс. бонус новичку',
+                'referral_ref_bonus_min': 'Мин. бонус рефереру',
+                'referral_ref_bonus_max': 'Макс. бонус рефереру',
                 'referral_level_required': 'Уровень для бонуса',
                 'referral_coins_required': 'Монет для бонуса',
                 'click_cooldown_ms': 'Кд клика (мс)',
                 'max_clicks_per_second': 'Макс кликов/сек',
-                'passive_income_interval': 'Интервал дохода (мс)'
+                'passive_income_interval': 'Интервал дохода (мс)',
+                'auto_click_per_sec': 'Автокликов/сек',
+                'offline_cap_seconds': 'Макс. офлайн (сек)'
             };
             Object.entries(fields).forEach(([key, label]) => {
                 const val = adminConfig.game[key] !== undefined ? adminConfig.game[key] : '';
@@ -1445,6 +1521,8 @@
                 form.appendChild(div);
             });
             loadLevelsEdit(adminConfig);
+            loadBoostsEdit(adminConfig);
+            loadUpgradesEdit(adminConfig);
         }
         function loadLevelsEdit(adminConfig) {
             const list = document.getElementById('admin-levels-list');
@@ -1462,6 +1540,55 @@
                 `;
                 list.appendChild(div);
             });
+        }
+        function loadBoostsEdit(adminConfig) {
+            const list = document.getElementById('admin-boosts-list');
+            list.innerHTML = '';
+            (adminConfig.boosts || []).forEach(b => {
+                list.appendChild(boostRow(b));
+            });
+        }
+        function boostRow(b) {
+            const div = document.createElement('div');
+            div.className = 'boost-entry';
+            div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;';
+            div.innerHTML = `
+                <input class="admin-input" data-bfield="id" value="${esc(b.id || '')}" style="width:100px;" placeholder="id">
+                <input class="admin-input" data-bfield="name" value="${esc(b.name || '')}" style="flex:1;min-width:110px;" placeholder="Название">
+                <input class="admin-input" data-bfield="duration" type="number" value="${esc(b.duration || 0)}" style="width:80px;" placeholder="сек">
+                <input class="admin-input" data-bfield="price" type="number" value="${esc(b.price || 0)}" style="width:80px;" placeholder="Цена">
+                <input class="admin-input" data-bfield="multiplier" type="number" step="any" value="${esc(b.multiplier || 1)}" style="width:70px;" placeholder="x">
+                <input class="admin-input" data-bfield="daily_limit" type="number" value="${esc(b.daily_limit || 0)}" style="width:70px;" placeholder="Лимит/день">
+                <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
+            `;
+            return div;
+        }
+        function loadUpgradesEdit(adminConfig) {
+            const list = document.getElementById('admin-upgrades-list');
+            list.innerHTML = '';
+            Object.entries(adminConfig.upgrades || {}).forEach(([key, u]) => {
+                list.appendChild(upgradeRow(key, u));
+            });
+        }
+        function upgradeRow(key, u) {
+            const div = document.createElement('div');
+            div.className = 'upgrade-entry';
+            div.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;align-items:center;margin-bottom:6px;';
+            const requires = u.requires ? JSON.stringify(u.requires) : '';
+            div.innerHTML = `
+                <input class="admin-input" data-ufield="key" value="${esc(key)}" placeholder="Ключ">
+                <input class="admin-input" data-ufield="name" value="${esc(u.name || '')}" placeholder="Название">
+                <input class="admin-input" data-ufield="description" value="${esc(u.description || '')}" placeholder="Описание">
+                <input class="admin-input" data-ufield="branch" value="${esc(u.branch || '')}" placeholder="Ветка">
+                <input class="admin-input" data-ufield="icon" value="${esc(u.icon || '')}" placeholder="Иконка">
+                <input class="admin-input" data-ufield="base_cost" type="number" value="${esc(u.base_cost || 0)}" placeholder="Цена">
+                <input class="admin-input" data-ufield="cost_multiplier" type="number" step="any" value="${esc(u.cost_multiplier || 1)}" placeholder="x роста">
+                <input class="admin-input" data-ufield="max_level" type="number" value="${esc(u.max_level || 0)}" placeholder="Макс.">
+                <input class="admin-input" data-ufield="effect_per_level" type="number" step="any" value="${esc(u.effect_per_level || 0)}" placeholder="Эффект/ур.">
+                <input class="admin-input" data-ufield="requires" value="${esc(requires)}" placeholder='{"upgr": 5}'>
+                <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
+            `;
+            return div;
         }
 
         const TASK_TYPES = ['telegram', 'referral', 'level', 'clicks', 'earn', 'purchase_case', 'upgrade_count', 'daily'];

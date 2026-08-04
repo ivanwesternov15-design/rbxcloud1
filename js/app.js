@@ -260,6 +260,36 @@ const App = {
             if (!this._wasTap()) return;
             this.showScreen('profile');
         });
+
+        // Support screen: create-ticket toggle + submit
+        const supportNewBtn = document.getElementById('support-new-btn');
+        if (supportNewBtn) {
+            supportNewBtn.addEventListener('click', () => {
+                if (!this._wasTap()) return;
+                const panel = document.getElementById('support-create-panel');
+                const show = panel.style.display === 'none';
+                panel.style.display = show ? '' : 'none';
+                supportNewBtn.textContent = show ? '✕ Закрыть' : '+ Новый тикет';
+            });
+        }
+        const supportSendBtn = document.getElementById('support-send-btn');
+        if (supportSendBtn) {
+            supportSendBtn.addEventListener('click', async () => {
+                if (!this._wasTap()) return;
+                const category = document.getElementById('support-category').value;
+                const subject = document.getElementById('support-subject').value.trim();
+                const message = document.getElementById('support-message').value.trim();
+                if (!message) { this.showToast('Опиши проблему', 'error'); return; }
+                const res = await API.ticketCreate(category, subject, message);
+                if (res.error) { this.showToast(res.error, 'error'); return; }
+                this.showToast('Тикет #' + res.ticket.number + ' создан', 'success');
+                document.getElementById('support-subject').value = '';
+                document.getElementById('support-message').value = '';
+                document.getElementById('support-create-panel').style.display = 'none';
+                document.getElementById('support-new-btn').textContent = '+ Новый тикет';
+                this.renderSupport();
+            });
+        }
     },
 
     // True if the last touch was a tap (finger moved < 10px) or there was no touch.
@@ -331,6 +361,7 @@ const App = {
             case 'leaderboard': this.renderLeaderboard(); break;
             case 'exchange': this.renderExchange(); break;
             case 'profile': this.renderProfile(); break;
+            case 'support': this.renderSupport(); break;
         }
     },
 
@@ -2237,7 +2268,7 @@ const App = {
             shareBtn.style.display = '';
             shareBtn.onclick = async () => {
                 const link = document.getElementById('ref-link').textContent || fallbackLink;
-                const gameName = (Auth.config && Auth.config.game_name) || 'Clicker Farm';
+                const gameName = (Auth.config && Auth.config.game_name) || 'Roblox Clicker';
                 const msg = `🔥 Присоединяйся ко мне в ${gameName}! Жми по ссылке, начни играть и зарабатывай монеты 🪙`;
                 const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`;
                 const lg = window.Telegram && window.Telegram.WebApp;
@@ -2458,6 +2489,122 @@ const App = {
         const earned = Math.max(0, totalEarned - (current.coins_needed || 0));
         const needed = Math.max(1, (next.coins_needed || 0) - (current.coins_needed || 0));
         return { pct: Math.min(earned / needed, 1), earned, needed };
+    },
+
+    // --- SUPPORT / TICKETS ---
+    async renderSupport() {
+        if (this.currentScreen !== 'support') return;
+        const cat = document.getElementById('support-category');
+        const res = await API.ticketsList();
+        if (res.error) {
+            document.getElementById('support-tickets').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Не удалось загрузить тикеты</div>';
+            return;
+        }
+        if (cat && cat.options.length === 0) {
+            Object.entries(res.categories || {}).forEach(([val, label]) => {
+                const o = document.createElement('option');
+                o.value = val;
+                o.textContent = label;
+                cat.appendChild(o);
+            });
+        }
+        const tickets = res.tickets || [];
+        this._tickets = tickets;
+        const list = document.getElementById('support-tickets');
+        if (!tickets.length) {
+            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Тикетов пока нет — нажми «Новый тикет»</div>';
+            return;
+        }
+        list.innerHTML = tickets.map(t => `
+            <div class="glass-card" data-num="${t.number}" style="margin-bottom:10px;padding:14px;cursor:pointer;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-weight:800;color:var(--accent);">#${t.number}</span>
+                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                    <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${this.fmtTs(t.updated_at)}</span>
+                </div>
+                <div style="font-size:13px;font-weight:600;margin-top:6px;color:var(--text-primary);">${t.subject || ''}</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${t.category_label || ''} · ${(t.history || []).length} сообщ.</div>
+            </div>
+        `).join('');
+        list.querySelectorAll('.glass-card').forEach(c => {
+            c.onclick = () => this.openTicketDetail(parseInt(c.dataset.num));
+        });
+    },
+
+    fmtTs(ts) {
+        if (!ts) return '—';
+        const d = new Date(ts * 1000);
+        return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    },
+
+    openTicketDetail(number) {
+        const t = (this._tickets || []).find(x => x.number === number);
+        if (!t) return;
+        const history = (t.history || []).map(m => `
+            <div style="margin:8px 0;display:flex;${m.actor === 'admin' ? '' : 'justify-content:flex-end;'}">
+                <div style="max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;background:${m.actor === 'admin' ? 'rgba(0,255,136,0.07)' : 'rgba(79,143,255,0.12)'};border:1px solid ${m.actor === 'admin' ? 'rgba(0,255,136,0.2)' : 'rgba(79,143,255,0.25)'};">
+                    <div style="font-size:10px;font-weight:700;margin-bottom:3px;color:${m.actor === 'admin' ? '#00FF88' : '#6AB0FF'};">${m.actor === 'admin' ? 'Администратор' : 'Вы'} · ${this.fmtTs(m.at)}</div>
+                    ${m.text}
+                </div>
+            </div>
+        `).join('');
+        const canReply = t.status === 'open' || t.status === 'answered';
+        const canRate = t.status === 'answered';
+        const canCancel = t.status === 'open' && !t.admin_reply;
+        this.modal(`
+            <div class="modal-title" style="font-size:17px;">Тикет #${t.number} <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">${t.status_label || t.status}</span></div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
+            ${history || '<div style="color:var(--text-muted);font-size:13px;">Сообщений нет</div>'}
+            ${canReply ? `
+                <textarea id="t-reply" class="admin-input" rows="2" placeholder="Твоё сообщение..." style="width:100%;margin-top:12px;"></textarea>
+                <button class="exchange-btn" id="t-send" style="width:100%;margin-top:8px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить</button>
+            ` : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:${canReply ? '10px' : '14px'};">
+                ${canRate ? `
+                    <button class="exchange-btn" id="t-rate-ok" style="flex:1;">👍 Спасибо</button>
+                    <button class="exchange-btn" id="t-rate-bad" style="flex:1;border-color:rgba(239,68,68,0.4);color:#EF4444;">👎 Ответ не устроил</button>
+                ` : ''}
+                ${canCancel ? `<button class="exchange-btn" id="t-cancel" style="border-color:rgba(239,68,68,0.4);color:#EF4444;">Отменить тикет</button>` : ''}
+            </div>
+        `);
+        if (canReply) {
+            document.getElementById('t-send').onclick = async () => {
+                const msg = document.getElementById('t-reply').value.trim();
+                if (!msg) { this.showToast('Введите текст', 'error'); return; }
+                const res = await API.ticketRespond(number, msg);
+                if (res.error) { this.showToast(res.error, 'error'); return; }
+                this.closeModal();
+                this.showToast('Сообщение отправлено', 'success');
+                this.renderSupport();
+            };
+        }
+        if (canRate) {
+            document.getElementById('t-rate-ok').onclick = async () => {
+                const res = await API.ticketRate(number, 'ok');
+                if (res.error) { this.showToast(res.error, 'error'); return; }
+                this.closeModal();
+                this.showToast('Спасибо! Тикет закрыт', 'success');
+                this.renderSupport();
+            };
+            document.getElementById('t-rate-bad').onclick = async () => {
+                const res = await API.ticketRate(number, 'bad');
+                if (res.error) { this.showToast(res.error, 'error'); return; }
+                this.closeModal();
+                this.showToast('Тикет открыт заново', 'info');
+                this.renderSupport();
+            };
+        }
+        if (canCancel) {
+            document.getElementById('t-cancel').onclick = async () => {
+                const ok = await this.showConfirm('Отменить тикет #' + number + '?');
+                if (!ok) return;
+                const res = await API.ticketCancel(number);
+                if (res.error) { this.showToast(res.error, 'error'); return; }
+                this.closeModal();
+                this.showToast('Тикет отменён', 'success');
+                this.renderSupport();
+            };
+        }
     },
 
     // --- ROBUX WITHDRAW SYSTEM ---

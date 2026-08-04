@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тикеты — Админка</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { min-height: 100vh; background: var(--bg-primary); }
+        .admin-panel { max-width: 1100px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+        .admin-back { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
+        .admin-back:hover { color: var(--accent); }
+        .admin-status { font-size: 12px; color: var(--success); display: flex; align-items: center; gap: 6px; }
+        .ticket-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .ticket-filter { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 999px; cursor: pointer; font-family: var(--font); transition: all 0.2s; }
+        .ticket-filter:hover { border-color: var(--accent); }
+        .ticket-filter.active { background: rgba(59,130,246,0.15); border-color: var(--accent); color: var(--accent); }
+        .ticket-card { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+        .ticket-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .ticket-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+        .ticket-num { font-weight: 800; font-size: 15px; color: var(--accent); }
+        .ticket-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+        .status-open { background: rgba(59,130,246,0.15); color: #6AB0FF; }
+        .status-answered { background: rgba(255,228,77,0.15); color: #FFE44D; }
+        .status-closed { background: rgba(0,255,136,0.12); color: #00FF88; }
+        .status-rejected { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .ticket-subject { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .ticket-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 14px; flex-wrap: wrap; }
+        .ticket-empty { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 14px; }
+        .modal-overlay { align-items: center; justify-content: center; }
+        .modal-overlay > div { width: 100%; max-width: 620px; max-height: 85vh; overflow-y: auto; }
+        .thread { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+        .msg { padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; max-width: 88%; white-space: pre-wrap; word-break: break-word; }
+        .msg.user { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); align-self: flex-end; }
+        .msg.admin { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); align-self: flex-start; }
+        .msg .msg-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+        .msg-admin { color: #00FF88; font-weight: 700; font-size: 11px; margin-bottom: 4px; }
+        .msg-user { color: #6AB0FF; font-weight: 700; font-size: 11px; margin-bottom: 4px; }
+        .reply-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        @media (max-width: 640px) { .admin-panel { padding: 14px 12px; } .msg { max-width: 95%; } }
+    </style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5l-2 14"/></symbol>
+  <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+</svg>
+<div id="toast-container" class="toast-container"></div>
+<canvas id="particle-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+
+<div class="admin-panel">
+    <div class="admin-header">
+        <a class="admin-back" href="/admin.html">← Назад в админку</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="admin-status" id="admin-status">Проверка доступа...</span>
+        </div>
+    </div>
+
+    <div class="admin-section" id="admin-content" style="display:none;">
+        <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты поддержки</div>
+        <div class="ticket-filters" id="ticket-filters"></div>
+        <div id="tickets-list"><div class="ticket-empty">Загрузка...</div></div>
+    </div>
+
+    <div class="modal-overlay" id="ticket-modal" style="display:none;">
+        <div class="chart-box">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                <div>
+                    <div style="font-size:18px;font-weight:800;" id="m-num"></div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;" id="m-meta"></div>
+                </div>
+                <span class="ticket-status" id="m-status"></span>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:10px;" id="m-subject"></div>
+            <div class="thread" id="m-thread"></div>
+            <textarea class="admin-input" id="m-reply" rows="3" placeholder="Ответ пользователю..." style="width:100%;margin-bottom:10px;"></textarea>
+            <div class="reply-row">
+                <button class="admin-btn success" id="m-send">✉️ Ответить</button>
+                <button class="admin-btn warning" id="m-close">Закрыть</button>
+                <button class="admin-btn danger" id="m-reject">Отклонить</button>
+                <button class="admin-btn" id="m-close-modal" style="margin-left:auto;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+function toast(msg, type='info') {
+    const c = document.getElementById('toast-container');
+    if (!c) return;
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function fmt(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts * 1000);
+    return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+let allTickets = [];
+let statusFilter = 'all';
+let categories = {};
+
+function statusClass(s) { return 'status-' + s; }
+
+function renderFilters() {
+    const counts = { all: allTickets.length };
+    allTickets.forEach(t => { counts[t.status] = (counts[t.status] || 0) + 1; });
+    const order = ['all', 'open', 'answered', 'closed', 'rejected'];
+    const labels = { all: 'Все', open: 'Открыт', answered: 'Отвечен', closed: 'Закрыт', rejected: 'Отклонён' };
+    const el = document.getElementById('ticket-filters');
+    el.innerHTML = order.map(f => `
+        <button class="ticket-filter ${f === statusFilter ? 'active' : ''}" data-f="${f}">${labels[f]} (${counts[f] || 0})</button>
+    `).join('');
+    el.querySelectorAll('.ticket-filter').forEach(b => {
+        b.onclick = () => { statusFilter = b.dataset.f; renderFilters(); renderList(); };
+    });
+}
+
+function renderList() {
+    const list = document.getElementById('tickets-list');
+    const tickets = allTickets.filter(t => statusFilter === 'all' || t.status === statusFilter);
+    if (!tickets.length) {
+        list.innerHTML = '<div class="ticket-empty">Тикетов нет</div>';
+        return;
+    }
+    list.innerHTML = tickets.map(t => `
+        <div class="ticket-card" data-num="${t.number}">
+            <div class="ticket-card-top">
+                <span class="ticket-num">#${t.number}</span>
+                <span class="ticket-status ${statusClass(t.status)}">${esc(t.status_label || t.status)}</span>
+                <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${fmt(t.updated_at)}</span>
+            </div>
+            <div class="ticket-subject">${esc(t.subject || '')}</div>
+            <div class="ticket-meta">
+                <span>👤 ${esc(t.user_name || t.user_id)}</span>
+                <span>📂 ${esc(t.category_label || '')}</span>
+                <span>💬 ${(t.history || []).length} сообщений</span>
+            </div>
+        </div>
+    `).join('');
+    list.querySelectorAll('.ticket-card').forEach(c => {
+        c.onclick = () => openTicket(parseInt(c.dataset.num));
+    });
+}
+
+function renderThread(ticket) {
+    const thread = document.getElementById('m-thread');
+    const history = ticket.history || [];
+    if (!history.length) {
+        thread.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Сообщений нет</div>';
+        return;
+    }
+    thread.innerHTML = history.map(m => {
+        const isAdmin = m.actor === 'admin';
+        return `
+            <div class="msg ${isAdmin ? 'admin' : 'user'}">
+                <div class="${isAdmin ? 'msg-admin' : 'msg-user'}">${isAdmin ? 'Администратор' : 'Пользователь'}</div>
+                ${esc(m.text)}
+                <div class="msg-meta">${fmt(m.at)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openTicket(number) {
+    const ticket = allTickets.find(t => t.number === number);
+    if (!ticket) return;
+    document.getElementById('m-num').textContent = 'Тикет #' + ticket.number;
+    document.getElementById('m-meta').textContent =
+        `${esc(ticket.user_name || ticket.user_id)} · ${esc(ticket.category_label || '')} · создан ${fmt(ticket.created_at)}`;
+    const st = document.getElementById('m-status');
+    st.className = 'ticket-status ' + statusClass(ticket.status);
+    st.textContent = ticket.status_label || ticket.status;
+    document.getElementById('m-subject').textContent = ticket.subject || '';
+    renderThread(ticket);
+    document.getElementById('m-reply').value = '';
+    document.getElementById('ticket-modal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('ticket-modal').style.display = 'none'; }
+
+async function loadTickets() {
+    const res = await API.post('/api/admin/tickets', { status: '' });
+    if (res.error) { toast('Ошибка загрузки: ' + (res.error || 'неизвестно'), 'error'); return; }
+    allTickets = res.tickets || [];
+    categories = res.categories || {};
+    renderFilters();
+    renderList();
+    const qs = new URLSearchParams(location.search).get('ticket');
+    if (qs && allTickets.some(t => String(t.number) === qs)) openTicket(parseInt(qs));
+}
+
+async function init() {
+    API.init();
+    const token = API.getToken();
+    if (!token) {
+        document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Не авторизован';
+        return;
+    }
+    const check = await API.adminCheck();
+    if (check.error || !check.is_admin) {
+        document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Доступ запрещён';
+        return;
+    }
+    document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступ разрешён';
+    document.getElementById('admin-content').style.display = 'block';
+
+    document.getElementById('m-send').onclick = async () => {
+        const number = parseInt(document.getElementById('m-num').textContent.replace(/\D/g, ''));
+        const message = document.getElementById('m-reply').value.trim();
+        if (!message) { toast('Введите текст ответа', 'error'); return; }
+        const res = await API.post('/api/admin/tickets_reply', { number, message });
+        if (res.error) { toast('Ошибка: ' + res.error, 'error'); return; }
+        toast('Ответ отправлен', 'success');
+        await loadTickets();
+        openTicket(number);
+    };
+    document.getElementById('m-close').onclick = async () => {
+        const number = parseInt(document.getElementById('m-num').textContent.replace(/\D/g, ''));
+        const res = await API.post('/api/admin/tickets_status', { number, status: 'closed' });
+        if (res.error) { toast('Ошибка: ' + res.error, 'error'); return; }
+        toast('Тикет закрыт', 'success');
+        closeModal();
+        await loadTickets();
+    };
+    document.getElementById('m-reject').onclick = async () => {
+        const number = parseInt(document.getElementById('m-num').textContent.replace(/\D/g, ''));
+        const res = await API.post('/api/admin/tickets_status', { number, status: 'rejected' });
+        if (res.error) { toast('Ошибка: ' + res.error, 'error'); return; }
+        toast('Тикет отклонён', 'success');
+        closeModal();
+        await loadTickets();
+    };
+    document.getElementById('m-close-modal').onclick = closeModal;
+    document.getElementById('ticket-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('ticket-modal')) closeModal();
+    });
+
+    await loadTickets();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

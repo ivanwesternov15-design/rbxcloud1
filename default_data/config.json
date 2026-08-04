@@ -1,6 +1,6 @@
 {
   "bot_username": "crobux_bot",
-  "economy_version": "20260804-pdf-1",
+  "economy_version": "20260804-economy-tasks-1",
   "subscription_gate": {
     "enabled": true,
     "title": "Подпишись на наш канал и чат",
@@ -20,10 +20,10 @@
   },
   "game": {
     "base_click_reward": 1,
-    "base_max_energy": 100,
+    "base_max_energy": 500,
     "energy_per_click": 1,
     "base_energy_regen": 0.05555555555555555,
-    "exchange_rate": 5000,
+    "exchange_rate": 2500,
     "max_exchange_per_day": 3,
     "referral_bonus": 300,
     "referral_ref_bonus": 150,
@@ -37,7 +37,8 @@
     "max_clicks_per_second": 12,
     "passive_income_interval": 1000,
     "offline_cap_seconds": 28800,
-    "auto_click_per_sec": 8
+    "auto_click_per_sec": 8,
+    "subscription_reward_total": 20000
   },
   "levels": [
     {
@@ -104,24 +105,24 @@
   "upgrades": {
     "click_power": {
       "name": "Сила клика",
-      "description": "+1 к базовой награде за клик",
+      "description": "+0.5 к базовой награде за клик",
       "branch": "click",
       "icon": "click",
       "base_cost": 60,
       "cost_multiplier": 1.38,
       "max_level": 20,
-      "effect_per_level": 1,
+      "effect_per_level": 0.5,
       "requires": null
     },
     "max_energy": {
       "name": "Макс. энергия",
-      "description": "+5 энергии за уровень",
+      "description": "+25 энергии за уровень",
       "branch": "energy",
       "icon": "battery",
       "base_cost": 100,
-      "cost_multiplier": 1.40,
+      "cost_multiplier": 1.4,
       "max_level": 20,
-      "effect_per_level": 5,
+      "effect_per_level": 25,
       "requires": null
     },
     "energy_regen": {
@@ -143,7 +144,7 @@
       "branch": "passive",
       "icon": "cash",
       "base_cost": 180,
-      "cost_multiplier": 1.40,
+      "cost_multiplier": 1.4,
       "max_level": 25,
       "effect_per_level": 0.5,
       "requires": null
@@ -259,7 +260,7 @@
       "id": "coins_x2",
       "name": "x2 монеты",
       "duration": 300,
-      "price": 2000,
+      "price": 1000,
       "multiplier": 2,
       "daily_limit": 2
     },
@@ -267,7 +268,7 @@
       "id": "coins_x3",
       "name": "x3 монеты",
       "duration": 180,
-      "price": 4000,
+      "price": 2500,
       "multiplier": 3,
       "daily_limit": 1
     },
@@ -275,7 +276,7 @@
       "id": "coins_x5",
       "name": "x5 монеты",
       "duration": 60,
-      "price": 6000,
+      "price": 5000,
       "multiplier": 5,
       "daily_limit": 1
     },
@@ -283,9 +284,9 @@
       "id": "energy_full",
       "name": "Полная энергия",
       "duration": 0,
-      "price": 500,
+      "price": 750,
       "multiplier": 1,
-      "daily_limit": 1
+      "daily_limit": 3
     },
     {
       "id": "auto_clicker",

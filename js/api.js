@@ -198,5 +198,25 @@ const API = {
 
     async gateCheck() {
         return await this.post('/api/user/gate_check', {});
+    },
+
+    async ticketsList() {
+        return await this.get('/api/tickets/list');
+    },
+
+    async ticketCreate(category, subject, message) {
+        return await this.post('/api/tickets/create', { category, subject, message });
+    },
+
+    async ticketRespond(number, message) {
+        return await this.post('/api/tickets/respond', { number, message });
+    },
+
+    async ticketRate(number, rating) {
+        return await this.post('/api/tickets/rate', { number, rating });
+    },
+
+    async ticketCancel(number) {
+        return await this.post('/api/tickets/cancel', { number });
     }
 };

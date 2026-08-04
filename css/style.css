@@ -1907,6 +1907,20 @@ body::before {
 
 /* Old case styles removed */
 
+/* --- Support / Tickets --- */
+.ticket-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.ticket-badge.st-open { background: rgba(79, 143, 255, 0.15); color: #6AB0FF; }
+.ticket-badge.st-answered { background: rgba(255, 228, 77, 0.15); color: #FFE44D; }
+.ticket-badge.st-closed { background: rgba(0, 255, 136, 0.12); color: #00FF88; }
+.ticket-badge.st-rejected { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+
 /* --- Tasks --- */
 .task-list { display: grid; gap: 10px; margin-bottom: 20px; }
 

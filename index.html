@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#05070D">
-    <title>Clicker Farm</title>
+    <title>Roblox Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/css/style.css">
     <style>
@@ -80,7 +80,7 @@
     <div id="loading-screen" class="loading-screen">
         <div class="loading-glow"></div>
         <img src="/assets/icons/coin.png" class="loading-logo-img" alt="">
-        <div class="loading-title">Clicker Farm</div>
+        <div class="loading-title">Roblox Clicker</div>
         <div class="loading-bar-wrap"><div class="loading-bar-fill"></div></div>
         <div class="loading-text" id="loading-text">Загрузка данных...</div>
     </div>
@@ -106,7 +106,7 @@
             <div class="auth-card-bg"></div>
             <div class="auth-glow"></div>
             <img src="/assets/icons/coin.png" class="auth-logo-img" alt="">
-            <h1 class="auth-title">Clicker Farm</h1>
+            <h1 class="auth-title">Roblox Clicker</h1>
             <p class="auth-desc">Кликай, зарабатывай монеты<br>и получай реальные Robux-ваучеры!</p>
             <div class="auth-telegram-wrap" id="auth-telegram-wrap">
                 <button id="auth-login-trigger" class="auth-trigger-btn">🔑 Войти через Telegram</button>
@@ -373,6 +373,44 @@
             <div id="exchange-options" class="exchange-options"></div>
         </div>
 
+        <!-- Screen: Support -->
+        <div id="screen-support" class="screen">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                    <div class="section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Поддержка</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+                        Не пришёл Robux или случилась ошибка? Напиши нам
+                    </div>
+                </div>
+                <button class="exchange-btn" id="support-new-btn" style="flex-shrink:0;">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Новый тикет
+                </button>
+            </div>
+
+            <div id="support-create-panel" class="glass-card" style="display:none;margin-bottom:16px;">
+                <div class="profile-stats-title" style="margin-bottom:10px;">Создать тикет</div>
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Причина</div>
+                    <select class="admin-input" id="support-category" style="width:100%;"></select>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Тема (необязательно)</div>
+                    <input class="admin-input" id="support-subject" placeholder="Кратко опиши вопрос" style="width:100%;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Сообщение</div>
+                    <textarea class="admin-input" id="support-message" rows="3" placeholder="Опиши проблему подробно..." style="width:100%;"></textarea>
+                </div>
+                <button class="exchange-btn" id="support-send-btn" style="width:100%;">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить тикет
+                </button>
+            </div>
+
+            <div id="support-tickets" class="support-list">
+                <div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Загрузка...</div>
+            </div>
+        </div>
+
         <!-- Screen: Profile -->
         <div id="screen-profile" class="screen">
             <div class="profile-header-card">
@@ -584,6 +622,10 @@
                     <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
                     <span class="more-label">Бусты</span>
                 </button>
+                <button class="more-item" data-screen="support">
+                    <span class="more-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+                    <span class="more-label">Поддержка</span>
+                </button>
             </div>
         </div>
     </div>
@@ -599,10 +641,10 @@
     <!-- Case Animation Overlay -->
     <div id="case-animation" class="case-animation-overlay"></div>
 
-    <script src="/js/api.js?v=20260804-bot-welcome-compact-1"></script>
+    <script src="/js/api.js?v=20260804-tickets-rename-1"></script>
 
-    <script src="/js/auth.js?v=20260804-bot-welcome-compact-1"></script>
+    <script src="/js/auth.js?v=20260804-tickets-rename-1"></script>
 
-    <script src="/js/app.js?v=20260804-bot-welcome-compact-1"></script>
+    <script src="/js/app.js?v=20260804-tickets-rename-1"></script>
 </body>
 </html>

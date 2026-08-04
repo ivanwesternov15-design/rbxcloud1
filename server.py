@@ -1,4 +1,4 @@
-import http.server
+﻿import http.server
 import socketserver
 import json
 import os
@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260804-bot-welcome-compact-1"
+BUILD_VERSION = "20260804-tickets-rename-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -225,11 +225,12 @@ def save_json(filename, data):
 
 GAME_DEFAULTS = {
     "base_click_reward": 1,
-    "base_max_energy": 100,
+    "base_max_energy": 500,
     "energy_per_click": 1,
     "base_energy_regen": 1 / 18,
-    "exchange_rate": 5000,
+    "exchange_rate": 2500,
     "max_exchange_per_day": 3,
+    "subscription_reward_total": 20000,
     "referral_bonus": 300,
     "referral_ref_bonus": 150,
     "referral_bonus_min": 300,
@@ -246,10 +247,10 @@ GAME_DEFAULTS = {
 }
 
 UPGRADE_EFFECT_DEFAULTS = {
-    "click_power": 1,
-    "max_energy": 5,
+    "click_power": 0.5,
+    "max_energy": 25,
     "energy_regen": 0.0083,
-    "passive_income": 0.06,
+    "passive_income": 0.5,
     "lucky_click": 1,
     "click_combo": 1,
     "crit_chance": 1,
@@ -260,7 +261,7 @@ UPGRADE_EFFECT_DEFAULTS = {
     "energy_synergy": 3,
 }
 
-ECONOMY_VERSION = "20260804-pdf-1"
+ECONOMY_VERSION = "20260804-economy-tasks-1"
 ECONOMY_CONFIG_KEYS = {"economy_version", "game", "levels", "upgrades", "boosts"}
 
 def load_default_json(filename):
@@ -377,6 +378,30 @@ def normalize_gate_config(gate):
         "description": str(gate.get("description", "")).strip()[:500],
         "channels": channels,
     }
+
+def normalize_boosts(boosts):
+    if not isinstance(boosts, list):
+        raise ValueError("Бусты должны быть списком")
+    normalized = []
+    seen = set()
+    for boost in boosts:
+        if not isinstance(boost, dict):
+            continue
+        boost_id = str(boost.get("id", "")).strip()
+        if not boost_id:
+            raise ValueError("У буста должен быть id")
+        if boost_id in seen:
+            raise ValueError(f"Дублируется id буста: {boost_id}")
+        seen.add(boost_id)
+        normalized.append({
+            "id": boost_id,
+            "name": str(boost.get("name", boost_id)).strip()[:80],
+            "duration": max(0, int(float(boost.get("duration", 0) or 0))),
+            "price": max(0, int(float(boost.get("price", 0) or 0))),
+            "multiplier": max(0, float(boost.get("multiplier", 1) or 1)),
+            "daily_limit": max(0, int(float(boost.get("daily_limit", 0) or 0))),
+        })
+    return normalized
 
 def get_upgrade_effect(config, upgrade_key):
     upgrade = config.get("upgrades", {}).get(upgrade_key, {})
@@ -532,6 +557,14 @@ def normalize_task(task, index=0):
         result["channels"] = normalized_channels
         result["channel_mode"] = "any" if task.get("channel_mode") == "any" else "all"
         result["link"] = normalized_channels[0]["url"] if normalized_channels else ""
+        # Dynamic subscription rewards: reward = subscription_reward_total / channel count.
+        # Support a literal "total" inside the coins reward to split evenly.
+        if task_type == "telegram" and normalized_channels:
+            raw_rew = task.get("reward")
+            if isinstance(raw_rew, dict) and "total" in raw_rew:
+                total = max(0, int(float(raw_rew.get("total", 0) or 0)))
+                per_channel = max(1, total // len(normalized_channels))
+                result["reward"] = {"type": "coins", "amount": per_channel}
     return result
 
 def normalize_tasks(tasks):
@@ -556,6 +589,57 @@ def load_cases():
         return data
     defaults = load_default_json("cases.json")
     return defaults if isinstance(defaults, list) else []
+
+# --- Tickets ---
+TICKETS_FILE = "tickets.json"
+TICKET_CATEGORIES = {
+    "robux": "Robux не начислены",
+    "withdraw": "Вывод не пришёл",
+    "purchase": "Покупка/буст не прошёл",
+    "bug": "Ошибка бота или игры",
+    "suggestion": "Предложение/идея",
+    "other": "Другое",
+}
+TICKET_STATUS_LABELS = {
+    "open": "Открыт",
+    "answered": "Отвечен",
+    "closed": "Закрыт",
+    "rejected": "Отклонён",
+}
+
+def load_tickets():
+    data = load_json(TICKETS_FILE)
+    if not isinstance(data, dict) or not isinstance(data.get("tickets"), list):
+        return {"next_number": 1, "tickets": []}
+    return data
+
+def save_tickets(data):
+    save_json(TICKETS_FILE, data)
+
+def ticket_user_name(user):
+    return (user or {}).get("username") or (user or {}).get("first_name") or ""
+
+def serialize_ticket(ticket):
+    t = dict(ticket)
+    t["category_label"] = TICKET_CATEGORIES.get(t.get("category", ""), t.get("category", ""))
+    t["status_label"] = TICKET_STATUS_LABELS.get(t.get("status", ""), t.get("status", ""))
+    return t
+
+def notify_admins_ticket(ticket, text):
+    """Notify every admin about a new ticket message with a link to the panel."""
+    for admin_id in ADMIN_TELEGRAM_IDS:
+        try:
+            send_telegram_message(
+                admin_id,
+                text,
+                web_app_button=False,
+                extra_buttons=[{
+                    "text": f"Открыть тикет #{ticket.get('number')}",
+                    "url": BASE_URL.rstrip("/") + "/admin-tickets.html?ticket=" + str(ticket.get("number")),
+                }],
+            )
+        except Exception:
+            pass
 
 def load_tasks():
     data = load_json("tasks.json")
@@ -1883,7 +1967,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
                                 send_telegram_message(
                                     new_user_id,
-                                    f"🎉 <b>Добро пожаловать в Робукс Клик!</b>\n\n"
+                                    f"🎉 <b>Добро пожаловать в Roblox Clicker!</b>\n\n"
                                     f"Ты перешёл по реферальной ссылке <b>{ref_name}</b> и получил "
                                     f"<b>+{bonus} монет</b>! 🤑\n\n"
                                     f"Открывай игру и начни зарабатывать ещё больше! 🚀",
@@ -1902,7 +1986,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                         if not granted:
                             PENDING_REFERRALS[str(chat_id)] = referrer_id
                             welcome_text = (
-                                f"🎉 <b>Добро пожаловать в Робукс Клик!</b>\n\n"
+                                f"🎉 <b>Добро пожаловать в Roblox Clicker!</b>\n\n"
                                 f"Ты перешёл по реферальной ссылке! 🚀\n"
                                 f"После авторизации в игре ты получишь бонус. 🎁"
                             )
@@ -1910,7 +1994,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                     else:
                         send_telegram_message(
                             chat_id,
-                            f"🪙 <b>Робукс Клик</b> 💎\n\n"
+                            f"🪙 <b>Roblox Clicker</b> 💎\n\n"
                             f"Привет! Это кликер-игра, где ты тапаешь по монете "
                             f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
                             f"⚡️ <b>Что тебя ждёт:</b>\n"
@@ -1925,7 +2009,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 else:
                     send_telegram_message(
                         chat_id,
-                        f"🪙 <b>Робукс Клик</b> 💎\n\n"
+                        f"🪙 <b>Roblox Clicker</b> 💎\n\n"
                         f"Привет! Это кликер-игра, где ты тапаешь по монете "
                         f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
                         f"⚡️ <b>Что тебя ждёт:</b>\n"
@@ -2358,6 +2442,16 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             })
             return
         
+        if path == "/api/tickets/list":
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            tickets = load_tickets()
+            mine = [serialize_ticket(t) for t in tickets.get("tickets", []) if t.get("user_id") == str(telegram_id)]
+            mine.sort(key=lambda t: t.get("created_at", 0), reverse=True)
+            self.send_json(200, {"tickets": mine, "categories": TICKET_CATEGORIES, "status_labels": TICKET_STATUS_LABELS})
+            return
+
         self.send_json(404, {"error": "API not found"})
     
     # --- API POST Handler ---
@@ -3258,6 +3352,138 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 self.send_json(200, {"lines": lines})
                 return
 
+        # --- User Tickets API ---
+        if path in ("/api/tickets/create", "/api/tickets/respond", "/api/tickets/rate", "/api/tickets/cancel"):
+            if not telegram_id:
+                self.send_json(401, {"error": "Not authorized"})
+                return
+            users = load_users()
+            user = users.get(str(telegram_id))
+            if not user or user.get("is_blocked"):
+                self.send_json(403, {"error": "User not found or blocked"})
+                return
+
+            if path == "/api/tickets/create":
+                category = str(data.get("category", "")).strip()
+                if category not in TICKET_CATEGORIES:
+                    self.send_json(400, {"error": "Неверная категория"})
+                    return
+                subject = str(data.get("subject", "")).strip()[:80]
+                message = str(data.get("message", "")).strip()
+                if len(message) < 3:
+                    self.send_json(400, {"error": "Опишите проблему (минимум 3 символа)"})
+                    return
+                message = message[:1500]
+                tdata = load_tickets()
+                number = int(tdata.get("next_number", 1))
+                now = int(time.time())
+                ticket = {
+                    "number": number,
+                    "user_id": str(telegram_id),
+                    "category": category,
+                    "subject": subject or TICKET_CATEGORIES[category],
+                    "status": "open",
+                    "created_at": now,
+                    "updated_at": now,
+                    "admin_reply": None,
+                    "admin_reply_at": None,
+                    "history": [{"actor": "user", "text": message, "at": now}],
+                }
+                tdata["tickets"].append(ticket)
+                tdata["next_number"] = number + 1
+                save_tickets(tdata)
+                audit(telegram_id, "ticket_create", f"#{number} {category}")
+                try:
+                    uname = ticket_user_name(user)
+                    notify_admins_ticket(
+                        ticket,
+                        f"🎫 <b>Новый тикет #{number}</b>\n"
+                        f"Пользователь: {uname} (<code>{telegram_id}</code>)\n"
+                        f"Категория: {TICKET_CATEGORIES.get(category, category)}\n"
+                        f"Тема: {subject or '—'}\n"
+                        f"Сообщение: {message[:200]}",
+                    )
+                except Exception:
+                    pass
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
+            number = int(data.get("number", 0) or 0)
+            if number <= 0:
+                self.send_json(400, {"error": "Некорректный номер тикета"})
+                return
+            tdata = load_tickets()
+            ticket = next(
+                (t for t in tdata.get("tickets", []) if t.get("number") == number and t.get("user_id") == str(telegram_id)),
+                None,
+            )
+            if not ticket:
+                self.send_json(404, {"error": "Тикет не найден"})
+                return
+
+            if path == "/api/tickets/respond":
+                if ticket.get("status") in ("closed", "rejected"):
+                    self.send_json(400, {"error": "Тикет уже закрыт"})
+                    return
+                message = str(data.get("message", "")).strip()
+                if len(message) < 1:
+                    self.send_json(400, {"error": "Введите текст сообщения"})
+                    return
+                message = message[:1500]
+                now = int(time.time())
+                ticket["history"].append({"actor": "user", "text": message, "at": now})
+                ticket["status"] = "open"
+                ticket["updated_at"] = now
+                save_tickets(tdata)
+                audit(telegram_id, "ticket_respond", f"#{number}")
+                try:
+                    uname = ticket_user_name(user)
+                    notify_admins_ticket(
+                        ticket,
+                        f"💬 <b>Новое сообщение в тикете #{number}</b> от {uname}:\n{message[:200]}",
+                    )
+                except Exception:
+                    pass
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
+            if path == "/api/tickets/rate":
+                rating = str(data.get("rating", "")).strip()
+                if rating not in ("ok", "bad"):
+                    self.send_json(400, {"error": "Некорректная оценка"})
+                    return
+                if ticket.get("status") != "answered":
+                    self.send_json(400, {"error": "Оценивать можно только отвеченные тикеты"})
+                    return
+                now = int(time.time())
+                if rating == "ok":
+                    ticket["status"] = "closed"
+                    ticket["history"].append({"actor": "user", "text": "Спасибо, вопрос решён 👍", "at": now})
+                else:
+                    ticket["status"] = "open"
+                    ticket["history"].append({"actor": "user", "text": "Ответ меня не устроил. Открываю тикет заново ↩️", "at": now})
+                ticket["updated_at"] = now
+                save_tickets(tdata)
+                audit(telegram_id, "ticket_rate", f"#{number} {rating}")
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
+            if path == "/api/tickets/cancel":
+                if ticket.get("status") != "open":
+                    self.send_json(400, {"error": "Тикет уже обработан"})
+                    return
+                if ticket.get("admin_reply"):
+                    self.send_json(400, {"error": "Администратор уже ответил — отменить нельзя"})
+                    return
+                now = int(time.time())
+                ticket["status"] = "closed"
+                ticket["history"].append({"actor": "user", "text": "Тикет отменён пользователем", "at": now})
+                ticket["updated_at"] = now
+                save_tickets(tdata)
+                audit(telegram_id, "ticket_cancel", f"#{number}")
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
         if path == "/api/admin/check":
             if not telegram_id:
                 self.send_json(401, {"error": "Not authorized"})
@@ -3281,7 +3507,90 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             if endpoint == "check":
                 self.send_json(200, {"is_admin": user.get("is_admin", False) or is_admin_telegram_id(telegram_id)})
                 return
-            
+
+            if endpoint == "tickets":
+                tdata = load_tickets()
+                tickets = tdata.get("tickets", [])
+                status_filter = str(data.get("status", "")).strip()
+                if status_filter:
+                    tickets = [t for t in tickets if t.get("status") == status_filter]
+                tickets.sort(key=lambda t: t.get("updated_at", 0), reverse=True)
+                out = []
+                for t in tickets:
+                    u = users.get(t.get("user_id"), {})
+                    st = serialize_ticket(t)
+                    st["user_name"] = ticket_user_name(u)
+                    out.append(st)
+                self.send_json(200, {"tickets": out, "categories": TICKET_CATEGORIES, "status_labels": TICKET_STATUS_LABELS})
+                return
+
+            if endpoint == "tickets_reply":
+                number = int(data.get("number", 0) or 0)
+                message = str(data.get("message", "")).strip()
+                if len(message) < 1:
+                    self.send_json(400, {"error": "Введите текст ответа"})
+                    return
+                message = message[:1500]
+                tdata = load_tickets()
+                ticket = next((t for t in tdata.get("tickets", []) if t.get("number") == number), None)
+                if not ticket:
+                    self.send_json(404, {"error": "Тикет не найден"})
+                    return
+                if ticket.get("status") in ("closed", "rejected"):
+                    self.send_json(400, {"error": "Тикет уже закрыт"})
+                    return
+                now = int(time.time())
+                ticket["history"].append({"actor": "admin", "text": message, "at": now})
+                ticket["admin_reply"] = message
+                ticket["admin_reply_at"] = now
+                ticket["status"] = "answered"
+                ticket["updated_at"] = now
+                save_tickets(tdata)
+                audit_admin(telegram_id, "ticket_reply", f"#{number}")
+                try:
+                    send_telegram_message(
+                        ticket.get("user_id"),
+                        f"📬 <b>Ответ по тикету #{number}</b>\n\n{message}\n\nОцени решение в разделе «Обратная связь» в игре.",
+                        web_app_button=True,
+                    )
+                except Exception:
+                    pass
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
+            if endpoint == "tickets_status":
+                number = int(data.get("number", 0) or 0)
+                status = str(data.get("status", "")).strip()
+                if status not in ("closed", "rejected"):
+                    self.send_json(400, {"error": "Недопустимый статус"})
+                    return
+                tdata = load_tickets()
+                ticket = next((t for t in tdata.get("tickets", []) if t.get("number") == number), None)
+                if not ticket:
+                    self.send_json(404, {"error": "Тикет не найден"})
+                    return
+                if ticket.get("status") in ("closed", "rejected"):
+                    self.send_json(400, {"error": "Тикет уже закрыт"})
+                    return
+                now = int(time.time())
+                note = "Тикет закрыт администратором" if status == "closed" else "Тикет отклонён администратором"
+                ticket["history"].append({"actor": "admin", "text": note, "at": now})
+                ticket["status"] = status
+                ticket["updated_at"] = now
+                save_tickets(tdata)
+                audit_admin(telegram_id, "ticket_status", f"#{number} {status}")
+                try:
+                    send_telegram_message(
+                        ticket.get("user_id"),
+                        f"ℹ️ <b>Тикет #{number}</b>\n\n{note}.",
+                        web_app_button=True,
+                    )
+                except Exception:
+                    pass
+                self.send_json(200, {"ticket": serialize_ticket(ticket)})
+                return
+
+
             if endpoint == "users":
                 all_users = []
                 for uid, u in users.items():
@@ -3494,7 +3803,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if "levels" in new_config:
                     current["levels"] = new_config["levels"]
                 if "upgrades" in new_config:
-                    current["upgrades"] = new_config["upgrades"]
+                    current_upgrades = current.get("upgrades", {})
+                    for key, definition in new_config["upgrades"].items():
+                        if not isinstance(definition, dict):
+                            continue
+                        merged = dict(current_upgrades.get(key, {}))
+                        merged.update(definition)
+                        current_upgrades[key] = merged
+                    current["upgrades"] = current_upgrades
                 if "boosts" in new_config:
                     try:
                         current["boosts"] = normalize_boosts(new_config["boosts"])
@@ -3502,6 +3818,16 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         self.send_json(400, {"error": str(e)})
                         return
                 save_json("config.json", current)
+                # keep default_data in sync
+                try:
+                    default_cfg = load_defaults_config()
+                    for key in ("game", "levels", "upgrades", "boosts"):
+                        if key in current:
+                            default_cfg[key] = current[key]
+                    default_cfg["economy_version"] = current.get("economy_version", ECONOMY_VERSION)
+                    save_json_default("config.json", default_cfg)
+                except Exception:
+                    pass
                 audit_admin(telegram_id, "update_economy", "config.json updated")
                 self.send_json(200, {"success": True})
                 return

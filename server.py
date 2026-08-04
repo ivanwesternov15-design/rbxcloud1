@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260805-income-min-label-1"
+BUILD_VERSION = "20260805-admin-posts-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -1147,8 +1147,10 @@ def save_user(telegram_id, user_data):
 
 def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True, extra_buttons=None):
     """Send a message via Telegram Bot API. Optionally attach a Mini App button
-    plus extra inline buttons (list of {"text": ..., "url": ...})."""
+    plus extra inline buttons (list of {"text": ..., "url": ...}). Returns the
+    parsed Bot API response so callers can surface errors (e.g. publish posts)."""
     import urllib.request
+    import urllib.error
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
     keyboard = []
@@ -1171,8 +1173,119 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True,
     data = json.dumps(payload).encode()
     try:
         req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-        urllib.request.urlopen(req, timeout=5)
-    except:
+        resp = urllib.request.urlopen(req, timeout=8)
+        return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:
+            return {"ok": False, "description": f"HTTP {e.code}"}
+    except Exception:
+        return {"ok": False, "description": "Не удалось отправить сообщение"}
+
+def send_telegram_photo(chat_id, photo_bytes, filename, caption, web_app_button=True, extra_buttons=None):
+    """Send a photo via Telegram Bot API with an optional caption and inline
+    buttons (Mini App "Открыть игру" + extra). Returns the parsed API response."""
+    import urllib.request
+    import urllib.error
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+    boundary = "----WebKitFormBoundary" + uuid.uuid4().hex
+    parts = []
+
+    def add_field(name, value):
+        parts.append(
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n".encode("utf-8")
+        )
+
+    parts.append(
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"{filename}\"\r\n"
+        f"Content-Type: image/png\r\n\r\n".encode("utf-8")
+        + photo_bytes
+        + b"\r\n"
+    )
+    add_field("chat_id", chat_id)
+    if caption:
+        add_field("caption", caption)
+        add_field("parse_mode", "HTML")
+    keyboard = []
+    if web_app_button and BASE_URL:
+        keyboard.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
+    for btn in extra_buttons or []:
+        row = []
+        if btn.get("web_app") and BASE_URL:
+            btn_url = btn.get("url") or BASE_URL
+            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
+        elif btn.get("url"):
+            row.append({"text": btn["text"], "url": btn["url"]})
+        if row:
+            keyboard.append(row)
+    if keyboard:
+        add_field("reply_markup", json.dumps({"inline_keyboard": keyboard}, ensure_ascii=False))
+    parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+    body = b"".join(parts)
+    try:
+        req = urllib.request.Request(
+            url,
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        )
+        resp = urllib.request.urlopen(req, timeout=20)
+        return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:
+            return {"ok": False, "description": f"HTTP {e.code}"}
+    except Exception:
+        return {"ok": False, "description": "Не удалось отправить фото"}
+
+def load_publish_channels():
+    """List of Telegram channels where the bot can publish posts.
+    Format: [{"label": ..., "chat_id": ...}]. Defaults to rbx_elite."""
+    cfg = load_config()
+    channels = cfg.get("publish_channels")
+    if not isinstance(channels, list):
+        channels = []
+    out = []
+    for ch in channels:
+        if isinstance(ch, str):
+            ch = {"label": "Telegram", "chat_id": ch}
+        if not isinstance(ch, dict):
+            continue
+        chat_id = str(ch.get("chat_id", "")).strip()
+        if not chat_id:
+            continue
+        out.append({
+            "label": str(ch.get("label", "Telegram")).strip()[:80] or "Telegram",
+            "chat_id": chat_id,
+        })
+    if not out:
+        out = [{"label": "RBX Elite", "chat_id": "@rbx_elite"}]
+    return out
+
+def save_publish_channels(channels):
+    """Persist the publish-channel list into config.json (non-economy key)."""
+    cfg = load_config()
+    cleaned = []
+    for ch in channels:
+        if isinstance(ch, str):
+            ch = {"label": "Telegram", "chat_id": ch}
+        if not isinstance(ch, dict):
+            continue
+        chat_id = str(ch.get("chat_id", "")).strip()
+        if not chat_id:
+            continue
+        cleaned.append({
+            "label": str(ch.get("label", "Telegram")).strip()[:80] or "Telegram",
+            "chat_id": chat_id,
+        })
+    cfg["publish_channels"] = cleaned
+    save_json("config.json", cfg)
+    try:
+        default_cfg = load_defaults_config()
+        default_cfg["publish_channels"] = cleaned
+        save_json_default("config.json", default_cfg)
+    except Exception:
         pass
 
 def subscribe_buttons(config):
@@ -4121,6 +4234,60 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     self.send_json(404, {"error": "Withdrawal not found"})
                     return
                 self.send_json(400, {"error": "Bad request"})
+                return
+
+            if endpoint == "post_channels":
+                self.send_json(200, {"channels": load_publish_channels()})
+                return
+
+            if endpoint == "save_post_channels":
+                channels = data.get("channels") or []
+                save_publish_channels(channels)
+                audit_admin(telegram_id, "save_post_channels", json.dumps(channels, ensure_ascii=False))
+                self.send_json(200, {"success": True, "channels": load_publish_channels()})
+                return
+
+            if endpoint == "publish_post":
+                text = str(data.get("text", "")).strip()
+                channel = str(data.get("channel", "")).strip()
+                banner = str(data.get("banner", "")).strip()
+                if not channel:
+                    self.send_json(400, {"error": "Выберите канал для публикации"})
+                    return
+                if not text:
+                    self.send_json(400, {"error": "Введите текст поста"})
+                    return
+                if text and len(text) > 1024:
+                    self.send_json(400, {"error": "Текст поста слишком длинный (макс. 1024 символа)"})
+                    return
+                try:
+                    if banner:
+                        if "," in banner:
+                            banner = banner.split(",", 1)[1]
+                        import base64
+                        try:
+                            photo_bytes = base64.b64decode(banner)
+                        except Exception:
+                            self.send_json(400, {"error": "Не удалось прочитать изображение"})
+                            return
+                        if len(photo_bytes) > 8 * 1024 * 1024:
+                            self.send_json(400, {"error": "Баннер слишком большой (макс. 8MB)"})
+                            return
+                        res = send_telegram_photo(channel, photo_bytes, "banner.png", text)
+                    else:
+                        res = send_telegram_message(channel, text)
+                except Exception as e:
+                    self.send_json(400, {"error": f"Ошибка публикации: {e}"})
+                    return
+                if not (res or {}).get("ok"):
+                    self.send_json(400, {"error": "Telegram: " + str((res or {}).get("description", "ошибка"))})
+                    return
+                audit_admin(telegram_id, "publish_post", f"to {channel}: {text[:60]}")
+                log_ok(f"Пост опубликован в {channel} (админ {telegram_id})")
+                self.send_json(200, {
+                    "success": True,
+                    "message_id": (res.get("result") or {}).get("message_id"),
+                })
                 return
 
             if endpoint == "send_message":

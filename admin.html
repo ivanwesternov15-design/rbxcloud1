@@ -340,6 +340,7 @@
                 <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
                 <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
                 <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписки</button>
+                <button class="admin-tab" data-tab="posts"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Посты</button>
                 <button class="admin-tab" data-tab="support" onclick="window.open('/?startapp=admin-tickets','_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты</button>
             </div>
 
@@ -637,6 +638,43 @@
                     </div>
                 </div>
             </div>
+
+            <div class="admin-content-inner" data-content="posts">
+                <div class="admin-section">
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Публикация поста</div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:640px;">
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Канал публикации (бот должен быть администратором)</div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <select class="admin-input" id="post-channel" style="flex:1;min-width:0;"></select>
+                                <button class="admin-icon-btn green" id="post-add-channel" title="Добавить канал"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg></button>
+                                <button class="admin-icon-btn danger" id="post-remove-channel" title="Удалить канал"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Текст поста (макс. 1024 символа)</div>
+                            <textarea class="admin-input" id="post-text" rows="8" placeholder="💎 Добро пожаловать в Robux Clicker..." style="width:100%;resize:vertical;"></textarea>
+                            <div id="post-text-count" style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:4px;">0 / 1024</div>
+                        </div>
+                        <div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Баннер (.png, необязательно)</div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="file" id="post-banner" accept="image/png" style="display:none;">
+                                <button class="admin-btn" id="post-banner-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Выбрать баннер</button>
+                                <button class="admin-btn" id="post-banner-clear" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> Убрать</button>
+                            </div>
+                            <div id="post-banner-preview" style="margin-top:8px;display:none;border:1px solid var(--glass-border);border-radius:12px;overflow:hidden;max-width:280px;">
+                                <img id="post-banner-img" src="" alt="" style="width:100%;display:block;">
+                            </div>
+                        </div>
+                        <button class="admin-btn success" id="post-publish-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выложить пост</button>
+                        <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">
+                            Пост будет опубликован в выбранном Telegram-канале с кнопкой «🚀 Открыть игру» (как в /start).
+                            Пример канала: <code>@rbx_elite</code> (https://t.me/rbx_elite)
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="admin-denied" style="display:none;text-align:center;padding:60px 20px;">
@@ -748,6 +786,7 @@
                     if (tab.dataset.tab === 'withdrawals') loadWithdrawals();
                     if (tab.dataset.tab === 'messages') loadMessageUsers();
                     if (tab.dataset.tab === 'subscriptions') loadSubscriptionsTab();
+if (tab.dataset.tab === 'posts') loadPostsTab();
                     if (tab.dataset.tab === 'dashboard') loadDashboard();
                 });
             });
@@ -2345,6 +2384,142 @@
             const nu = res.new_users || {};
             const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v != null ? v : 0; };
             set('nu-today', nu.today); set('nu-week', nu.week); set('nu-month', nu.month); set('nu-year', nu.year); set('nu-all', nu.all);
+        }
+
+        async function loadPostsTab() {
+            let postChannels = [];
+            let postBannerData = '';
+
+            const res = await API.post('/api/admin/post_channels', {});
+            postChannels = res.channels || [];
+
+            const sel = document.getElementById('post-channel');
+            const renderChannels = () => {
+                if (!sel) return;
+                const prev = sel.value;
+                sel.innerHTML = postChannels.map((c, i) =>
+                    `<option value="${i}">${esc(c.label)} — ${esc(c.chat_id)}</option>`
+                ).join('');
+                if (!postChannels.length) sel.innerHTML = '<option value="-1">Каналы не добавлены</option>';
+                else if (postChannels[prev] !== undefined) sel.value = prev;
+            };
+            renderChannels();
+
+            const addBtn = document.getElementById('post-add-channel');
+            if (addBtn && !addBtn.dataset.bound) {
+                addBtn.dataset.bound = '1';
+                addBtn.addEventListener('click', async () => {
+                    const label = prompt('Название канала:');
+                    if (label == null) return;
+                    const chat = prompt('ID канала (например @rbx_elite):');
+                    if (chat == null) return;
+                    if (!String(chat).trim()) { toast('Введите ID канала', 'error'); return; }
+                    postChannels.push({ label: label.trim() || 'Telegram', chat_id: chat.trim() });
+                    const saved = await API.post('/api/admin/save_post_channels', { channels: postChannels });
+                    if (saved.success) {
+                        postChannels = saved.channels || postChannels;
+                        renderChannels();
+                        sel.value = String(postChannels.length - 1);
+                        toast('Канал добавлен', 'success');
+                    } else { toast('Ошибка: ' + (saved.error || 'неизвестно'), 'error'); }
+                });
+            }
+
+            const removeBtn = document.getElementById('post-remove-channel');
+            if (removeBtn && !removeBtn.dataset.bound) {
+                removeBtn.dataset.bound = '1';
+                removeBtn.addEventListener('click', async () => {
+                    const i = parseInt(sel.value, 10);
+                    if (isNaN(i) || !postChannels[i]) return;
+                    if (!await customConfirm('Удалить канал ' + postChannels[i].chat_id + '?')) return;
+                    postChannels.splice(i, 1);
+                    const saved = await API.post('/api/admin/save_post_channels', { channels: postChannels });
+                    if (saved.success) {
+                        postChannels = saved.channels || postChannels;
+                        renderChannels();
+                        toast('Канал удалён', 'success');
+                    } else { toast('Ошибка: ' + (saved.error || 'неизвестно'), 'error'); }
+                });
+            }
+
+            const fileInput = document.getElementById('post-banner');
+            const bannerBtn = document.getElementById('post-banner-btn');
+            if (bannerBtn && !bannerBtn.dataset.bound) {
+                bannerBtn.dataset.bound = '1';
+                bannerBtn.addEventListener('click', () => fileInput && fileInput.click());
+                fileInput.addEventListener('change', () => {
+                    const f = fileInput.files && fileInput.files[0];
+                    if (!f) return;
+                    if (!/\.png$/i.test(f.name)) { toast('Можно загружать только .png', 'error'); return; }
+                    if (f.size > 8 * 1024 * 1024) { toast('Файл больше 8MB', 'error'); return; }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        postBannerData = reader.result;
+                        const img = document.getElementById('post-banner-img');
+                        const preview = document.getElementById('post-banner-preview');
+                        const clear = document.getElementById('post-banner-clear');
+                        if (img && preview) { img.src = postBannerData; preview.style.display = 'block'; }
+                        if (clear) clear.style.display = 'inline-flex';
+                    };
+                    reader.readAsDataURL(f);
+                });
+            }
+
+            const clearBtn = document.getElementById('post-banner-clear');
+            if (clearBtn && !clearBtn.dataset.bound) {
+                clearBtn.dataset.bound = '1';
+                clearBtn.addEventListener('click', () => {
+                    postBannerData = '';
+                    const img = document.getElementById('post-banner-img');
+                    const preview = document.getElementById('post-banner-preview');
+                    if (img) img.src = '';
+                    if (preview) preview.style.display = 'none';
+                    clearBtn.style.display = 'none';
+                    if (fileInput) fileInput.value = '';
+                });
+            }
+
+            const textEl = document.getElementById('post-text');
+            const countEl = document.getElementById('post-text-count');
+            if (textEl && !textEl.dataset.bound) {
+                textEl.dataset.bound = '1';
+                textEl.addEventListener('input', () => {
+                    if (countEl) countEl.textContent = textEl.value.length + ' / 1024';
+                });
+            }
+
+            const publishBtn = document.getElementById('post-publish-btn');
+            if (publishBtn && !publishBtn.dataset.bound) {
+                publishBtn.dataset.bound = '1';
+                publishBtn.addEventListener('click', async () => {
+                    const i = parseInt(sel.value, 10);
+                    const channel = (!isNaN(i) && postChannels[i]) ? postChannels[i].chat_id : '';
+                    const text = (textEl ? textEl.value : '').trim();
+                    if (!channel) { toast('Сначала добавьте и выберите канал', 'error'); return; }
+                    if (!text) { toast('Введите текст поста', 'error'); return; }
+                    publishBtn.disabled = true;
+                    const orig = publishBtn.innerHTML;
+                    publishBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Публикуем...';
+                    try {
+                        const res = await API.post('/api/admin/publish_post', {
+                            channel: channel,
+                            text: text,
+                            banner: postBannerData || ''
+                        }, 30000);
+                        if (res.success) {
+                            toast('Пост опубликован в ' + channel + '!', 'success');
+                            if (textEl) textEl.value = '';
+                            if (countEl) countEl.textContent = '0 / 1024';
+                            clearBtn && clearBtn.click();
+                        } else {
+                            toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
+                        }
+                    } finally {
+                        publishBtn.disabled = false;
+                        publishBtn.innerHTML = orig;
+                    }
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', initAdmin);

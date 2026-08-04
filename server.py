@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260805-admin-posts-1"
+BUILD_VERSION = "20260805-admin-posts-channel-btn-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -59,6 +59,25 @@ BASE_URL = (
     ("https://" + os.environ["DOMAIN"].rstrip("/")) if os.environ.get("DOMAIN")
     else os.environ.get("BASE_URL", "https://bot-1785687837-1511-senku.bothost.tech")
 )
+
+BOT_USERNAME = ""
+def get_bot_username():
+    """Return the bot's @username, fetching via getMe on first use (cached)."""
+    global BOT_USERNAME
+    if BOT_USERNAME:
+        return BOT_USERNAME
+    if not BOT_TOKEN:
+        return ""
+    try:
+        import urllib.request
+        req = urllib.request.Request(f"https://api.telegram.org/bot{BOT_TOKEN}/getMe")
+        resp = urllib.request.urlopen(req, timeout=8)
+        data = json.loads(resp.read().decode())
+        if data.get("ok"):
+            BOT_USERNAME = data["result"].get("username", "")
+    except Exception:
+        pass
+    return BOT_USERNAME
 
 # --- Color Logging ---
 class Log:
@@ -4260,6 +4279,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 if text and len(text) > 1024:
                     self.send_json(400, {"error": "Текст поста слишком длинный (макс. 1024 символа)"})
                     return
+                # web_app-кнопка работает только в личных чатах с ботом, поэтому
+                # для постов в канал используем обычную url-кнопку на бота.
+                bot_uname = get_bot_username()
+                open_url = f"https://t.me/{bot_uname}?startapp" if bot_uname else BASE_URL
+                open_btn = [{"text": "🚀 Открыть игру", "url": open_url}]
                 try:
                     if banner:
                         if "," in banner:
@@ -4273,9 +4297,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                         if len(photo_bytes) > 8 * 1024 * 1024:
                             self.send_json(400, {"error": "Баннер слишком большой (макс. 8MB)"})
                             return
-                        res = send_telegram_photo(channel, photo_bytes, "banner.png", text)
+                        res = send_telegram_photo(channel, photo_bytes, "banner.png", text,
+                                                  web_app_button=False, extra_buttons=open_btn)
                     else:
-                        res = send_telegram_message(channel, text)
+                        res = send_telegram_message(channel, text,
+                                                    web_app_button=False, extra_buttons=open_btn)
                 except Exception as e:
                     self.send_json(400, {"error": f"Ошибка публикации: {e}"})
                     return

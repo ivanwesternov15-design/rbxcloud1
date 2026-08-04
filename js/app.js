@@ -2398,11 +2398,11 @@ const App = {
 
         leaderboard.forEach((entry, i) => {
             const rank = i + 1;
-            const rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+            const rankClass = rank >= 1 && rank <= 10 ? 'top' + rank : '';
 
             const item = document.createElement('div');
             item.className = 'lb-item';
-            const rankImg = rank === 1 ? '/assets/ranks/top1.png' : rank === 2 ? '/assets/ranks/top2.png' : rank === 3 ? '/assets/ranks/top3.png' : null;
+            const rankImg = rank >= 1 && rank <= 10 ? `/assets/ranks/top${rank}.png` : null;
             const avatarSrc = entry.photo_path || entry.photo_url || '';
             const avatarEl = avatarSrc
                 ? `<img src="${avatarSrc}" alt="" onerror="this.outerHTML='<span style=&quot;font-size:20px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;&quot;>👤</span>'">`

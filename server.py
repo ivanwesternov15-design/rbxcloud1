@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260804-passive-badge-fix-1"
+BUILD_VERSION = "20260805-cases-editor-redesign-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -2010,32 +2010,34 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                             )
                             send_telegram_message(chat_id, welcome_text, web_app_button=True, extra_buttons=sub_btns)
                     else:
+                        welcome_text = (
+                            f"💎 <b>Добро пожаловать в Robux Clicker</b> — игру, где каждый клик "
+                            f"приближает тебя к Робуксам.\n\n"
+                            f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
+                            f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
+                            f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
+                            f"на свой аккаунт.\n\n"
+                            f"👇 Нажми кнопку ниже и начни играть!"
+                        )
                         send_telegram_message(
                             chat_id,
-                            f"🪙 <b>Roblox Clicker</b> 💎\n\n"
-                            f"Привет! Это кликер-игра, где ты тапаешь по монете "
-                            f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
-                            f"⚡️ <b>Что тебя ждёт:</b>\n"
-                            f"▫️ Тапай по монете и зарабатывай монеты\n"
-                            f"▫️ Прокачивай улучшения и открывай кейсы\n"
-                            f"▫️ Приглашай друзей и получай бонусы\n"
-                            f"▫️ Выводи Robux на свой аккаунт\n\n"
-                            f"Нажимай кнопку ниже и начинай зарабатывать! 👇",
+                            welcome_text,
                             web_app_button=True,
                             extra_buttons=sub_btns,
                         )
                 else:
+                    welcome_text = (
+                        f"💎 <b>Добро пожаловать в Robux Clicker</b> — игру, где каждый клик "
+                        f"приближает тебя к Робуксам.\n\n"
+                        f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
+                        f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
+                        f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
+                        f"на свой аккаунт.\n\n"
+                        f"👇 Нажми кнопку ниже и начни играть!"
+                    )
                     send_telegram_message(
                         chat_id,
-                        f"🪙 <b>Roblox Clicker</b> 💎\n\n"
-                        f"Привет! Это кликер-игра, где ты тапаешь по монете "
-                        f"и зарабатываешь настоящие <b>Robux</b>! 🚀\n\n"
-                        f"⚡️ <b>Что тебя ждёт:</b>\n"
-                        f"▫️ Тапай по монете и зарабатывай монеты\n"
-                        f"▫️ Прокачивай улучшения и открывай кейсы\n"
-                        f"▫️ Приглашай друзей и получай бонусы\n"
-                        f"▫️ Выводи Robux на свой аккаунт\n\n"
-                        f"Нажимай кнопку ниже и начинай зарабатывать! 👇",
+                        welcome_text,
                         web_app_button=True,
                         extra_buttons=sub_btns,
                     )

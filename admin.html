@@ -85,6 +85,173 @@
             padding: 14px;
             margin-top: 14px;
         }
+        .case-card {
+            background: rgba(9, 12, 17, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        }
+        .case-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 16px; right: 16px;
+            height: 3px;
+            border-radius: 0 0 6px 6px;
+            background: var(--case-accent, var(--accent));
+            opacity: 0.9;
+        }
+        .case-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding-top: 6px;
+        }
+        .case-card-header .admin-input {
+            min-width: 0;
+        }
+        .case-name-input {
+            flex: 1 1 180px;
+            font-size: 15px !important;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+        .case-id-badge {
+            font-size: 10px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            padding: 3px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .case-color-dot {
+            width: 26px; height: 26px;
+            border-radius: 8px;
+            border: 2px solid var(--glass-border);
+            cursor: pointer;
+            padding: 0;
+            background: var(--case-accent, var(--accent));
+        }
+        .case-card-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .case-meta-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .case-meta-field label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+        }
+        .case-meta-field .admin-input {
+            width: 100%;
+        }
+        .case-items-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .case-items-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .case-prob-sum {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--success);
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .case-prob-sum.bad {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+        .case-item-row {
+            display: grid;
+            grid-template-columns: minmax(120px, 1.6fr) 120px 110px 110px 80px 34px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .case-item-row .admin-input,
+        .case-item-row select.admin-input {
+            padding: 7px 9px;
+            font-size: 12px;
+            min-width: 0;
+            width: 100%;
+        }
+        .case-item-row .admin-input[type="number"] {
+            text-align: center;
+        }
+        .case-item-row .admin-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .case-item-row .admin-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .case-item-type-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        .case-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .case-empty {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border: 1px dashed var(--glass-border);
+            border-radius: 14px;
+        }
+        @media (max-width: 900px) {
+            .case-item-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .case-item-row .case-item-name-wrap {
+                grid-column: 1 / -1;
+            }
+        }
     @media (max-width: 640px) {
             .admin-panel { padding: 14px 12px; }
             .admin-header { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -130,6 +297,7 @@
   <symbol id="icon-cash" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v1H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3v1a3 3 0 0 0 6 0V8h3a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-3V1a3 3 0 0 0-3-3z"/><path d="M8 14v4"/><path d="M16 14v4"/></symbol>
   <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" stroke="#FFE44D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 5 7 5"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 5 17 5"/><path d="M4 22h16"/><path d="M10 22V2l4 4"/><path d="M14 22V2l-4 4"/></symbol>
   <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="#6AB0FF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
   <symbol id="icon-save" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
   <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   <symbol id="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="#00FF88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
@@ -721,9 +889,15 @@
             document.getElementById('save-tasks-btn').addEventListener('click', saveAdminTasks);
             document.getElementById('refresh-tasks-btn').addEventListener('click', loadTasksEdit);
             document.getElementById('save-cases-btn').addEventListener('click', async () => {
-                await API.adminSaveCases(adminCases);
-                toast('Кейсы сохранены', 'success');
-                loadCasesEdit();
+                const btn = document.getElementById('save-cases-btn');
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '<span style="opacity:0.7;">Сохранение...</span>';
+                btn.disabled = true;
+                const res = await API.adminSaveCases(adminCases);
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+                if (res && res.success) { toast('Кейсы сохранены', 'success'); loadCasesEdit(); }
+                else toast('Ошибка сохранения: ' + (res.error || 'неизвестно'), 'error');
             });
             document.getElementById('refresh-cases-btn').addEventListener('click', loadCasesEdit);
 
@@ -1872,90 +2046,218 @@
             renderTasksEdit();
         }
 
+        let caseBoosts = [];
+        const CASE_RARITIES = ['common', 'rare', 'epic', 'legendary'];
+        const CASE_ITEM_TYPES = ['coins', 'energy', 'boost', 'background', 'title'];
+        const CASE_TYPE_LABELS = { coins: 'Монеты', energy: 'Энергия', boost: 'Буст', background: 'Фон', title: 'Титул' };
+
         async function loadCasesEdit() {
             const configRes = await API.getConfig();
             adminCases = configRes.cases || [];
+            caseBoosts = (configRes.config && configRes.config.boosts) || [];
+            renderCasesEditor();
+        }
+
+        function blankCaseItem(type) {
+            const base = { type: type || 'coins', name: 'Новый предмет', probability: 0.1 };
+            if (type === 'boost') { base.boost_id = 'coins_x2'; base.duration = 300; }
+            else if (type === 'background') { base.bg_rarity = 'legendary'; }
+            else if (type === 'title') { base.title_file = ''; base.title_rarity = 'common'; }
+            else base.amount = 100;
+            return base;
+        }
+
+        function normalizeCaseItemType(item, newType) {
+            if (item.type === newType) return;
+            delete item.amount;
+            delete item.boost_id;
+            delete item.duration;
+            delete item.bg_rarity;
+            delete item.title_file;
+            delete item.title_rarity;
+            item.type = newType;
+            const fresh = blankCaseItem(newType);
+            Object.keys(fresh).forEach(k => { item[k] = fresh[k]; });
+            if (newType === 'coins' || newType === 'energy') item.name = 'Новый предмет';
+        }
+
+        function renderCaseItemRow(ci, item, ii) {
+            const pct = ((item.probability || 0) * 100).toFixed(2);
+            const type = CASE_ITEM_TYPES.includes(item.type) ? item.type : 'coins';
+            let extraCols = '';
+            if (type === 'coins' || type === 'energy') {
+                extraCols = `
+                    <div>
+                        <input class="admin-input" type="number" min="0" value="${esc(item.amount || 0)}" placeholder="Кол-во" data-ci="${ci}" data-ii="${ii}" data-ifield="amount" title="Количество">
+                    </div>
+                    <div></div>`;
+            } else if (type === 'boost') {
+                const boostOpts = (caseBoosts.length ? caseBoosts : [{ id: 'coins_x2' }, { id: 'coins_x3' }, { id: 'coins_x5' }, { id: 'auto_clicker' }])
+                    .map(b => `<option value="${esc(b.id)}" ${item.boost_id === b.id ? 'selected' : ''}>${esc(b.name || b.id)}</option>`).join('');
+                const curId = item.boost_id;
+                if (curId && !caseBoosts.some(b => b.id === curId)) {
+                    extraCols = `<div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="boost_id">${boostOpts}<option value="${esc(curId)}" selected>${esc(curId)}</option></select></div>
+                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="Сек" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Длительность (сек)"></div>`;
+                } else {
+                    extraCols = `<div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="boost_id">${boostOpts}</select></div>
+                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="Сек" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Длительность (сек)"></div>`;
+                }
+            } else if (type === 'background') {
+                extraCols = `<div>
+                    <select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="bg_rarity">
+                        ${CASE_RARITIES.map(r => `<option value="${r}" ${item.bg_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+                    </select>
+                </div><div></div>`;
+            } else if (type === 'title') {
+                extraCols = `<div><input class="admin-input" value="${esc(item.title_file || '')}" placeholder="Файл титула" data-ci="${ci}" data-ii="${ii}" data-ifield="title_file" title="Название файла в /assets/title/"></div>
+                    <div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="title_rarity">
+                        ${CASE_RARITIES.map(r => `<option value="${r}" ${item.title_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+                    </select></div>`;
+            }
+            return `<div class="case-item-row" data-item-row="${ci}-${ii}">
+                <div class="case-item-name-wrap">
+                    <input class="admin-input" value="${esc(item.name || '')}" placeholder="Название" data-ci="${ci}" data-ii="${ii}" data-ifield="name">
+                </div>
+                <div>
+                    <select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="type">
+                        ${CASE_ITEM_TYPES.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${CASE_TYPE_LABELS[t] || t}</option>`).join('')}
+                    </select>
+                </div>
+                ${extraCols}
+                <div>
+                    <input class="admin-input" type="number" min="0" max="100" step="0.01" value="${pct}" placeholder="Шанс%" data-ci="${ci}" data-ii="${ii}" data-ifield="probability" title="Шанс в %">
+                </div>
+                <button class="admin-btn danger" onclick="removeCaseItem(${ci},${ii})" title="Удалить предмет"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-close"/></svg></button>
+            </div>`;
+        }
+
+        function renderCasesEditor() {
             const div = document.getElementById('admin-cases-list');
             div.innerHTML = '';
-            const itemTypes = ['coins', 'energy', 'boost', 'background'];
+            if (!adminCases.length) {
+                div.innerHTML = '<div class="case-empty">Кейсов пока нет — нажми «+ Добавить кейс», чтобы создать первый.</div>';
+            }
             adminCases.forEach((c, ci) => {
                 const card = document.createElement('div');
-                card.style.cssText = 'background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;';
-                let itemsHtml = (c.items || []).map((item, ii) => {
-                    const pct = ((item.probability || 0) * 100).toFixed(1);
-                    return `<div style="display:grid;grid-template-columns:1fr 100px 70px 50px 28px;gap:6px;align-items:center;padding:6px 8px;background:rgba(0,0,0,0.15);border-radius:6px;margin-bottom:6px;">
-                        <input class="admin-input" value="${esc(item.name || '')}" placeholder="Название" data-ci="${ci}" data-ii="${ii}" data-ifield="name" style="padding:4px 6px;font-size:11px;width:100%;">
-                        <input class="admin-input" value="${esc(item.amount || 0)}" type="number" placeholder="Кол-во" data-ci="${ci}" data-ii="${ii}" data-ifield="amount" style="padding:4px 6px;font-size:11px;width:100%;">
-                        <select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="type" style="padding:4px 6px;font-size:11px;width:100%;">
-                            ${itemTypes.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${t}</option>`).join('')}
-                        </select>
-                        <input type="number" min="0.1" max="100" step="0.1" value="${pct}" data-ci="${ci}" data-ii="${ii}" data-ifield="probability" style="padding:4px 6px;font-size:11px;width:100%;">
-                        <button class="admin-btn danger" style="padding:3px 6px;font-size:10px;" onclick="removeCaseItem(${ci},${ii})">✕</button>
-                    </div>`;
-                }).join('');
+                card.className = 'case-card';
+                card.style.setProperty('--case-accent', c.color || '#3b82f6');
+                const items = c.items || [];
+                const sum = items.reduce((s, it) => s + (parseFloat(it.probability) || 0), 0);
+                const sumPct = (sum * 100).toFixed(1);
+                const sumOk = Math.abs(sum - 1) < 0.001;
+                const itemsHtml = items.map((item, ii) => renderCaseItemRow(ci, item, ii)).join('') ||
+                    '<div class="case-empty" style="padding:14px;margin-bottom:8px;">В кейсе нет предметов</div>';
                 card.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-                        <input class="admin-input" value="${esc(c.name)}" data-cfield="name" data-ci="${ci}" style="font-size:14px;font-weight:700;width:auto;max-width:200px;padding:4px 8px;">
-                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                            <span style="font-size:11px;color:var(--text-secondary);">Цена:</span>
-                            <input class="admin-input" value="${c.price || 0}" data-cfield="price" data-ci="${ci}" type="number" style="width:80px;padding:4px 8px;font-size:11px;">
-                            <span style="font-size:11px;color:var(--text-secondary);">Мин.выигрыш:</span>
-                            <input class="admin-input" value="${c.min_win || 0}" data-cfield="min_win" data-ci="${ci}" type="number" style="width:80px;padding:4px 8px;font-size:11px;">
-                            <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="removeCase(${ci})">Удалить кейс</button>
+                    <div class="case-card-header">
+                        <input class="admin-input case-name-input" value="${esc(c.name)}" data-cfield="name" data-ci="${ci}" placeholder="Название кейса">
+                        <span class="case-id-badge">${esc(c.id || '')}</span>
+                        <button class="admin-icon-btn danger" onclick="removeCase(${ci})" title="Удалить кейс"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
+                    </div>
+                    <div class="case-card-meta">
+                        <div class="case-meta-field">
+                            <label>Цена (монеты)</label>
+                            <input class="admin-input" value="${esc(c.price || 0)}" data-cfield="price" data-ci="${ci}" type="number" min="0">
+                        </div>
+                        <div class="case-meta-field">
+                            <label>Мин. выигрыш</label>
+                            <input class="admin-input" value="${esc(c.min_win || 0)}" data-cfield="min_win" data-ci="${ci}" type="number" min="0">
+                        </div>
+                        <div class="case-meta-field">
+                            <label>Редкость</label>
+                            <select class="admin-input" data-cfield="rarity" data-ci="${ci}">
+                                ${CASE_RARITIES.map(r => `<option value="${r}" ${c.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="case-meta-field">
+                            <label>Цвет кейса</label>
+                            <input class="admin-input" type="color" value="${esc(c.color || '#3b82f6')}" data-cfield="color" data-ci="${ci}" title="Цвет акцента карточки">
                         </div>
                     </div>
-                    <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Предметы</div>
-                    <div style="display:grid;grid-template-columns:1fr 100px 70px 50px 28px;gap:6px;margin-bottom:4px;">
-                        <span style="font-size:10px;color:var(--text-muted);">Название</span>
-                        <span style="font-size:10px;color:var(--text-muted);">Кол-во</span>
-                        <span style="font-size:10px;color:var(--text-muted);">Тип</span>
-                        <span style="font-size:10px;color:var(--text-muted);">Шанс%</span>
-                        <span></span>
+                    <div class="case-items-head">
+                        <span class="case-items-title">Предметы</span>
+                        <span class="case-prob-sum ${sumOk ? '' : 'bad'}">Шансы: ${sumPct}%${sumOk ? '' : ' — не 100%'}</span>
                     </div>
                     ${itemsHtml}
-                    <button class="admin-btn" style="margin-top:6px;padding:5px 12px;font-size:11px;" onclick="addCaseItem(${ci})">+ Добавить предмет</button>
+                    <div class="case-actions">
+                        <button class="admin-btn" onclick="addCaseItem(${ci})"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить предмет</button>
+                    </div>
                 `;
                 card.querySelectorAll('[data-cfield]').forEach(inp => {
+                    inp.addEventListener('input', () => {
+                        const idx = parseInt(inp.dataset.ci);
+                        const field = inp.dataset.cfield;
+                        if (field === 'price' || field === 'min_win') adminCases[idx][field] = parseInt(inp.value) || 0;
+                        else adminCases[idx][field] = inp.value;
+                    });
                     inp.addEventListener('change', () => {
                         const idx = parseInt(inp.dataset.ci);
                         const field = inp.dataset.cfield;
-                        adminCases[idx][field] = field === 'price' || field === 'min_win' ? (parseInt(inp.value) || 0) : inp.value;
+                        if (field === 'price' || field === 'min_win') adminCases[idx][field] = parseInt(inp.value) || 0;
+                        else adminCases[idx][field] = inp.value;
+                        if (field === 'color' || field === 'rarity') card.style.setProperty('--case-accent', adminCases[idx].color || '#3b82f6');
                     });
                 });
                 card.querySelectorAll('[data-ifield]').forEach(inp => {
-                    inp.addEventListener('change', () => {
-                        const ci = parseInt(inp.dataset.ci);
-                        const ii = parseInt(inp.dataset.ii);
+                    const upd = () => {
+                        const ci2 = parseInt(inp.dataset.ci);
+                        const ii2 = parseInt(inp.dataset.ii);
                         const field = inp.dataset.ifield;
-                        if (field === 'probability') adminCases[ci].items[ii].probability = parseFloat(inp.value) / 100 || 0.01;
-                        else if (field === 'amount') adminCases[ci].items[ii].amount = parseInt(inp.value) || 0;
-                        else adminCases[ci].items[ii][field] = inp.value;
+                        const item = adminCases[ci2].items[ii2];
+                        if (field === 'probability') item.probability = parseFloat(inp.value) / 100 || 0;
+                        else if (field === 'amount') item.amount = parseInt(inp.value) || 0;
+                        else if (field === 'duration') item.duration = parseInt(inp.value) || 0;
+                        else item[field] = inp.value;
+                        if (field === 'probability') renderProbSum(ci2);
+                    };
+                    inp.addEventListener('input', upd);
+                    inp.addEventListener('change', upd);
+                });
+                card.querySelectorAll('[data-ifield="type"]').forEach(sel => {
+                    sel.addEventListener('change', () => {
+                        const ci2 = parseInt(sel.dataset.ci);
+                        const ii2 = parseInt(sel.dataset.ii);
+                        normalizeCaseItemType(adminCases[ci2].items[ii2], sel.value);
+                        renderCasesEditor();
                     });
                 });
                 div.appendChild(card);
             });
-            // Add case button
             const addBtn = document.createElement('button');
             addBtn.className = 'admin-btn success';
-            addBtn.style.cssText = 'margin-top:8px;padding:8px 16px;font-size:12px;';
-            addBtn.textContent = '+ Добавить кейс';
+            addBtn.style.cssText = 'margin-top:8px;padding:10px 18px;font-size:13px;';
+            addBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить кейс';
             addBtn.onclick = () => {
-                adminCases.push({ id: 'case_' + Date.now(), name: 'Новый кейс', price: 1000, min_win: 0, items: [{ type: 'coins', name: 'Приз', amount: 100, probability: 1 }] });
-                loadCasesEdit();
+                adminCases.push({ id: 'case_' + Date.now(), name: 'Новый кейс', price: 1000, rarity: 'common', color: '#3b82f6', min_win: 0, items: [blankCaseItem('coins')] });
+                renderCasesEditor();
             };
             div.appendChild(addBtn);
         }
+
+        function renderProbSum(ci) {
+            const card = document.querySelectorAll('.case-card')[ci];
+            if (!card) return;
+            const items = adminCases[ci].items || [];
+            const sum = items.reduce((s, it) => s + (parseFloat(it.probability) || 0), 0);
+            const sumPct = (sum * 100).toFixed(1);
+            const sumOk = Math.abs(sum - 1) < 0.001;
+            const badge = card.querySelector('.case-prob-sum');
+            if (badge) {
+                badge.className = 'case-prob-sum' + (sumOk ? '' : ' bad');
+                badge.textContent = `Шансы: ${sumPct}%${sumOk ? '' : ' — не 100%'}`;
+            }
+        }
+
         function addCaseItem(ci) {
-            adminCases[ci].items.push({ type: 'coins', name: 'Новый предмет', amount: 100, probability: 0.1 });
-            loadCasesEdit();
+            adminCases[ci].items.push(blankCaseItem('coins'));
+            renderCasesEditor();
         }
         function removeCaseItem(ci, ii) {
             adminCases[ci].items.splice(ii, 1);
-            loadCasesEdit();
+            renderCasesEditor();
         }
         function removeCase(ci) {
             adminCases.splice(ci, 1);
-            loadCasesEdit();
+            renderCasesEditor();
         }
 
         // --- Subscription gate admin ---

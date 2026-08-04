@@ -3468,9 +3468,7 @@ body::before {
 .lb-item:hover { border-color: var(--glass-border-hover); transform: translateY(-2px); box-shadow: var(--shadow-md), var(--glow-accent); }
 
 .lb-rank { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; background: rgba(255,255,255,0.04); color: var(--text-secondary); overflow: visible; }
-.lb-rank.top1 { background: none; box-shadow: none; }
-.lb-rank.top2 { background: none; box-shadow: none; }
-.lb-rank.top3 { background: none; box-shadow: none; }
+.lb-rank.top1, .lb-rank.top2, .lb-rank.top3, .lb-rank.top4, .lb-rank.top5, .lb-rank.top6, .lb-rank.top7, .lb-rank.top8, .lb-rank.top9, .lb-rank.top10 { background: none; box-shadow: none; }
 .lb-rank-img { width: 42px; height: 42px; object-fit: contain; margin: -2px; }
 
 .lb-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); flex-shrink: 0; }

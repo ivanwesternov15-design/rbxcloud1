@@ -819,7 +819,7 @@ const App = {
         const earnedEl = document.getElementById('home-total-earned');
         const clickPowerEl = document.getElementById('home-click-power');
         if (clicksEl) clicksEl.textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' / сек';
+        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome() * 60) + ' / сек';
         if (earnedEl) earnedEl.textContent = Auth.formatNumber(Auth.user.total_earned || 0);
         if (clickPowerEl) clickPowerEl.textContent = '+' + Auth.calculateClickReward();
     },
@@ -851,7 +851,7 @@ const App = {
         document.getElementById('home-level').textContent = `${Auth.user.level || 1}`;
         document.getElementById('home-level-name').textContent = Auth.getLevelName(Auth.user.level || 1);
         document.getElementById('home-clicks').textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' / сек';
+        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome() * 60) + ' / сек';
         const cp = Auth.calculateClickReward();
         const comboChance = Math.min((Auth.user.upgrades?.click_combo || 0) * (Auth.config?.upgrades?.click_combo?.effect_per_level || 2), 50);
         const critChance = Math.min((Auth.user.upgrades?.crit_chance || 0) * (Auth.config?.upgrades?.crit_chance?.effect_per_level || 3), 45);

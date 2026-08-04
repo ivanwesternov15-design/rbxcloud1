@@ -1936,11 +1936,14 @@ body::before {
 .ticket-badge.st-rejected { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
 
 /* --- Support create panel --- */
-.support-create { padding: 16px; }
+.support-create { padding: 18px; }
+.support-create-title { font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+.support-field { margin-bottom: 12px; }
+.support-field .support-sub-label { margin-top: 14px; }
 .support-sub-label {
     font-size: 11px; font-weight: 600; color: var(--text-secondary);
     letter-spacing: 0.4px; text-transform: uppercase;
-    margin: 12px 0 8px;
+    margin: 14px 0 8px;
 }
 .support-sub-label:first-of-type { margin-top: 0; }
 .support-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
@@ -3902,6 +3905,68 @@ body::before {
 .offline-row-lbl { color: var(--text-secondary); }
 .offline-row-val { font-weight: 700; }
 .offline-claim { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* --- Admin Tickets Screen --- */
+.at-filter { padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 999px; cursor: pointer; font-family: var(--font); transition: all 0.2s; }
+.at-filter:hover { border-color: var(--glass-border-hover); }
+.at-filter.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.at-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s var(--ease-out);
+}
+.at-card:hover { border-color: var(--glass-border-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.at-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.at-card-subject { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.at-card-meta { font-size: 11px; color: var(--text-secondary); display: flex; gap: 10px; }
+
+/* --- Ticket Detail Modal (user) --- */
+.ticket-modal-header { margin-bottom: 14px; }
+.ticket-modal-num { font-size: 18px; font-weight: 800; color: var(--accent); }
+.ticket-modal-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.ticket-thread { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; max-height: 45vh; overflow-y: auto; padding-right: 4px; }
+.ticket-bubble {
+    max-width: 82%; padding: 12px 14px; border-radius: 16px; font-size: 13px;
+    line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+}
+.ticket-bubble.user {
+    background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.22);
+    align-self: flex-end; border-bottom-right-radius: 4px;
+}
+.ticket-bubble.admin {
+    background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+    align-self: flex-start; border-bottom-left-radius: 4px;
+}
+.ticket-bubble-meta { font-size: 10px; font-weight: 700; margin-bottom: 4px; }
+.ticket-bubble.user .ticket-bubble-meta { color: var(--accent); }
+.ticket-bubble.admin .ticket-bubble-meta { color: var(--green); }
+.ticket-reply-row { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.ticket-reply-area {
+    width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    color: var(--text-primary); font-size: 13px; font-family: var(--font);
+    resize: none; outline: none; transition: border-color 0.2s;
+}
+.ticket-reply-area:focus { border-color: var(--accent); }
+.ticket-reply-area::placeholder { color: var(--text-muted); }
+.ticket-send-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 13px; border: none; border-radius: var(--radius-md);
+    background: var(--grad-accent); color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: var(--font); transition: all 0.2s var(--ease-out);
+}
+.ticket-send-btn:hover { transform: translateY(-1px); box-shadow: var(--glow-accent); }
+.ticket-actions { display: flex; gap: 8px; margin-top: 10px; }
+.ticket-action-btn {
+    flex: 1; padding: 11px; border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.03); color: var(--text-primary); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font); transition: all 0.2s; text-align: center;
+}
+.ticket-action-btn:hover { border-color: var(--glass-border-hover); }
+.ticket-action-btn.danger { border-color: rgba(239,68,68,0.3); color: var(--danger); }
+.ticket-action-btn.danger:hover { background: rgba(239,68,68,0.08); }
+.ticket-action-btn.success { border-color: rgba(16,185,129,0.3); color: var(--green); }
+.ticket-action-btn.success:hover { background: rgba(16,185,129,0.08); }
+.ticket-empty { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 13px; }
 
 /* --- Case drop chances modal --- */
 .chances-header { text-align: center; margin-bottom: 16px; }

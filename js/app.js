@@ -89,7 +89,19 @@ const App = {
         this.setupNavigation();
         this.setupClicker();
         this.applyBackground();
-        this.showScreen('home');
+        // Handle startapp parameter for deep linking
+        let startScreen = 'home';
+        let startTicket = null;
+        try {
+            const params = new URLSearchParams(window.location.search);
+            startTicket = params.get('ticket');
+            const tg = window.Telegram && window.Telegram.WebApp;
+            const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || params.get('startapp') || '';
+            if (sp === 'admin-tickets' && Auth.user && Auth.user.is_admin) startScreen = 'admin-tickets';
+            else if (sp === 'support') startScreen = 'support';
+        } catch (e) {}
+        this.showScreen(startScreen);
+        if (startScreen === 'admin-tickets' && startTicket) this.openAdminTicket(startTicket);
         this.startIntervals();
         this.showOfflineEarned();
         this.updateAllUI();
@@ -379,6 +391,7 @@ const App = {
             case 'exchange': this.renderExchange(); break;
             case 'profile': this.renderProfile(); break;
             case 'support': this.renderSupport(); break;
+            case 'admin-tickets': this.renderAdminTickets(); break;
         }
     },
 
@@ -758,7 +771,7 @@ const App = {
         const earnedEl = document.getElementById('home-total-earned');
         const clickPowerEl = document.getElementById('home-click-power');
         if (clicksEl) clicksEl.textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' /сек';
+        if (passiveEl) passiveEl.textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' / сек';
         if (earnedEl) earnedEl.textContent = Auth.formatNumber(Auth.user.total_earned || 0);
         if (clickPowerEl) clickPowerEl.textContent = '+' + Auth.calculateClickReward();
     },
@@ -790,7 +803,7 @@ const App = {
         document.getElementById('home-level').textContent = `${Auth.user.level || 1}`;
         document.getElementById('home-level-name').textContent = Auth.getLevelName(Auth.user.level || 1);
         document.getElementById('home-clicks').textContent = Auth.formatNumber(Auth.user.total_clicks || 0);
-        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' /сек';
+        document.getElementById('home-passive').textContent = Auth.formatNumber(Auth.calculatePassiveIncome()) + ' / сек';
         const cp = Auth.calculateClickReward();
         const comboChance = Math.min((Auth.user.upgrades?.click_combo || 0) * (Auth.config?.upgrades?.click_combo?.effect_per_level || 2), 50);
         const critChance = Math.min((Auth.user.upgrades?.crit_chance || 0) * (Auth.config?.upgrades?.crit_chance?.effect_per_level || 3), 45);
@@ -2567,31 +2580,42 @@ const App = {
     openTicketDetail(number) {
         const t = (this._tickets || []).find(x => x.number === number);
         if (!t) return;
-        const history = (t.history || []).map(m => `
-            <div style="margin:8px 0;display:flex;${m.actor === 'admin' ? '' : 'justify-content:flex-end;'}">
-                <div style="max-width:85%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;background:${m.actor === 'admin' ? 'rgba(0,255,136,0.07)' : 'rgba(79,143,255,0.12)'};border:1px solid ${m.actor === 'admin' ? 'rgba(0,255,136,0.2)' : 'rgba(79,143,255,0.25)'};">
-                    <div style="font-size:10px;font-weight:700;margin-bottom:3px;color:${m.actor === 'admin' ? '#00FF88' : '#6AB0FF'};">${m.actor === 'admin' ? 'Администратор' : 'Вы'} · ${this.fmtTs(m.at)}</div>
-                    ${m.text}
-                </div>
-            </div>
-        `).join('');
+        const history = (t.history || []).map(m => {
+            const isUser = m.actor !== 'admin';
+            return `
+            <div class="ticket-bubble ${isUser ? 'user' : 'admin'}">
+                <div class="ticket-bubble-meta">${isUser ? 'Вы' : 'Администратор'} · ${this.fmtTs(m.at)}</div>
+                ${m.text}
+            </div>`;
+        }).join('');
         const canReply = t.status === 'open' || t.status === 'answered';
         const canRate = t.status === 'answered';
         const canCancel = t.status === 'open' && !t.admin_reply;
         this.modal(`
-            <div class="modal-title" style="font-size:17px;">Тикет #${t.number} <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">${t.status_label || t.status}</span></div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
-            ${history || '<div style="color:var(--text-muted);font-size:13px;">Сообщений нет</div>'}
+            <div class="ticket-modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="ticket-modal-num">#${t.number}</span>
+                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                </div>
+                <div class="ticket-modal-meta">${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
+            </div>
+            <div class="ticket-thread">
+                ${history || '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0;">Сообщений нет</div>'}
+            </div>
             ${canReply ? `
-                <textarea id="t-reply" class="admin-input" rows="2" placeholder="Твоё сообщение..." style="width:100%;margin-top:12px;"></textarea>
-                <button class="exchange-btn" id="t-send" style="width:100%;margin-top:8px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить</button>
+                <div class="ticket-reply-row">
+                    <textarea id="t-reply" class="ticket-reply-area" rows="2" placeholder="Твоё сообщение..."></textarea>
+                    <button class="ticket-send-btn" id="t-send">
+                        <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить
+                    </button>
+                </div>
             ` : ''}
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:${canReply ? '10px' : '14px'};">
+            <div class="ticket-actions">
                 ${canRate ? `
-                    <button class="exchange-btn" id="t-rate-ok" style="flex:1;">👍 Спасибо</button>
-                    <button class="exchange-btn" id="t-rate-bad" style="flex:1;border-color:rgba(239,68,68,0.4);color:#EF4444;">👎 Ответ не устроил</button>
+                    <button class="ticket-action-btn success" id="t-rate-ok">👍 Спасибо</button>
+                    <button class="ticket-action-btn danger" id="t-rate-bad">👎 Не устроил</button>
                 ` : ''}
-                ${canCancel ? `<button class="exchange-btn" id="t-cancel" style="border-color:rgba(239,68,68,0.4);color:#EF4444;">Отменить тикет</button>` : ''}
+                ${canCancel ? `<button class="ticket-action-btn danger" id="t-cancel">Отменить тикет</button>` : ''}
             </div>
         `);
         if (canReply) {
@@ -2632,6 +2656,118 @@ const App = {
                 this.renderSupport();
             };
         }
+    },
+
+    // --- ADMIN TICKETS SCREEN ---
+    _admTickets: [],
+    _admTicketsFilter: 'all',
+
+    async renderAdminTickets() {
+        if (this.currentScreen !== 'admin-tickets') return;
+        const res = await API.post('/api/admin/tickets', { status: '' });
+        if (res.error) {
+            document.getElementById('adm-tickets-list').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Ошибка загрузки</div>';
+            return;
+        }
+        this._admTickets = res.tickets || [];
+        const counts = { all: this._admTickets.length };
+        this._admTickets.forEach(t => { counts[t.status] = (counts[t.status] || 0) + 1; });
+        const order = ['all', 'open', 'answered', 'closed', 'rejected'];
+        const labels = { all: 'Все', open: 'Открыт', answered: 'Отвечен', closed: 'Закрыт', rejected: 'Отклонён' };
+        document.getElementById('adm-tickets-filters').innerHTML = order.map(f =>
+            `<button class="at-filter ${f === this._admTicketsFilter ? 'active' : ''}" data-f="${f}">${labels[f]} (${counts[f] || 0})</button>`
+        ).join('');
+        document.querySelectorAll('#adm-tickets-filters .at-filter').forEach(b => {
+            b.onclick = () => { this._admTicketsFilter = b.dataset.f; this.renderAdminTickets(); };
+        });
+        const filtered = this._admTickets.filter(t => this._admTicketsFilter === 'all' || t.status === this._admTicketsFilter);
+        const list = document.getElementById('adm-tickets-list');
+        if (!filtered.length) {
+            list.innerHTML = '<div class="ticket-empty">Тикетов нет</div>';
+            return;
+        }
+        list.innerHTML = filtered.map(t => `
+            <div class="at-card" data-num="${t.number}">
+                <div class="at-card-top">
+                    <span style="font-weight:800;color:var(--accent);font-size:14px;">#${t.number}</span>
+                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                    <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${this.fmtTs(t.updated_at)}</span>
+                </div>
+                <div class="at-card-subject">${t.subject || ''}</div>
+                <div class="at-card-meta">
+                    <span>👤 ${t.user_name || t.user_id}</span>
+                    <span>📂 ${t.category_label || ''}</span>
+                    <span>💬 ${(t.history || []).length} сообщ.</span>
+                </div>
+            </div>
+        `).join('');
+        list.querySelectorAll('.at-card').forEach(c => {
+            c.onclick = () => this.openAdminTicket(parseInt(c.dataset.num));
+        });
+    },
+
+    async openAdminTicket(number) {
+        let t = this._admTickets.find(x => x.number === number);
+        if (!t) {
+            const res = await API.post('/api/admin/tickets', { status: '' });
+            if (res.error || !res.tickets) return;
+            this._admTickets = res.tickets || [];
+            t = this._admTickets.find(x => x.number === number);
+        }
+        if (!t) return;
+        const history = (t.history || []).map(m => {
+            const isUser = m.actor !== 'admin';
+            return `
+            <div class="ticket-bubble ${isUser ? 'user' : 'admin'}">
+                <div class="ticket-bubble-meta">${isUser ? (t.user_name || 'Пользователь') : 'Администратор'} · ${this.fmtTs(m.at)}</div>
+                ${m.text}
+            </div>`;
+        }).join('');
+        this.modal(`
+            <div class="ticket-modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="ticket-modal-num">#${t.number}</span>
+                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                </div>
+                <div class="ticket-modal-meta">👤 ${t.user_name || t.user_id} · ${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
+            </div>
+            <div class="ticket-thread">
+                ${history || '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0;">Сообщений нет</div>'}
+            </div>
+            <div class="ticket-reply-row">
+                <textarea id="adm-t-reply" class="ticket-reply-area" rows="2" placeholder="Ответ пользователю..."></textarea>
+                <button class="ticket-send-btn" id="adm-t-send">
+                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Ответить
+                </button>
+            </div>
+            <div class="ticket-actions">
+                <button class="ticket-action-btn" id="adm-t-close">Закрыть</button>
+                <button class="ticket-action-btn danger" id="adm-t-reject">Отклонить</button>
+            </div>
+        `);
+        document.getElementById('adm-t-send').onclick = async () => {
+            const msg = document.getElementById('adm-t-reply').value.trim();
+            if (!msg) { this.showToast('Введите текст', 'error'); return; }
+            const res = await API.post('/api/admin/tickets_reply', { number, message: msg });
+            if (res.error) { this.showToast(res.error, 'error'); return; }
+            this.closeModal();
+            this.showToast('Ответ отправлен', 'success');
+            this.renderAdminTickets();
+        };
+        document.getElementById('adm-t-close').onclick = async () => {
+            const res = await API.post('/api/admin/tickets_status', { number, status: 'closed' });
+            if (res.error) { this.showToast(res.error, 'error'); return; }
+            this.closeModal();
+            this.showToast('Тикет закрыт', 'success');
+            this.renderAdminTickets();
+        };
+        document.getElementById('adm-t-reject').onclick = async () => {
+            const res = await API.post('/api/admin/tickets_status', { number, status: 'rejected' });
+            if (res.error) { this.showToast(res.error, 'error'); return; }
+            this.closeModal();
+            this.showToast('Тикет отклонён', 'success');
+            this.renderAdminTickets();
+        };
     },
 
     // --- ROBUX WITHDRAW SYSTEM ---

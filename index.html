@@ -388,14 +388,14 @@
             </div>
 
             <div id="support-create-panel" class="glass-card support-create" style="display:none;margin-bottom:16px;">
-                <div class="profile-stats-title" style="margin-bottom:6px;">Создать тикет</div>
+                <div class="support-create-title">Создать тикет</div>
                 <div class="support-sub-label">Что случилось?</div>
                 <div class="support-cats" id="support-category"></div>
-                <div style="margin-bottom:10px;">
+                <div class="support-field">
                     <div class="support-sub-label">Тема (необязательно)</div>
                     <input class="admin-input" id="support-subject" placeholder="Кратко опиши вопрос" style="width:100%;">
                 </div>
-                <div style="margin-bottom:10px;">
+                <div class="support-field">
                     <div class="support-sub-label">Сообщение</div>
                     <textarea class="admin-input" id="support-message" rows="3" placeholder="Опиши проблему подробно..." style="width:100%;"></textarea>
                 </div>
@@ -405,6 +405,15 @@
             </div>
 
             <div id="support-tickets" class="support-list">
+                <div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- Screen: Admin Tickets -->
+        <div id="screen-admin-tickets" class="screen">
+            <div class="section-title" style="margin-bottom:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты поддержки</div>
+            <div id="adm-tickets-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+            <div id="adm-tickets-list">
                 <div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Загрузка...</div>
             </div>
         </div>
@@ -639,10 +648,11 @@
     <!-- Case Animation Overlay -->
     <div id="case-animation" class="case-animation-overlay"></div>
 
-    <script src="/js/api.js?v=20260804-design-tickets-admin-1"></script>
+    <script src="/js/api.js?v=20260804-tickets-notify-polish-1"></script>
 
-    <script src="/js/auth.js?v=20260804-design-tickets-admin-1"></script>
+    <script src="/js/auth.js?v=20260804-tickets-notify-polish-1"></script>
 
-    <script src="/js/app.js?v=20260804-design-tickets-admin-1"></script>
+    <script src="/js/app.js?v=20260804-tickets-notify-polish-1"></script>
 </body>
 </html>
+

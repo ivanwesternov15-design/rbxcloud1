@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260804-design-tickets-admin-1"
+BUILD_VERSION = "20260804-tickets-notify-polish-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -625,6 +625,19 @@ def serialize_ticket(ticket):
     t["status_label"] = TICKET_STATUS_LABELS.get(t.get("status", ""), t.get("status", ""))
     return t
 
+def format_ticket_info(ticket):
+    """Pretty ticket info block for Telegram notifications."""
+    num = ticket.get("number")
+    cat = TICKET_CATEGORIES.get(ticket.get("category", ""), "")
+    subject = (ticket.get("subject") or cat or "—").strip()
+    msgs = len(ticket.get("history", []))
+    return (
+        f"🎫 <b>Тикет #{num}</b>\n"
+        f"📂 <b>Категория:</b> {cat or '—'}\n"
+        f"📝 <b>Тема:</b> {subject}\n"
+        f"💬 <b>Сообщений:</b> {msgs}"
+    )
+
 def notify_admins_ticket(ticket, text):
     """Notify every admin about a new ticket message with a link to the panel."""
     for admin_id in ADMIN_TELEGRAM_IDS:
@@ -634,8 +647,9 @@ def notify_admins_ticket(ticket, text):
                 text,
                 web_app_button=False,
                 extra_buttons=[{
-                    "text": f"Открыть тикет #{ticket.get('number')}",
-                    "url": BASE_URL.rstrip("/") + "/admin-tickets.html?ticket=" + str(ticket.get("number")),
+                    "text": f"🎫 Открыть тикет #{ticket.get('number')}",
+                    "web_app": True,
+                    "url": BASE_URL.rstrip("/") + "/?startapp=admin-tickets&ticket=" + str(ticket.get("number")),
                 }],
             )
         except Exception:
@@ -1146,7 +1160,8 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True,
     for btn in extra_buttons or []:
         row = []
         if btn.get("web_app") and BASE_URL:
-            row.append({"text": btn["text"], "web_app": {"url": BASE_URL}})
+            btn_url = btn.get("url") or BASE_URL
+            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
         elif btn.get("url"):
             row.append({"text": btn["text"], "url": btn["url"]})
         if row:
@@ -3397,11 +3412,10 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     uname = ticket_user_name(user)
                     notify_admins_ticket(
                         ticket,
-                        f"🎫 <b>Новый тикет #{number}</b>\n"
-                        f"Пользователь: {uname} (<code>{telegram_id}</code>)\n"
-                        f"Категория: {TICKET_CATEGORIES.get(category, category)}\n"
-                        f"Тема: {subject or '—'}\n"
-                        f"Сообщение: {message[:200]}",
+                        f"🆕 <b>Новый тикет #{number}</b>\n\n"
+                        f"{format_ticket_info(ticket)}\n"
+                        f"👤 <b>От:</b> {uname} (<code>{telegram_id}</code>)\n\n"
+                        f"💬 <b>Сообщение:</b>\n{message[:300]}",
                     )
                 except Exception:
                     pass
@@ -3440,7 +3454,10 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                     uname = ticket_user_name(user)
                     notify_admins_ticket(
                         ticket,
-                        f"💬 <b>Новое сообщение в тикете #{number}</b> от {uname}:\n{message[:200]}",
+                        f"💬 <b>Новое сообщение в тикете #{number}</b>\n\n"
+                        f"{format_ticket_info(ticket)}\n"
+                        f"👤 <b>От:</b> {uname}\n\n"
+                        f"💬 <b>Сообщение:</b>\n{message[:300]}",
                     )
                 except Exception:
                     pass
@@ -3550,7 +3567,10 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 try:
                     send_telegram_message(
                         ticket.get("user_id"),
-                        f"📬 <b>Ответ по тикету #{number}</b>\n\n{message}\n\nОцени решение в разделе «Обратная связь» в игре.",
+                        f"📬 <b>Ответ по тикету #{number}</b>\n\n"
+                        f"{format_ticket_info(ticket)}\n\n"
+                        f"🛠 <b>Ответ администратора:</b>\n{message}\n\n"
+                        f"✨ Оцени решение в разделе «Обратная связь» в игре — это помогает нам стать лучше!",
                         web_app_button=True,
                     )
                 except Exception:
@@ -3580,9 +3600,14 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 save_tickets(tdata)
                 audit_admin(telegram_id, "ticket_status", f"#{number} {status}")
                 try:
+                    emoji = "✅" if status == "closed" else "🚫"
                     send_telegram_message(
                         ticket.get("user_id"),
-                        f"ℹ️ <b>Тикет #{number}</b>\n\n{note}.",
+                        f"{emoji} <b>{note}</b>\n\n"
+                        f"{format_ticket_info(ticket)}\n\n"
+                        + ("Если у тебя остались вопросы — создай новый тикет в разделе «Обратная связь»."
+                           if status == "closed"
+                           else "Если считаешь, что это ошибка — создай новый тикет, и мы перепроверим."),
                         web_app_button=True,
                     )
                 except Exception:

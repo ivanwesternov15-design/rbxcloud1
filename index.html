@@ -147,6 +147,7 @@
                 <a id="log-btn" href="/logs.html" target="logs" title="Журнал событий" style="display:none;text-decoration:none;color:var(--text-secondary);font-size:18px;position:relative;transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-scroll"/></svg><span id="log-error-badge" style="display:none;position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;background:var(--danger,#ff5c5c);color:#fff;font-size:10px;font-weight:800;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;">0</span></a>
                 <a id="admin-gear-btn" href="/admin.html" style="display:none; text-decoration:none; color:var(--text-secondary); font-size:20px; transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg></a>
                 <div class="header-online" id="header-online" style="display:none;font-size:11px;color:var(--success);align-items:center;gap:4px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-online"/></svg> <span id="header-online-count">0</span></div>
+                <button id="tickets-btn" type="button" title="Тикеты поддержки" style="display:none;background:none;border:none;padding:4px;cursor:pointer;color:var(--text-secondary);font-size:19px;position:relative;line-height:1;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-sent"/></svg><span id="tickets-badge" style="display:none;position:absolute;top:-4px;right:-6px;min-width:16px;height:16px;background:var(--danger,#ff5c5c);color:#fff;font-size:10px;font-weight:800;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;">1</span></button>
                 <div class="header-coins">
                     <img src="/assets/icons/coin.png" class="coin-icon-png" alt="">
                     <span id="header-coins">0</span>
@@ -405,16 +406,17 @@
             </div>
 
             <div id="support-tickets" class="support-list">
-                <div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Загрузка...</div>
+                <div class="tk-empty">Загрузка...</div>
             </div>
         </div>
 
         <!-- Screen: Admin Tickets -->
         <div id="screen-admin-tickets" class="screen">
-            <div class="section-title" style="margin-bottom:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты поддержки</div>
-            <div id="adm-tickets-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+            <div class="section-title" style="margin-bottom:4px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты поддержки</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Ответы на обращения пользователей</div>
+            <div id="adm-tickets-filters"></div>
             <div id="adm-tickets-list">
-                <div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Загрузка...</div>
+                <div class="tk-empty">Загрузка...</div>
             </div>
         </div>
 
@@ -648,11 +650,11 @@
     <!-- Case Animation Overlay -->
     <div id="case-animation" class="case-animation-overlay"></div>
 
-    <script src="/js/api.js?v=20260804-tickets-notify-polish-1"></script>
+    <script src="/js/api.js?v=20260804-tickets-redesign-1"></script>
 
-    <script src="/js/auth.js?v=20260804-tickets-notify-polish-1"></script>
+    <script src="/js/auth.js?v=20260804-tickets-redesign-1"></script>
 
-    <script src="/js/app.js?v=20260804-tickets-notify-polish-1"></script>
+    <script src="/js/app.js?v=20260804-tickets-redesign-1"></script>
 </body>
 </html>
 

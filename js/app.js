@@ -115,8 +115,12 @@ const App = {
             if (logBtn) logBtn.style.display = 'inline';
         }
         
+        // Tickets header button
+        this.setupTicketsBtn();
+        
         // Start online counter
         this.startOnlineCounter();
+        this.updateTicketsBadge();
         
         // Refresh user data when the tab regains focus (e.g. after the admin
         // panel granted coins in another tab) so balances update immediately.
@@ -487,6 +491,7 @@ const App = {
     startOnlineCounter() {
         this.updateOnlineCount();
         setInterval(() => this.updateOnlineCount(), 5000);
+        setInterval(() => this.updateTicketsBadge(), 15000);
     },
 
     // Auto-clicker live ticker: send real clicks while the auto_clicker boost
@@ -549,6 +554,42 @@ const App = {
                 el.style.display = 'flex';
                 countEl.textContent = res.online;
             }
+        }
+    },
+
+    setupTicketsBtn() {
+        const btn = document.getElementById('tickets-btn');
+        if (!btn) return;
+        btn.style.display = 'inline-flex';
+        btn.addEventListener('click', () => {
+            if (Auth.user && Auth.user.is_admin) {
+                this.showScreen('admin-tickets');
+            } else {
+                this.showScreen('support');
+            }
+        });
+    },
+
+    // Count tickets with an unread admin reply (status 'answered' means admin
+    // replied and the user hasn't rated/closed it yet).
+    async updateTicketsBadge() {
+        if (!Auth.user) return;
+        const badge = document.getElementById('tickets-badge');
+        const btn = document.getElementById('tickets-btn');
+        if (!badge || !btn) return;
+        try {
+            const res = await API.ticketsList();
+            const unread = (res.tickets || []).filter(t => t.status === 'answered');
+            if (unread.length > 0) {
+                badge.textContent = unread.length > 9 ? '9+' : String(unread.length);
+                badge.style.display = 'flex';
+                btn.style.color = 'var(--danger,#ff5c5c)';
+            } else {
+                badge.style.display = 'none';
+                btn.style.color = '';
+            }
+        } catch (e) {
+            // ignore transient errors
         }
     },
 
@@ -2552,21 +2593,35 @@ const App = {
         this._tickets = tickets;
         const list = document.getElementById('support-tickets');
         if (!tickets.length) {
-            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px 0;font-size:13px;">Тикетов пока нет — нажми «Новый тикет»</div>';
+            list.innerHTML = '<div class="tk-empty">Тикетов пока нет — нажми «Новый тикет»</div>';
             return;
         }
-        list.innerHTML = tickets.map(t => `
-            <div class="glass-card" data-num="${t.number}" style="margin-bottom:10px;padding:14px;cursor:pointer;">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-weight:800;color:var(--accent);">#${t.number}</span>
-                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
-                    <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${this.fmtTs(t.updated_at)}</span>
+        const catIcons = { robux: 'icon-coin', withdraw: 'icon-send', purchase: 'icon-gift', bug: 'icon-explosion', suggestion: 'icon-star', other: 'icon-dice' };
+        const lastMsg = (t) => {
+            const h = t.history || [];
+            return h.length ? h[h.length - 1].text : (t.subject || '');
+        };
+        list.innerHTML = tickets.map(t => {
+            const ic = catIcons[t.category] || 'icon-ticket';
+            return `
+            <div class="tk-item st-${t.status}" data-num="${t.number}">
+                <div class="tk-avatar"><svg class="icon" viewBox="0 0 24 24"><use href="#${ic}"/></svg></div>
+                <div class="tk-item-body">
+                    <div class="tk-item-top">
+                        <span class="tk-item-num">#${t.number}</span>
+                        <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                        <span class="tk-item-time">${this.fmtRel(t.updated_at)}</span>
+                    </div>
+                    <div class="tk-item-subject">${t.subject || t.category_label || ''}</div>
+                    <div class="tk-item-preview">${lastMsg(t)}</div>
+                    <div class="tk-item-meta">
+                        <span>${t.category_label || ''}</span>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-sent"/></svg> ${(t.history || []).length}</span>
+                    </div>
                 </div>
-                <div style="font-size:13px;font-weight:600;margin-top:6px;color:var(--text-primary);">${t.subject || ''}</div>
-                <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${t.category_label || ''} · ${(t.history || []).length} сообщ.</div>
-            </div>
-        `).join('');
-        list.querySelectorAll('.glass-card').forEach(c => {
+            </div>`;
+        }).join('');
+        list.querySelectorAll('.tk-item').forEach(c => {
             c.onclick = () => this.openTicketDetail(parseInt(c.dataset.num));
         });
     },
@@ -2577,45 +2632,61 @@ const App = {
         return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     },
 
+    fmtRel(ts) {
+        if (!ts) return '—';
+        const now = Math.floor(Date.now() / 1000);
+        const diff = now - ts;
+        if (diff < 60) return 'только что';
+        if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+        if (diff < 172800) return 'вчера';
+        if (diff < 604800) return Math.floor(diff / 86400) + ' дн назад';
+        return this.fmtTs(ts);
+    },
+
     openTicketDetail(number) {
         const t = (this._tickets || []).find(x => x.number === number);
         if (!t) return;
         const history = (t.history || []).map(m => {
             const isUser = m.actor !== 'admin';
-            return `
-            <div class="ticket-bubble ${isUser ? 'user' : 'admin'}">
-                <div class="ticket-bubble-meta">${isUser ? 'Вы' : 'Администратор'} · ${this.fmtTs(m.at)}</div>
-                ${m.text}
-            </div>`;
+            const who = isUser ? 'Вы' : 'Администратор';
+            return `<div class="ticket-bubble ${isUser ? 'user' : 'admin'}"><div class="ticket-bubble-meta">${who}</div>${m.text}<div class="ticket-bubble-time">${this.fmtTs(m.at)}</div></div>`;
         }).join('');
         const canReply = t.status === 'open' || t.status === 'answered';
         const canRate = t.status === 'answered';
         const canCancel = t.status === 'open' && !t.admin_reply;
+        const catIcons = { robux: 'icon-coin', withdraw: 'icon-send', purchase: 'icon-gift', bug: 'icon-explosion', suggestion: 'icon-star', other: 'icon-dice' };
+        const ic = catIcons[t.category] || 'icon-ticket';
         this.modal(`
-            <div class="ticket-modal-header">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="ticket-modal-num">#${t.number}</span>
-                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+            <div class="ticket-modal">
+                <div class="ticket-modal-header">
+                    <div class="tk-modal-avatar"><svg class="icon" viewBox="0 0 24 24"><use href="#${ic}"/></svg></div>
+                    <div class="tk-modal-head">
+                        <div class="tk-modal-title">
+                            <span>#${t.number}</span>
+                            <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                        </div>
+                        <div class="tk-modal-meta">${t.category_label || ''} · ${this.fmtRel(t.created_at)}</div>
+                    </div>
                 </div>
-                <div class="ticket-modal-meta">${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
-            </div>
-            <div class="ticket-thread">
-                ${history || '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0;">Сообщений нет</div>'}
-            </div>
-            ${canReply ? `
-                <div class="ticket-reply-row">
-                    <textarea id="t-reply" class="ticket-reply-area" rows="2" placeholder="Твоё сообщение..."></textarea>
-                    <button class="ticket-send-btn" id="t-send">
-                        <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить
-                    </button>
+                <div class="ticket-thread">
+                    ${history || '<div class="ticket-empty">Сообщений нет</div>'}
                 </div>
-            ` : ''}
-            <div class="ticket-actions">
-                ${canRate ? `
-                    <button class="ticket-action-btn success" id="t-rate-ok">👍 Спасибо</button>
-                    <button class="ticket-action-btn danger" id="t-rate-bad">👎 Не устроил</button>
+                ${canReply ? `
+                    <div class="ticket-reply-row">
+                        <textarea id="t-reply" class="ticket-reply-area" rows="2" placeholder="Твоё сообщение..."></textarea>
+                        <button class="ticket-send-btn" id="t-send">
+                            <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить
+                        </button>
+                    </div>
                 ` : ''}
-                ${canCancel ? `<button class="ticket-action-btn danger" id="t-cancel">Отменить тикет</button>` : ''}
+                <div class="ticket-actions">
+                    ${canRate ? `
+                        <button class="ticket-action-btn success" id="t-rate-ok"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Спасибо</button>
+                        <button class="ticket-action-btn danger" id="t-rate-bad">👎 Не устроил</button>
+                    ` : ''}
+                    ${canCancel ? `<button class="ticket-action-btn danger" id="t-cancel">Отменить</button>` : ''}
+                </div>
             </div>
         `);
         if (canReply) {
@@ -2674,9 +2745,9 @@ const App = {
         this._admTickets.forEach(t => { counts[t.status] = (counts[t.status] || 0) + 1; });
         const order = ['all', 'open', 'answered', 'closed', 'rejected'];
         const labels = { all: 'Все', open: 'Открыт', answered: 'Отвечен', closed: 'Закрыт', rejected: 'Отклонён' };
-        document.getElementById('adm-tickets-filters').innerHTML = order.map(f =>
-            `<button class="at-filter ${f === this._admTicketsFilter ? 'active' : ''}" data-f="${f}">${labels[f]} (${counts[f] || 0})</button>`
-        ).join('');
+        document.getElementById('adm-tickets-filters').innerHTML = `<div class="at-filters">` + order.map(f =>
+            `<button class="at-filter ${f === this._admTicketsFilter ? 'active' : ''}" data-f="${f}">${labels[f]}<span class="at-count">${counts[f] || 0}</span></button>`
+        ).join('') + `</div>`;
         document.querySelectorAll('#adm-tickets-filters .at-filter').forEach(b => {
             b.onclick = () => { this._admTicketsFilter = b.dataset.f; this.renderAdminTickets(); };
         });
@@ -2686,21 +2757,27 @@ const App = {
             list.innerHTML = '<div class="ticket-empty">Тикетов нет</div>';
             return;
         }
-        list.innerHTML = filtered.map(t => `
+        const lastMsg = (t) => {
+            const h = t.history || [];
+            return h.length ? h[h.length - 1].text : (t.subject || '');
+        };
+        const initials = (name) => (name || '?').trim().charAt(0).toUpperCase();
+        list.innerHTML = `<div class="at-list">` + filtered.map(t => `
             <div class="at-card" data-num="${t.number}">
                 <div class="at-card-top">
-                    <span style="font-weight:800;color:var(--accent);font-size:14px;">#${t.number}</span>
+                    <span class="at-card-num">#${t.number}</span>
                     <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
-                    <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${this.fmtTs(t.updated_at)}</span>
+                    <span class="at-card-time">${this.fmtRel(t.updated_at)}</span>
                 </div>
-                <div class="at-card-subject">${t.subject || ''}</div>
+                <div class="at-card-subject">${t.subject || t.category_label || ''}</div>
+                <div class="at-card-preview">${lastMsg(t)}</div>
                 <div class="at-card-meta">
-                    <span>👤 ${t.user_name || t.user_id}</span>
-                    <span>📂 ${t.category_label || ''}</span>
-                    <span>💬 ${(t.history || []).length} сообщ.</span>
+                    <span><span class="at-user-badge">${initials(t.user_name)}</span> ${t.user_name || t.user_id}</span>
+                    <span><span class="at-bubble-mini" style="color:var(--accent);"></span> ${t.category_label || ''}</span>
+                    <span><span class="at-bubble-mini" style="color:var(--text-muted);"></span> ${(t.history || []).length} сообщ.</span>
                 </div>
             </div>
-        `).join('');
+        `).join('') + `</div>`;
         list.querySelectorAll('.at-card').forEach(c => {
             c.onclick = () => this.openAdminTicket(parseInt(c.dataset.num));
         });
@@ -2717,32 +2794,37 @@ const App = {
         if (!t) return;
         const history = (t.history || []).map(m => {
             const isUser = m.actor !== 'admin';
-            return `
-            <div class="ticket-bubble ${isUser ? 'user' : 'admin'}">
-                <div class="ticket-bubble-meta">${isUser ? (t.user_name || 'Пользователь') : 'Администратор'} · ${this.fmtTs(m.at)}</div>
-                ${m.text}
-            </div>`;
+            const who = isUser ? (t.user_name || 'Пользователь') : 'Администратор';
+            return `<div class="ticket-bubble ${isUser ? 'user' : 'admin'}"><div class="ticket-bubble-meta">${who}</div>${m.text}<div class="ticket-bubble-time">${this.fmtTs(m.at)}</div></div>`;
         }).join('');
+        const catIcons = { robux: 'icon-coin', withdraw: 'icon-send', purchase: 'icon-gift', bug: 'icon-explosion', suggestion: 'icon-star', other: 'icon-dice' };
+        const ic = catIcons[t.category] || 'icon-ticket';
+        const initials = (name) => (name || '?').trim().charAt(0).toUpperCase();
         this.modal(`
-            <div class="ticket-modal-header">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="ticket-modal-num">#${t.number}</span>
-                    <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+            <div class="ticket-modal">
+                <div class="ticket-modal-header">
+                    <div class="tk-modal-avatar">${initials(t.user_name)}</div>
+                    <div class="tk-modal-head">
+                        <div class="tk-modal-title">
+                            <span>#${t.number}</span>
+                            <span class="ticket-badge st-${t.status}">${t.status_label || t.status}</span>
+                        </div>
+                        <div class="tk-modal-meta">${t.user_name || t.user_id} · ${t.category_label || ''} · ${this.fmtRel(t.created_at)}</div>
+                    </div>
                 </div>
-                <div class="ticket-modal-meta">👤 ${t.user_name || t.user_id} · ${t.category_label || ''} · создан ${this.fmtTs(t.created_at)}</div>
-            </div>
-            <div class="ticket-thread">
-                ${history || '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0;">Сообщений нет</div>'}
-            </div>
-            <div class="ticket-reply-row">
-                <textarea id="adm-t-reply" class="ticket-reply-area" rows="2" placeholder="Ответ пользователю..."></textarea>
-                <button class="ticket-send-btn" id="adm-t-send">
-                    <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Ответить
-                </button>
-            </div>
-            <div class="ticket-actions">
-                <button class="ticket-action-btn" id="adm-t-close">Закрыть</button>
-                <button class="ticket-action-btn danger" id="adm-t-reject">Отклонить</button>
+                <div class="ticket-thread">
+                    ${history || '<div class="ticket-empty">Сообщений нет</div>'}
+                </div>
+                <div class="ticket-reply-row">
+                    <textarea id="adm-t-reply" class="ticket-reply-area" rows="2" placeholder="Ответ пользователю..."></textarea>
+                    <button class="ticket-send-btn" id="adm-t-send">
+                        <svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Ответить
+                    </button>
+                </div>
+                <div class="ticket-actions">
+                    <button class="ticket-action-btn" id="adm-t-close"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Закрыть</button>
+                    <button class="ticket-action-btn danger" id="adm-t-reject"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> Отклонить</button>
+                </div>
             </div>
         `);
         document.getElementById('adm-t-send').onclick = async () => {

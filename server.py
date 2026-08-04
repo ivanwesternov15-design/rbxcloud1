@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260805-png-compress-income-label-1"
+BUILD_VERSION = "20260805-income-min-cache-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -1897,7 +1897,14 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_cors_headers()
         self.send_header("Content-Type", mime)
-        self.send_header("Cache-Control", "no-cache")
+        if ext == ".html":
+            self.send_header("Cache-Control", "no-cache")
+        elif ext in (".js", ".css"):
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+        elif ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico"):
+            self.send_header("Cache-Control", "public, max-age=604800")
+        else:
+            self.send_header("Cache-Control", "no-cache")
         self.end_headers()
         
         with open(file_path, "rb") as f:
@@ -2011,12 +2018,12 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                             send_telegram_message(chat_id, welcome_text, web_app_button=True, extra_buttons=sub_btns)
                     else:
                         welcome_text = (
-                            f"💎 <b>Добро пожаловать в Robux Clicker</b> — игру, где каждый клик "
+                            f"💎 Добро пожаловать в Robux Clicker — игру, где каждый клик "
                             f"приближает тебя к Робуксам.\n\n"
                             f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
                             f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
                             f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
-                            f"на свой аккаунт.\n\n"
+                            f"на свой аккаунт.\n"
                             f"👇 Нажми кнопку ниже и начни играть!"
                         )
                         send_telegram_message(
@@ -2027,12 +2034,12 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                         )
                 else:
                     welcome_text = (
-                        f"💎 <b>Добро пожаловать в Robux Clicker</b> — игру, где каждый клик "
+                        f"💎 Добро пожаловать в Robux Clicker — игру, где каждый клик "
                         f"приближает тебя к Робуксам.\n\n"
                         f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
                         f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
                         f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
-                        f"на свой аккаунт.\n\n"
+                        f"на свой аккаунт.\n"
                         f"👇 Нажми кнопку ниже и начни играть!"
                     )
                     send_telegram_message(

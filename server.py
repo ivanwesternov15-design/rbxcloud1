@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260804-tickets-redesign-1"
+BUILD_VERSION = "20260804-passive-badge-fix-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -1451,9 +1451,12 @@ def calculate_boost_multiplier(user):
 
 def get_passive_income_per_sec(user, config, backgrounds=None):
     """Server-authoritative passive income per second (mirrors client formula)."""
-    rate = user.get("passive_income", 0) or 0
     upgrades = config.get("upgrades", {})
     up = user.get("upgrades", {})
+    pi_def = upgrades.get("passive_income", {})
+    rate = up.get("passive_income", 0) * pi_def.get("effect_per_level", 0)
+    if rate == 0:
+        rate = user.get("passive_income", 0) or 0
     profit_def = upgrades.get("profit_mult", {})
     profit = up.get("profit_mult", 0)
     rate = rate * (1 + profit * profit_def.get("effect_per_level", 2) / 100)

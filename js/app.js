@@ -491,7 +491,7 @@ const App = {
     startOnlineCounter() {
         this.updateOnlineCount();
         setInterval(() => this.updateOnlineCount(), 5000);
-        setInterval(() => this.updateTicketsBadge(), 15000);
+        setInterval(() => this.updateTicketsBadge(), 5000);
     },
 
     // Auto-clicker live ticker: send real clicks while the auto_clicker boost
@@ -570,23 +570,30 @@ const App = {
         });
     },
 
-    // Count tickets with an unread admin reply (status 'answered' means admin
-    // replied and the user hasn't rated/closed it yet).
+    // Red badge on the header tickets button.
+    // - regular user: count tickets with an unread admin reply (status 'answered')
+    // - admin: count new open tickets that need attention
     async updateTicketsBadge() {
         if (!Auth.user) return;
         const badge = document.getElementById('tickets-badge');
         const btn = document.getElementById('tickets-btn');
-        if (!badge || !btn) return;
+        if (!badge) return;
+        let unread = 0;
         try {
-            const res = await API.ticketsList();
-            const unread = (res.tickets || []).filter(t => t.status === 'answered');
-            if (unread.length > 0) {
-                badge.textContent = unread.length > 9 ? '9+' : String(unread.length);
+            if (Auth.user.is_admin) {
+                const res = await API.post('/api/admin/tickets', { status: 'open' });
+                unread = (res.tickets || []).length;
+            } else {
+                const res = await API.ticketsList();
+                unread = (res.tickets || []).filter(t => t.status === 'answered').length;
+            }
+            if (unread > 0) {
+                badge.textContent = unread > 9 ? '9+' : String(unread);
                 badge.style.display = 'flex';
-                btn.style.color = 'var(--danger,#ff5c5c)';
+                if (btn) btn.classList.add('has-unread');
             } else {
                 badge.style.display = 'none';
-                btn.style.color = '';
+                if (btn) btn.classList.remove('has-unread');
             }
         } catch (e) {
             // ignore transient errors

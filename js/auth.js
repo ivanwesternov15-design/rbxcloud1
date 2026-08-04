@@ -79,7 +79,11 @@ const Auth = {
     calculatePassiveIncome() {
         if (!this.user) return 0;
         const upgrades = (this.config && this.config.upgrades) || {};
-        let rate = this.user.passive_income || 0;
+        const def = upgrades.passive_income;
+        const piLevel = (this.user.upgrades && this.user.upgrades.passive_income) || 0;
+        let rate = def
+            ? piLevel * (def.effect_per_level || 0)
+            : (this.user.passive_income || 0);
 
         // Profit synergy: +X% to all income
         const profitLevel = (this.user.upgrades && this.user.upgrades.profit_mult) || 0;

@@ -601,6 +601,19 @@ body::before {
     display: flex; align-items: center; gap: 10px;
 }
 
+.tickets-btn {
+    color: var(--text-secondary) !important;
+    transition: color 0.2s, transform 0.2s var(--ease-out);
+}
+.tickets-btn:hover { color: var(--accent) !important; transform: translateY(-1px); }
+.tickets-btn.has-unread { color: var(--danger) !important; }
+.tickets-btn.has-unread .icon { filter: drop-shadow(0 0 8px rgba(255,90,108,0.6)); animation: ticketPulse 2s var(--ease-snap) infinite; }
+@keyframes ticketPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+.tickets-btn .icon { transition: filter 0.2s; }
+
 .header-coins {
     display: flex; align-items: center; gap: 7px;
     background: var(--glass-bg);

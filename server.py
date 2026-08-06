@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260805-no-hold-click-1"
+BUILD_VERSION = "20260807-bot-design-screens-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -78,6 +78,75 @@ def get_bot_username():
     except Exception:
         pass
     return BOT_USERNAME
+
+BOT_AVATARS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "bot_avatars")
+
+def esc_html(s):
+    """Escape a string for Telegram HTML parse mode."""
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+# Telegram Premium custom emoji ids (per design spec).
+E_BLACK = "5323693868418348532"
+E_HEART = "5368841297618547822"
+E_CHART = "5258391025281408576"
+E_BOT = "5258093637450866522"
+E_PIN = "5258461531464539536"
+E_FIRE = "5253877736207821121"
+E_NOTE = "5257965174979042426"
+E_GUN = "5260221883940347555"
+E_GEM = "5359719332542718652"
+E_BOOK = "5258328383183396223"
+E_FOLDER = "5257965810634202885"
+E_FOLDERS = "5257969839313526622"
+E_ARROW = "5258215850745275216"
+E_USER = "5316727448644103237"
+E_EXCLAM = "5258474669769497337"
+E_BOX = "5256058608931580017"
+E_LOVE = "5366526598008811777"
+E_DOWN = "5256182535917940722"
+E_EYE = "5260341314095947411"
+E_SEARCH = "5429571366384842791"
+E_SMILE = "5258262708838472996"
+E_STOP = "5275969776668134187"
+E_BUBBLE = "5260348422266822411"
+E_MOON = "5258011861273551368"
+E_CLOCK = "5258419835922030550"
+E_NEXT = "5260450573768990626"
+E_DOOR = "5258084656674250503"
+E_IDCARD = "5301173701323028420"
+E_PROFILE = "5258011929993026890"
+E_PROFUSER = "5258362837411045098"
+E_MONEY = "5258204546391351475"
+
+def ce(char, emoji_id):
+    """Wrap a (Premium) emoji into its Telegram HTML entity."""
+    return f'<tg-emoji emoji-id="{emoji_id}">{char}</tg-emoji>'
+
+def build_inline_keyboard(buttons, web_app_button=True, base_url=None):
+    """Build a Telegram inline_keyboard from a list of button rows/dicts.
+    Supports url / web_app / callback_data button types."""
+    keyboard = []
+    if web_app_button and base_url:
+        keyboard.append([{"text": "🚀 Открыть игру", "web_app": {"url": base_url}}])
+    for btn in buttons or []:
+        if isinstance(btn, list):
+            row = []
+            for b in btn:
+                row.append(build_inline_keyboard([b], web_app_button=False, base_url=base_url)[0][0])
+            if row:
+                keyboard.append(row)
+            continue
+        row = []
+        if btn.get("callback_data"):
+            row.append({"text": btn["text"], "callback_data": btn["callback_data"]})
+        elif btn.get("web_app") and base_url:
+            btn_url = btn.get("url") or base_url
+            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
+        elif btn.get("url"):
+            row.append({"text": btn["text"], "url": btn["url"]})
+        if row:
+            keyboard.append(row)
+    return keyboard
 
 # --- Color Logging ---
 class Log:
@@ -657,16 +726,16 @@ def format_ticket_info(ticket):
         f"💬 <b>Сообщений:</b> {msgs}"
     )
 
-def notify_admins_ticket(ticket, text):
-    """Notify every admin about a new ticket message with a link to the panel."""
+def notify_admins_ticket(ticket, uname, message_text):
+    """Notify every admin about a new ticket (designed photo + link to the panel)."""
     for admin_id in ADMIN_TELEGRAM_IDS:
         try:
-            send_telegram_message(
+            send_bot_photo(
                 admin_id,
-                text,
-                web_app_button=False,
-                extra_buttons=[{
-                    "text": f"🎫 Открыть тикет #{ticket.get('number')}",
+                "new_ticket.png",
+                bot_new_ticket_caption(ticket, uname, message_text),
+                [{
+                    "text": "🎫 Открыть тикет",
                     "web_app": True,
                     "url": BASE_URL.rstrip("/") + "/?startapp=admin-tickets&ticket=" + str(ticket.get("number")),
                 }],
@@ -1172,21 +1241,7 @@ def send_telegram_message(chat_id, text, parse_mode="HTML", web_app_button=True,
     import urllib.error
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
-    keyboard = []
-    if web_app_button and BASE_URL:
-        keyboard.append([{
-            "text": "🚀 Открыть игру",
-            "web_app": {"url": BASE_URL}
-        }])
-    for btn in extra_buttons or []:
-        row = []
-        if btn.get("web_app") and BASE_URL:
-            btn_url = btn.get("url") or BASE_URL
-            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
-        elif btn.get("url"):
-            row.append({"text": btn["text"], "url": btn["url"]})
-        if row:
-            keyboard.append(row)
+    keyboard = build_inline_keyboard(extra_buttons, web_app_button=web_app_button, base_url=BASE_URL)
     if keyboard:
         payload["reply_markup"] = {"inline_keyboard": keyboard}
     data = json.dumps(payload).encode()
@@ -1226,18 +1281,7 @@ def send_telegram_photo(chat_id, photo_bytes, filename, caption, web_app_button=
     if caption:
         add_field("caption", caption)
         add_field("parse_mode", "HTML")
-    keyboard = []
-    if web_app_button and BASE_URL:
-        keyboard.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
-    for btn in extra_buttons or []:
-        row = []
-        if btn.get("web_app") and BASE_URL:
-            btn_url = btn.get("url") or BASE_URL
-            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
-        elif btn.get("url"):
-            row.append({"text": btn["text"], "url": btn["url"]})
-        if row:
-            keyboard.append(row)
+    keyboard = build_inline_keyboard(extra_buttons, web_app_button=web_app_button, base_url=BASE_URL)
     if keyboard:
         add_field("reply_markup", json.dumps({"inline_keyboard": keyboard}, ensure_ascii=False))
     parts.append(f"--{boundary}--\r\n".encode("utf-8"))
@@ -1257,6 +1301,265 @@ def send_telegram_photo(chat_id, photo_bytes, filename, caption, web_app_button=
             return {"ok": False, "description": f"HTTP {e.code}"}
     except Exception:
         return {"ok": False, "description": "Не удалось отправить фото"}
+
+def _read_bot_photo(photo_name):
+    """Read one of the bot design photos (assets/bot_avatars/<name>.png)."""
+    path = os.path.join(BOT_AVATARS_DIR, photo_name)
+    with open(path, "rb") as f:
+        return f.read()
+
+def send_bot_photo(chat_id, photo_name, caption, buttons):
+    """Send a designed bot photo (from assets/bot_avatars) with HTML caption and
+    an inline keyboard built from `buttons` rows/dicts."""
+    photo_bytes = _read_bot_photo(photo_name)
+    return send_telegram_photo(
+        chat_id, photo_bytes, photo_name, caption,
+        web_app_button=False, extra_buttons=buttons,
+    )
+
+def edit_bot_photo(chat_id, message_id, photo_name, caption, buttons):
+    """Edit an existing photo message (photo + caption + inline keyboard) via
+    editMessageMedia, so button navigation never spawns a new message."""
+    import urllib.request
+    import urllib.error
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageMedia"
+    boundary = "----WebKitFormBoundary" + uuid.uuid4().hex
+    media_obj = {"type": "photo", "media": "attach://photo", "parse_mode": "HTML"}
+    if caption:
+        media_obj["caption"] = caption
+    parts = []
+
+    def add_field(name, value):
+        parts.append(
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n".encode("utf-8")
+        )
+
+    add_field("chat_id", chat_id)
+    add_field("message_id", message_id)
+    add_field("media", json.dumps(media_obj, ensure_ascii=False))
+    parts.append(
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"photo\"; filename=\"{photo_name}\"\r\n"
+        f"Content-Type: image/png\r\n\r\n".encode("utf-8")
+        + _read_bot_photo(photo_name)
+        + b"\r\n"
+    )
+    keyboard = build_inline_keyboard(buttons, web_app_button=False, base_url=BASE_URL)
+    if keyboard:
+        add_field("reply_markup", json.dumps({"inline_keyboard": keyboard}, ensure_ascii=False))
+    parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+    body = b"".join(parts)
+    try:
+        req = urllib.request.Request(
+            url,
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        )
+        resp = urllib.request.urlopen(req, timeout=20)
+        return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:
+            return {"ok": False, "description": f"HTTP {e.code}"}
+    except Exception:
+        return {"ok": False, "description": "Не удалось отредактировать сообщение"}
+
+def edit_message_buttons(chat_id, message_id, buttons):
+    """Replace only the inline keyboard of an existing message."""
+    import urllib.request
+    import urllib.error
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageReplyMarkup"
+    payload = {"chat_id": chat_id, "message_id": message_id}
+    keyboard = build_inline_keyboard(buttons, web_app_button=False, base_url=BASE_URL)
+    payload["reply_markup"] = {"inline_keyboard": keyboard}
+    data = json.dumps(payload).encode()
+    try:
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        resp = urllib.request.urlopen(req, timeout=10)
+        return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:
+            return {"ok": False, "description": f"HTTP {e.code}"}
+    except Exception:
+        return {"ok": False, "description": "Не удалось обновить кнопки"}
+
+def answer_telegram_callback(callback_query_id, text="", show_alert=False):
+    """Stop the button loading state and optionally show a small notification."""
+    import urllib.request
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery"
+    payload = {"callback_query_id": callback_query_id}
+    if text:
+        payload["text"] = text
+    if show_alert:
+        payload["show_alert"] = True
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
+
+# --- Designed bot screens (photos + custom-emoji captions) ---
+
+def bot_main_caption():
+    return (
+        ce("⬛️", E_BLACK) + " Добро пожаловать в Robux Clicker — игру, где каждый клик "
+        "приближает тебя к Робуксам" + ce("💗", E_HEART) + "\n\n"
+        + ce("📈", E_CHART) + " Выполняй задания с высокими наградами, открывай кейсы, "
+        "прокачивайся и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
+        + ce("🤖", E_BOT) + " Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
+        "на свой аккаунт.\n\n"
+        + ce("📌", E_PIN) + " Нажми кнопку ниже и начни играть!"
+    )
+
+def bot_main_buttons(config):
+    kb = []
+    if BASE_URL:
+        kb.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
+    kb.append([
+        {"text": "🤖 Поддержка", "callback_data": "support"},
+        {"text": "👤 Профиль", "callback_data": "profile"},
+    ])
+    for btn in subscribe_buttons(config):
+        kb.append([btn])
+    return kb
+
+def send_bot_main_screen(chat_id, config):
+    send_bot_photo(chat_id, "hello.png", bot_main_caption(), bot_main_buttons(config))
+
+def bot_support_caption():
+    return (
+        ce("🌘", E_MOON) + " Поддержка Robux Clicker\n"
+        + "━━━━━━━━━━━━━━━━━\n\n"
+        + "Если у вас возникли вопросы, проблемы с ботом\n"
+        + "или предложения по улучшению — мы всегда на связи!\n\n"
+        + ce("🕔", E_CLOCK) + " Среднее время ответа: до 6 часов\n\n"
+        + ce("🔎", E_SEARCH) + " Опишите проблему подробно, нажав кнопку ниже " + ce("➡️", E_NEXT)
+    )
+
+def bot_support_buttons():
+    kb = []
+    if BASE_URL:
+        support_url = BASE_URL.rstrip("/") + "/?startapp=support"
+        kb.append([{"text": "🆘 Обратиться в поддержку", "web_app": True, "url": support_url}])
+        kb.append([{"text": "📮 Не пришёл Robux или случилась ошибка? Напиши нам", "web_app": True, "url": support_url}])
+    kb.append([{"text": "🚪 Назад", "callback_data": "main"}])
+    return kb
+
+def bot_profile_caption(chat_id):
+    users = load_users()
+    u = users.get(str(chat_id), {})
+    uname = str(u.get("username") or "—")
+    refs = int(u.get("referral_count", 0) or 0)
+    robux = int(u.get("robux_balance", 0) or 0)
+    return (
+        ce("👤", E_PROFILE) + " Профиль\n\n"
+        + ce("🪪", E_IDCARD) + " ID: " + esc_html(str(chat_id)) + " · @" + esc_html(uname) + "\n"
+        + ce("👤", E_PROFUSER) + " Рефералов - " + str(refs) + "\n"
+        + ce("💰", E_MONEY) + " Доступно для вывода - " + str(robux) + " " + ce("⬛️", E_BLACK)
+    )
+
+def bot_profile_buttons():
+    return [{"text": "🚪 Назад", "callback_data": "main"}]
+
+def bot_referral_caption(uname, bonus):
+    return (
+        ce("🔥", E_FIRE) + " У вас Новый реферал!\n\n"
+        + ce("📝", E_NOTE) + " @" + esc_html(uname) + " присоединился по твоей ссылке!\n"
+        + ce("🔫", E_GUN) + " Ты получил +" + str(bonus) + " монет! " + ce("💎", E_GEM)
+    )
+
+def bot_new_ticket_caption(ticket, uname, message_text):
+    num = ticket.get("number")
+    cat = TICKET_CATEGORIES.get(ticket.get("category", ""), "")
+    subject = (ticket.get("subject") or cat or "—").strip()
+    msgs = len(ticket.get("history", []))
+    return (
+        ce("📖", E_BOOK) + " Новый тикет #" + str(num) + "\n\n"
+        + ce("📁", E_FOLDER) + " Тикет #" + str(num) + "\n"
+        + ce("📂", E_FOLDERS) + " Категория: " + esc_html(cat) + "\n"
+        + ce("📝", E_NOTE) + " Тема: " + esc_html(subject) + "\n"
+        + ce("➡️", E_ARROW) + " Сообщений: " + str(msgs) + "\n"
+        + ce("👤", E_USER) + " От: " + esc_html(uname) + "\n\n"
+        + ce("➡️", E_ARROW) + " Сообщение:\n" + esc_html(message_text)
+    )
+
+def bot_task_done_caption(task, reward_text):
+    category = str(task.get("title", "")).strip() or "Задание"
+    return (
+        ce("❗️", E_EXCLAM) + " Вы выполнили задание!\n"
+        + ce("📦", E_BOX) + " Категория задания: " + esc_html(category) + "\n"
+        + ce("💕", E_LOVE) + " Награда: " + reward_text
+    )
+
+def bot_withdraw_good_caption(amount, roblox_user):
+    return (
+        ce("⤵️", E_DOWN) + " Вывод одобрен!\n\n"
+        + ce("📌", E_PIN) + " Ваша заявка: " + str(amount) + " " + ce("⬛️", E_BLACK) + "\n"
+        + ce("👀", E_EYE) + " Робуксы поступили на ваш Roblox аккаунт\n"
+        + ce("🔎", E_SEARCH) + " Никнейм Roblox - " + esc_html(roblox_user) + "\n\n"
+        + ce("📝", E_NOTE) + " Просьба оставить отзыв о выводе"
+    )
+
+def bot_withdraw_good_buttons(wid):
+    kb = [[
+        {"text": "🙂 Положительно", "callback_data": f"wdfb_{wid}_1"},
+        {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
+    ]]
+    if BASE_URL:
+        kb.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
+    return kb
+
+def bot_withdraw_bad_caption(amount, roblox_user):
+    return (
+        ce("⤵️", E_DOWN) + " Вывод отклонен!\n\n"
+        + ce("📌", E_PIN) + " Ваша заявка: " + str(amount) + " " + ce("⬛️", E_BLACK) + "\n"
+        + ce("👀", E_EYE) + " Отклонёна администрацией.\n"
+        + ce("💬", E_BUBBLE) + "Robux были возвращены на ваш аккаунт. Попробуйте отправить заявку ещё раз.\n"
+        + ce("🔎", E_SEARCH) + "Никнейм Roblox - " + esc_html(roblox_user) + "\n\n"
+        + ce("📝", E_NOTE) + " Просьба оставить отзыв о выводе"
+    )
+
+def bot_withdraw_bad_buttons(wid):
+    return [[
+        {"text": "🙂 Положительно", "callback_data": f"wdfb_{wid}_1"},
+        {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
+    ]]
+
+def handle_bot_callback(self, cq):
+    """Handle inline button presses (main/support/profile/withdraw feedback)."""
+    cq_id = cq.get("id")
+    from_user = cq.get("from", {})
+    chat_id = str((cq.get("message") or {}).get("chat", {}).get("id", ""))
+    msg_id = (cq.get("message") or {}).get("message_id")
+    udata = str(cq.get("data", ""))
+    try:
+        if udata == "main":
+            edit_bot_photo(chat_id, msg_id, "hello.png", bot_main_caption(), bot_main_buttons(load_config()))
+            answer_telegram_callback(cq_id)
+        elif udata == "support":
+            edit_bot_photo(chat_id, msg_id, "poderzka.png", bot_support_caption(), bot_support_buttons())
+            answer_telegram_callback(cq_id)
+        elif udata == "profile":
+            edit_bot_photo(chat_id, msg_id, "profile.png", bot_profile_caption(chat_id), bot_profile_buttons())
+            answer_telegram_callback(cq_id)
+        elif udata.startswith("wdfb_"):
+            parts = udata.split("_")
+            wid = parts[1] if len(parts) > 1 else "?"
+            rating = parts[2] if len(parts) > 2 else "0"
+            answer_telegram_callback(cq_id, "Спасибо за отзыв! 💜")
+            edit_message_buttons(chat_id, msg_id, [])
+            audit(str(from_user.get("id", chat_id)), "withdraw_feedback", f"{wid}: {'positive' if rating == '1' else 'negative'}")
+        else:
+            answer_telegram_callback(cq_id)
+    except Exception as e:
+        log_warn(f"Ошибка обработки callback {udata}: {e}")
+        try:
+            answer_telegram_callback(cq_id)
+        except Exception:
+            pass
 
 def load_publish_channels():
     """List of Telegram channels where the bot can publish posts.
@@ -1467,11 +1770,11 @@ def notify_task_completed(telegram_id, task, reward_result):
         )
     else:
         return
-    text = (
-        f"⭐ <b>Задание выполнено:</b> {str(task.get('title', '')).strip()}\n"
-        f"Награда: {reward_text}"
+    buttons = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+    send_bot_photo(
+        str(telegram_id), "zadanie_good.png",
+        bot_task_done_caption(task, reward_text), buttons,
     )
-    send_telegram_message(str(telegram_id), text, parse_mode="HTML", web_app_button=True)
 
 def sync_profile_from_telegram(telegram_id):
     """Fetch and update name/username/bio from Telegram in a background thread."""
@@ -2045,6 +2348,12 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
     # --- Bot Webhook Handler ---
     def handle_bot_webhook(self, data):
         try:
+            cq = data.get("callback_query")
+            if cq:
+                self.handle_bot_callback(cq)
+                self.send_json(200, {"ok": True})
+                return
+
             message = data.get("message", {})
             chat_id = message.get("chat", {}).get("id")
             text = message.get("text", "")
@@ -2083,9 +2392,9 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 f"ℹ️ <b>Ты уже переходил по реферальной ссылке (@{old_name})</b>\n\n"
                                 f"Награда уже была выдана ранее.\n"
                                 f"Но это не мешает тебе играть — жми кнопку ниже! 👇",
-                                web_app_button=True,
-                                extra_buttons=sub_btns,
+                                web_app_button=False,
                             )
+                            send_bot_main_screen(chat_id, config)
                             self.send_json(200, {"ok": True})
                             return
                         
@@ -2122,64 +2431,18 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 audit(new_user_id, "joined_referral", f"ref {referrer_id}")
                                 
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
-                                send_telegram_message(
-                                    new_user_id,
-                                    f"🎉 <b>Добро пожаловать в Roblox Clicker!</b>\n\n"
-                                    f"Ты перешёл по реферальной ссылке <b>{ref_name}</b> и получил "
-                                    f"<b>+{bonus} монет</b>! 🤑\n\n"
-                                    f"Открывай игру и начни зарабатывать ещё больше! 🚀",
-                                    web_app_button=True,
-                                    extra_buttons=sub_btns,
-                                )
-                                send_telegram_message(
-                                    referrer_id,
-                                    f"🎉 <b>Новый реферал!</b>\n\n"
-                                    f"@{new_user.get('username') or new_user.get('first_name') or new_user_id} "
-                                    f"присоединился по твоей ссылке!\n"
-                                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰",
-                                    web_app_button=True,
-                                )
+                                send_bot_main_screen(new_user_id, config)
+                                open_btn = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+                                new_uname = new_user.get("username") or new_user.get("first_name") or new_user_id
+                                send_bot_photo(referrer_id, "referal_system.png", bot_referral_caption(new_uname, ref_bonus), open_btn)
                         
                         if not granted:
                             PENDING_REFERRALS[str(chat_id)] = referrer_id
-                            welcome_text = (
-                                f"🎉 <b>Добро пожаловать в Roblox Clicker!</b>\n\n"
-                                f"Ты перешёл по реферальной ссылке! 🚀\n"
-                                f"После авторизации в игре ты получишь бонус. 🎁"
-                            )
-                            send_telegram_message(chat_id, welcome_text, web_app_button=True, extra_buttons=sub_btns)
+                            send_bot_main_screen(chat_id, config)
                     else:
-                        welcome_text = (
-                            f"💎 Добро пожаловать в Robux Clicker — игру, где каждый клик "
-                            f"приближает тебя к Робуксам.\n\n"
-                            f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
-                            f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
-                            f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
-                            f"на свой аккаунт.\n"
-                            f"👇 Нажми кнопку ниже и начни играть!"
-                        )
-                        send_telegram_message(
-                            chat_id,
-                            welcome_text,
-                            web_app_button=True,
-                            extra_buttons=sub_btns,
-                        )
+                        send_bot_main_screen(chat_id, config)
                 else:
-                    welcome_text = (
-                        f"💎 Добро пожаловать в Robux Clicker — игру, где каждый клик "
-                        f"приближает тебя к Робуксам.\n\n"
-                        f"Выполняй задания с высокими наградами, открывай кейсы, прокачивайся "
-                        f"и приглашай друзей, чтобы зарабатывать ещё больше.\n\n"
-                        f"🎁 Заработанные монеты можно обменять на Робукс-ваучеры и вывести "
-                        f"на свой аккаунт.\n"
-                        f"👇 Нажми кнопку ниже и начни играть!"
-                    )
-                    send_telegram_message(
-                        chat_id,
-                        welcome_text,
-                        web_app_button=True,
-                        extra_buttons=sub_btns,
-                    )
+                    send_bot_main_screen(chat_id, config)
             
             self.send_json(200, {"ok": True})
         except Exception as e:
@@ -2290,11 +2553,9 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 save_json("users.json", users)
                 
                 new_name = new_user_data.get("first_name") or new_user_data.get("username") or telegram_id
-                send_telegram_message(
-                    referrer_id,
-                    f"🎉 Твой реферал @{new_name} присоединился!\n"
-                    f"Ты получил <b>+{ref_bonus} монет</b>! 💰"
-                )
+                open_btn = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+                new_uname = new_user_data.get("username") or new_user_data.get("first_name") or telegram_id
+                send_bot_photo(referrer_id, "referal_system.png", bot_referral_caption(new_uname, ref_bonus), open_btn)
         
         save_json("users.json", users)
         
@@ -3554,13 +3815,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 audit(telegram_id, "ticket_create", f"#{number} {category}")
                 try:
                     uname = ticket_user_name(user)
-                    notify_admins_ticket(
-                        ticket,
-                        f"🆕 <b>Новый тикет #{number}</b>\n\n"
-                        f"{format_ticket_info(ticket)}\n"
-                        f"👤 <b>От:</b> {uname} (<code>{telegram_id}</code>)\n\n"
-                        f"💬 <b>Сообщение:</b>\n{message[:300]}",
-                    )
+                    notify_admins_ticket(ticket, uname, message)
                 except Exception:
                     pass
                 self.send_json(200, {"ticket": serialize_ticket(ticket)})
@@ -4231,21 +4486,26 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                             save_json("users.json", users)
                             audit_admin(telegram_id, "withdrawal_status", f"{target_id}: {wid} {old}->{status} amount={found.get('amount')}")
                             try:
-                                send_telegram_message(
-                                    target_id,
-                                    status == "approved" and (
-                                        f"✅ <b>Вывод одобрен!</b>\n"
-                                        f"{found.get('amount')} Robux поступили на ваш Roblox аккаунт <b>{found.get('roblox_username', '')}</b>."
-                                    ) or (
+                                if status == "approved":
+                                    send_bot_photo(
+                                        target_id, "robux_good.png",
+                                        bot_withdraw_good_caption(found.get("amount"), found.get("roblox_username", "")),
+                                        bot_withdraw_good_buttons(wid),
+                                    )
+                                elif status == "rejected":
+                                    send_bot_photo(
+                                        target_id, "robux_fale.png",
+                                        bot_withdraw_bad_caption(found.get("amount"), found.get("roblox_username", "")),
+                                        bot_withdraw_bad_buttons(wid),
+                                    )
+                                else:
+                                    send_telegram_message(
+                                        target_id,
                                         f"ℹ️ Вывод <b>{found.get('amount')} Robux</b> обрабатывается.\n"
-                                        f"Администрация пытается вывести их в кратчайшие сроки на ваш аккаунт {found.get('roblox_username', '')}."
-                                        if status == "pending" else
-                                        f"❌ Вывод <b>{found.get('amount')} Robux</b> отклонён администрацией.\n"
-                                        f"Robux были возвращены на ваш аккаунт. Попробуйте отправить заявку ещё раз."
-                                    ),
-                                    parse_mode="HTML",
-                                    web_app_button=True,
-                                )
+                                        f"Администрация пытается вывести их в кратчайшие сроки на ваш аккаунт {found.get('roblox_username', '')}.",
+                                        parse_mode="HTML",
+                                        web_app_button=True,
+                                    )
                             except Exception:
                                 pass
                         self.send_json(200, {"success": True, "status": found["status"]})

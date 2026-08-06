@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-bot-design-screens-1"
+BUILD_VERSION = "20260807-bot-button-icons-fix-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -118,6 +118,12 @@ E_PROFILE = "5258011929993026890"
 E_PROFUSER = "5258362837411045098"
 E_MONEY = "5258204546391351475"
 
+# Button icon custom-emoji ids (icon_custom_emoji_id, Bot API 9+).
+E_GAME = "5258508428212445001"       # 🎮 Открыть игру
+E_SUPPORT_BTN = "5258093637450866522"  # 🤖 Поддержка
+E_PROFILE_BTN = "5258011929993026890"  # 👤 Профиль
+E_CHANNEL = "5258020476977946656"    # 📞 Канал
+
 def ce(char, emoji_id):
     """Wrap a (Premium) emoji into its Telegram HTML entity."""
     return f'<tg-emoji emoji-id="{emoji_id}">{char}</tg-emoji>'
@@ -127,7 +133,7 @@ def build_inline_keyboard(buttons, web_app_button=True, base_url=None):
     Supports url / web_app / callback_data button types."""
     keyboard = []
     if web_app_button and base_url:
-        keyboard.append([{"text": "🚀 Открыть игру", "web_app": {"url": base_url}}])
+        keyboard.append([{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": base_url}}])
     for btn in buttons or []:
         if isinstance(btn, list):
             row = []
@@ -1417,10 +1423,10 @@ def bot_main_caption():
 def bot_main_buttons(config):
     kb = []
     if BASE_URL:
-        kb.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
+        kb.append([{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}])
     kb.append([
-        {"text": "🤖 Поддержка", "callback_data": "support"},
-        {"text": "👤 Профиль", "callback_data": "profile"},
+        {"text": "Поддержка", "icon_custom_emoji_id": E_SUPPORT_BTN, "callback_data": "support"},
+        {"text": "Профиль", "icon_custom_emoji_id": E_PROFILE_BTN, "callback_data": "profile"},
     ])
     for btn in subscribe_buttons(config):
         kb.append([btn])
@@ -1509,7 +1515,7 @@ def bot_withdraw_good_buttons(wid):
         {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
     ]]
     if BASE_URL:
-        kb.append([{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}])
+        kb.append([{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}])
     return kb
 
 def bot_withdraw_bad_caption(amount, roblox_user):
@@ -1528,7 +1534,7 @@ def bot_withdraw_bad_buttons(wid):
         {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
     ]]
 
-def handle_bot_callback(self, cq):
+def handle_bot_callback(cq):
     """Handle inline button presses (main/support/profile/withdraw feedback)."""
     cq_id = cq.get("id")
     from_user = cq.get("from", {})
@@ -1617,9 +1623,8 @@ def subscribe_buttons(config):
     btns = []
     for ch in channels:
         url = ch.get("url", "")
-        label = ch.get("label", "Подписаться")
         if url:
-            btns.append({"text": f"📢 {label}", "url": url})
+            btns.append({"text": "Канал", "icon_custom_emoji_id": E_CHANNEL, "url": url})
     return btns
 
 def verify_telegram_task_channels(task, telegram_id):
@@ -1770,7 +1775,7 @@ def notify_task_completed(telegram_id, task, reward_result):
         )
     else:
         return
-    buttons = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+    buttons = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}] if BASE_URL else []
     send_bot_photo(
         str(telegram_id), "zadanie_good.png",
         bot_task_done_caption(task, reward_text), buttons,
@@ -2350,7 +2355,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
         try:
             cq = data.get("callback_query")
             if cq:
-                self.handle_bot_callback(cq)
+                handle_bot_callback(cq)
                 self.send_json(200, {"ok": True})
                 return
 
@@ -2432,7 +2437,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                                 
                                 ref_name = users[referrer_id].get("first_name") or users[referrer_id].get("username") or referrer_id
                                 send_bot_main_screen(new_user_id, config)
-                                open_btn = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+                                open_btn = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}] if BASE_URL else []
                                 new_uname = new_user.get("username") or new_user.get("first_name") or new_user_id
                                 send_bot_photo(referrer_id, "referal_system.png", bot_referral_caption(new_uname, ref_bonus), open_btn)
                         
@@ -2553,7 +2558,7 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
                 save_json("users.json", users)
                 
                 new_name = new_user_data.get("first_name") or new_user_data.get("username") or telegram_id
-                open_btn = [{"text": "🚀 Открыть игру", "web_app": {"url": BASE_URL}}] if BASE_URL else []
+                open_btn = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}] if BASE_URL else []
                 new_uname = new_user_data.get("username") or new_user_data.get("first_name") or telegram_id
                 send_bot_photo(referrer_id, "referal_system.png", bot_referral_caption(new_uname, ref_bonus), open_btn)
         
@@ -4543,7 +4548,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 # для постов в канал используем обычную url-кнопку на бота.
                 bot_uname = get_bot_username()
                 open_url = f"https://t.me/{bot_uname}?startapp" if bot_uname else BASE_URL
-                open_btn = [{"text": "🚀 Открыть игру", "url": open_url}]
+                open_btn = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "url": open_url}]
                 try:
                     if banner:
                         if "," in banner:

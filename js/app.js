@@ -2331,7 +2331,7 @@ const App = {
             shareBtn.style.display = '';
             shareBtn.onclick = async () => {
                 const link = document.getElementById('ref-link').textContent || fallbackLink;
-                const gameName = (Auth.config && Auth.config.game_name) || 'Roblox Clicker';
+                const gameName = (Auth.config && Auth.config.game_name) || 'Robux Clicker';
                 const msg = `🔥 Присоединяйся ко мне в ${gameName}! Жми по ссылке, начни играть и зарабатывай монеты 🪙`;
                 const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`;
                 const lg = window.Telegram && window.Telegram.WebApp;

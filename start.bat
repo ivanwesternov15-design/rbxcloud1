@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions EnableDelayedExpansion
 
@@ -12,11 +12,11 @@ set "YEL=%ESC%[93m"
 set "BLU=%ESC%[94m"
 set "CYN=%ESC%[96m"
 
-title Roblox Clicker - Server and tunnel
+title Robux Clicker - Server and tunnel
 
 echo.
 echo %B%%CYN%====================================================%R%
-echo %B%%CYN%            ROBLOX CLICKER - LAUNCHER             %R%
+echo %B%%CYN%            Robux Clicker - LAUNCHER             %R%
 echo %B%%CYN%====================================================%R%
 echo.
 

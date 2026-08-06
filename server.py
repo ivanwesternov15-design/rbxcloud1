@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-bot-button-icons-fix-1"
+BUILD_VERSION = "20260807-ticket-redesign-appname-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -123,6 +123,13 @@ E_GAME = "5258508428212445001"       # 🎮 Открыть игру
 E_SUPPORT_BTN = "5258093637450866522"  # 🤖 Поддержка
 E_PROFILE_BTN = "5258011929993026890"  # 👤 Профиль
 E_CHANNEL = "5258020476977946656"    # 📞 Канал
+
+# Ticket notification custom-emoji ids.
+E_NEWSPAPER = "5249231689695115145"  # 📰 Открыть тикет
+E_MEGAPHONE = "5260268501515377807"  # 📣 Ответ по тикету
+E_ADMIN = "5256143829672672750"      # 👤 Ответ администратора
+E_PEACH = "5258330865674494479"      # 🍑 Оцени решение
+E_CHAT_TICKET = "5260535596941582167"  # 💬 Тикет закрыт
 
 def ce(char, emoji_id):
     """Wrap a (Premium) emoji into its Telegram HTML entity."""
@@ -741,7 +748,8 @@ def notify_admins_ticket(ticket, uname, message_text):
                 "new_ticket.png",
                 bot_new_ticket_caption(ticket, uname, message_text),
                 [{
-                    "text": "🎫 Открыть тикет",
+                    "text": "Открыть тикет",
+                    "icon_custom_emoji_id": E_NEWSPAPER,
                     "web_app": True,
                     "url": BASE_URL.rstrip("/") + "/?startapp=admin-tickets&ticket=" + str(ticket.get("number")),
                 }],
@@ -1477,19 +1485,42 @@ def bot_referral_caption(uname, bonus):
         + ce("🔫", E_GUN) + " Ты получил +" + str(bonus) + " монет! " + ce("💎", E_GEM)
     )
 
-def bot_new_ticket_caption(ticket, uname, message_text):
+def bot_ticket_info_block(ticket):
+    """Shared ticket info lines (📁 📂 📝 ➡️) for Telegram ticket captions."""
     num = ticket.get("number")
     cat = TICKET_CATEGORIES.get(ticket.get("category", ""), "")
     subject = (ticket.get("subject") or cat or "—").strip()
     msgs = len(ticket.get("history", []))
     return (
-        ce("📖", E_BOOK) + " Новый тикет #" + str(num) + "\n\n"
-        + ce("📁", E_FOLDER) + " Тикет #" + str(num) + "\n"
+        ce("📁", E_FOLDER) + " Тикет #" + str(num) + "\n"
         + ce("📂", E_FOLDERS) + " Категория: " + esc_html(cat) + "\n"
         + ce("📝", E_NOTE) + " Тема: " + esc_html(subject) + "\n"
-        + ce("➡️", E_ARROW) + " Сообщений: " + str(msgs) + "\n"
+        + ce("➡️", E_ARROW) + " Сообщений: " + str(msgs)
+    )
+
+def bot_new_ticket_caption(ticket, uname, message_text):
+    num = ticket.get("number")
+    return (
+        ce("📖", E_BOOK) + " Новый тикет #" + str(num) + "\n\n"
+        + bot_ticket_info_block(ticket) + "\n"
         + ce("👤", E_USER) + " От: " + esc_html(uname) + "\n\n"
         + ce("➡️", E_ARROW) + " Сообщение:\n" + esc_html(message_text)
+    )
+
+def bot_ticket_reply_caption(ticket, message_text):
+    num = ticket.get("number")
+    return (
+        ce("📣", E_MEGAPHONE) + " Ответ по тикету #" + str(num) + "\n\n"
+        + bot_ticket_info_block(ticket) + "\n\n"
+        + ce("👤", E_ADMIN) + " Ответ администратора:\n" + esc_html(message_text) + "\n\n"
+        + ce("🍑", E_PEACH) + " Оцени решение в разделе «Обратная связь» в игре — это помогает нам стать лучше!"
+    )
+
+def bot_ticket_closed_caption(ticket):
+    return (
+        ce("👀", E_EYE) + " Тикет закрыт администратором\n\n"
+        + bot_ticket_info_block(ticket) + "\n\n"
+        + ce("💬", E_CHAT_TICKET) + " Если у тебя остались вопросы — создай новый тикет в разделе «Обратная связь»."
     )
 
 def bot_task_done_caption(task, reward_text):
@@ -3971,10 +4002,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 try:
                     send_telegram_message(
                         ticket.get("user_id"),
-                        f"📬 <b>Ответ по тикету #{number}</b>\n\n"
-                        f"{format_ticket_info(ticket)}\n\n"
-                        f"🛠 <b>Ответ администратора:</b>\n{message}\n\n"
-                        f"✨ Оцени решение в разделе «Обратная связь» в игре — это помогает нам стать лучше!",
+                        bot_ticket_reply_caption(ticket, message),
                         web_app_button=True,
                     )
                 except Exception:
@@ -4004,14 +4032,9 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 save_tickets(tdata)
                 audit_admin(telegram_id, "ticket_status", f"#{number} {status}")
                 try:
-                    emoji = "✅" if status == "closed" else "🚫"
                     send_telegram_message(
                         ticket.get("user_id"),
-                        f"{emoji} <b>{note}</b>\n\n"
-                        f"{format_ticket_info(ticket)}\n\n"
-                        + ("Если у тебя остались вопросы — создай новый тикет в разделе «Обратная связь»."
-                           if status == "closed"
-                           else "Если считаешь, что это ошибка — создай новый тикет, и мы перепроверим."),
+                        bot_ticket_closed_caption(ticket),
                         web_app_button=True,
                     )
                 except Exception:

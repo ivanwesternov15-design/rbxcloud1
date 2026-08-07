@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-admin-always-repeat-toggle-1"
+BUILD_VERSION = "20260807-repeat-purge-stale-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -3562,7 +3562,11 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             if "completed_tasks" not in user:
                 user["completed_tasks"] = []
-            if not is_repeatable:
+            if is_repeatable:
+                # Repeatable: purge the id (even stale ones) so the button never
+                # stays "✓ Выполнено" and the reward keeps being granted.
+                user["completed_tasks"] = [tid for tid in user["completed_tasks"] if tid != task_id]
+            else:
                 user["completed_tasks"].append(task_id)
             user["last_active"] = int(time.time())
 

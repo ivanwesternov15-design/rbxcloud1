@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel вЂ” Robux Clicker</title>
+    <title>Admin Panel — Robux Clicker</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body { min-height: 100vh; background: var(--bg-primary); }
@@ -316,60 +316,60 @@
     <div class="admin-panel">
             <div class="admin-header">
                 <div>
-                    <a href="/" class="admin-back">в†ђ РќР° СЃР°Р№С‚</a>
-                    <div class="admin-page-title" style="margin-top:4px;">рџ›  РђРґРјРёРЅ-РїР°РЅРµР»СЊ</div>
-                    <div class="admin-page-sub" id="admin-status" style="margin-bottom:0;margin-top:4px;">РџСЂРѕРІРµСЂРєР° РґРѕСЃС‚СѓРїР°...</div>
+                    <a href="/" class="admin-back">← На сайт</a>
+                    <div class="admin-page-title" style="margin-top:4px;">🛠 Админ-панель</div>
+                    <div class="admin-page-sub" id="admin-status" style="margin-bottom:0;margin-top:4px;">Проверка доступа...</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <button class="admin-btn" id="admin-refresh-all-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ РІСЃС‘</button>
-                    <button class="admin-btn" id="admin-set-webhook-btn" style="padding:6px 12px;font-size:11px;">рџ¤– РЈСЃС‚. РІРµР±С…СѓРє</button>
-                    <button class="admin-btn danger" id="admin-reset-stats-btn" style="padding:6px 12px;font-size:11px;">в™»пёЏ РЎР±СЂРѕСЃРёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ</button>
+                    <button class="admin-btn" id="admin-refresh-all-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить всё</button>
+                    <button class="admin-btn" id="admin-set-webhook-btn" style="padding:6px 12px;font-size:11px;">🤖 Уст. вебхук</button>
+                    <button class="admin-btn danger" id="admin-reset-stats-btn" style="padding:6px 12px;font-size:11px;">♻️ Сбросить статистику</button>
                     <div class="admin-status" id="admin-online-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-online"/></svg> <span id="admin-online-count">0</span></div>
-                    <div class="admin-status" id="admin-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> РђРґРјРёРЅ</div>
+                    <div class="admin-status" id="admin-badge" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Админ</div>
                 </div>
             </div>
 
         <div id="admin-content" style="display:none;">
             <div class="admin-tabs">
-                <button class="admin-tab active" data-tab="dashboard"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Р”Р°С€Р±РѕСЂРґ</button>
-                <button class="admin-tab" data-tab="users"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> РџРѕР»СЊР·РѕРІР°С‚РµР»Рё</button>
-                <button class="admin-tab" data-tab="vouchers"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Р’Р°СѓС‡РµСЂС‹</button>
-                <button class="admin-tab" data-tab="config"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Р­РєРѕРЅРѕРјРёРєР°</button>
-                <button class="admin-tab" data-tab="tasks"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Р—Р°РґР°РЅРёСЏ</button>
-                <button class="admin-tab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> РљРµР№СЃС‹</button>
-                <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Р’С‹РІРѕРґС‹</button>
-                <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РЎРѕРѕР±С‰РµРЅРёСЏ</button>
-                <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РџРѕРґРїРёСЃРєРё</button>
-                <button class="admin-tab" data-tab="posts"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РџРѕСЃС‚С‹</button>
-                <button class="admin-tab" data-tab="support" onclick="window.open('/?startapp=admin-tickets','_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> РўРёРєРµС‚С‹</button>
+                <button class="admin-tab active" data-tab="dashboard"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Дашборд</button>
+                <button class="admin-tab" data-tab="users"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Пользователи</button>
+                <button class="admin-tab" data-tab="vouchers"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Ваучеры</button>
+                <button class="admin-tab" data-tab="config"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Экономика</button>
+                <button class="admin-tab" data-tab="tasks"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Задания</button>
+                <button class="admin-tab" data-tab="cases"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</button>
+                <button class="admin-tab" data-tab="withdrawals"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выводы</button>
+                <button class="admin-tab" data-tab="messages"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Сообщения</button>
+                <button class="admin-tab" data-tab="subscriptions"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Подписки</button>
+                <button class="admin-tab" data-tab="posts"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Посты</button>
+                <button class="admin-tab" data-tab="support" onclick="window.open('/?startapp=admin-tickets','_blank')"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Тикеты</button>
             </div>
 
             <div class="admin-content-inner active" data-content="dashboard">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> РћР±С‰Р°СЏ СЃС‚Р°С‚РёСЃС‚РёРєР°</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Общая статистика</div>
                     <div class="admin-grid" id="admin-dashboard-stats">
-                        <div class="admin-stat"><div class="num" id="dash-users">0</div><div class="label">РџРѕР»СЊР·РѕРІР°С‚РµР»РµР№</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-online">0</div><div class="label">РћРЅР»Р°Р№РЅ (5 РјРёРЅ)</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-total-coins">0</div><div class="label">Р’СЃРµРіРѕ РјРѕРЅРµС‚ <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div></div>
-                        <div class="admin-stat"><div class="num" id="dash-total-clicks">0</div><div class="label">Р’СЃРµРіРѕ РєР»РёРєРѕРІ <svg class="icon" viewBox="0 0 24 24"><use href="#icon-click"/></svg></div></div>
-                        <div class="admin-stat"><div class="num" id="dash-total-earned">0</div><div class="label">Р’СЃРµРіРѕ Р·Р°СЂР°Р±РѕС‚Р°РЅРѕ</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-avg-level">0</div><div class="label">РЎСЂРµРґРЅРёР№ СѓСЂРѕРІРµРЅСЊ</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-vouchers">0</div><div class="label">Р’СЃРµРіРѕ РІР°СѓС‡РµСЂРѕРІ</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-vouchers-avail">0</div><div class="label">Р”РѕСЃС‚СѓРїРЅРѕ</div></div>
-                        <div class="admin-stat"><div class="num" id="dash-vouchers-claimed">0</div><div class="label">Р’С‹РґР°РЅРѕ</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-users">0</div><div class="label">Пользователей</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-online">0</div><div class="label">Онлайн (5 мин)</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-coins">0</div><div class="label">Всего монет <svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg></div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-clicks">0</div><div class="label">Всего кликов <svg class="icon" viewBox="0 0 24 24"><use href="#icon-click"/></svg></div></div>
+                        <div class="admin-stat"><div class="num" id="dash-total-earned">0</div><div class="label">Всего заработано</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-avg-level">0</div><div class="label">Средний уровень</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers">0</div><div class="label">Всего ваучеров</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers-avail">0</div><div class="label">Доступно</div></div>
+                        <div class="admin-stat"><div class="num" id="dash-vouchers-claimed">0</div><div class="label">Выдано</div></div>
                     </div>
                 </div>
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Р“СЂР°С„РёРєРё Р°РєС‚РёРІРЅРѕСЃС‚Рё</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Графики активности</div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="chart-pair">
                         <div class="chart-box">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-people"/></svg> Р—Р°С…РѕРґС‹</div>
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-people"/></svg> Заходы</div>
                                 <div class="chart-range">
-                                    <button class="chart-range-btn active" data-chart="logins" data-range="day">Р”РµРЅСЊ</button>
-                                    <button class="chart-range-btn" data-chart="logins" data-range="week">РќРµРґРµР»СЏ</button>
-                                    <button class="chart-range-btn" data-chart="logins" data-range="month">РњРµСЃСЏС†</button>
-                                    <button class="chart-range-btn" data-chart="logins" data-range="all">Р’СЃРµ РІСЂРµРјСЏ</button>
+                                    <button class="chart-range-btn active" data-chart="logins" data-range="day">День</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="week">Неделя</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="month">Месяц</button>
+                                    <button class="chart-range-btn" data-chart="logins" data-range="all">Все время</button>
                                 </div>
                             </div>
                             <div class="chart-value" id="chart-logins-value">0</div>
@@ -377,12 +377,12 @@
                         </div>
                         <div class="chart-box">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-online"/></svg> РћРЅР»Р°Р№РЅ</div>
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-online"/></svg> Онлайн</div>
                                 <div class="chart-range">
-                                    <button class="chart-range-btn active" data-chart="online" data-range="day">Р”РµРЅСЊ</button>
-                                    <button class="chart-range-btn" data-chart="online" data-range="week">РќРµРґРµР»СЏ</button>
-                                    <button class="chart-range-btn" data-chart="online" data-range="month">РњРµСЃСЏС†</button>
-                                    <button class="chart-range-btn" data-chart="online" data-range="all">Р’СЃРµ РІСЂРµРјСЏ</button>
+                                    <button class="chart-range-btn active" data-chart="online" data-range="day">День</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="week">Неделя</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="month">Месяц</button>
+                                    <button class="chart-range-btn" data-chart="online" data-range="all">Все время</button>
                                 </div>
                             </div>
                             <div class="chart-value" id="chart-online-value">0</div>
@@ -392,29 +392,29 @@
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> РќР°РіСЂСѓР·РєР° СЃРµСЂРІРµСЂР°</span>
-                        <button class="admin-btn" id="refresh-load-btn" style="padding:4px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Нагрузка сервера</span>
+                        <button class="admin-btn" id="refresh-load-btn" style="padding:4px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                     </div>
                     <div class="admin-grid" id="server-load-stats">
-                        <div class="admin-stat"><div class="num" id="load-cpu-process">0%</div><div class="label">CPU (РїСЂРѕС†РµСЃСЃ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-cpu-system">0%</div><div class="label">CPU (СЃРёСЃС‚РµРјР°)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-ram-process">0 MB</div><div class="label">RAM (РїСЂРѕС†РµСЃСЃ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-ram-used">0%</div><div class="label">RAM (СЃРёСЃС‚РµРјР°)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-online">0</div><div class="label">РћРЅР»Р°Р№РЅ (1 РјРёРЅ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-requests-min">0</div><div class="label">Р—Р°РїСЂРѕСЃРѕРІ/РјРёРЅ</div></div>
-                        <div class="admin-stat"><div class="num" id="load-avg-response">0 ms</div><div class="label">РЎСЂРµРґРЅРёР№ РѕС‚РІРµС‚</div></div>
-                        <div class="admin-stat"><div class="num" id="load-threads">0</div><div class="label">РџРѕС‚РѕРєРѕРІ</div></div>
-                        <div class="admin-stat"><div class="num" id="load-db-reads">0</div><div class="label">Р§С‚РµРЅРёР№ Р‘Р”/РјРёРЅ</div></div>
-                        <div class="admin-stat"><div class="num" id="load-db-writes">0</div><div class="label">Р—Р°РїРёСЃРµР№ Р‘Р”/РјРёРЅ</div></div>
-                        <div class="admin-stat"><div class="num" id="load-uptime">0</div><div class="label">РђРїС‚Р°Р№Рј</div></div>
+                        <div class="admin-stat"><div class="num" id="load-cpu-process">0%</div><div class="label">CPU (процесс)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-cpu-system">0%</div><div class="label">CPU (система)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-process">0 MB</div><div class="label">RAM (процесс)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-used">0%</div><div class="label">RAM (система)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-online">0</div><div class="label">Онлайн (1 мин)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-requests-min">0</div><div class="label">Запросов/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-avg-response">0 ms</div><div class="label">Средний ответ</div></div>
+                        <div class="admin-stat"><div class="num" id="load-threads">0</div><div class="label">Потоков</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-reads">0</div><div class="label">Чтений БД/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-writes">0</div><div class="label">Записей БД/мин</div></div>
+                        <div class="admin-stat"><div class="num" id="load-uptime">0</div><div class="label">Аптайм</div></div>
                         <div class="admin-stat"><div class="num" id="load-users-file">0 KB</div><div class="label">users.json</div></div>
-                        <div class="admin-stat"><div class="num" id="load-cores">0</div><div class="label">РЇРґРµСЂ CPU</div></div>
-                        <div class="admin-stat"><div class="num" id="load-ram-total">0 MB</div><div class="label">RAM (РІСЃРµРіРѕ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-ram-used-mb">0 MB</div><div class="label">RAM (Р·Р°РЅСЏС‚Рѕ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-users-total">0</div><div class="label">РџРѕР»СЊР·РѕРІР°С‚РµР»РµР№</div></div>
-                        <div class="admin-stat"><div class="num" id="load-requests-total">0</div><div class="label">Р—Р°РїСЂРѕСЃРѕРІ (РІСЃРµРіРѕ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-db-reads-total">0</div><div class="label">Р§С‚РµРЅРёР№ Р‘Р” (РІСЃРµРіРѕ)</div></div>
-                        <div class="admin-stat"><div class="num" id="load-db-writes-total">0</div><div class="label">Р—Р°РїРёСЃРµР№ Р‘Р” (РІСЃРµРіРѕ)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-cores">0</div><div class="label">Ядер CPU</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-total">0 MB</div><div class="label">RAM (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-ram-used-mb">0 MB</div><div class="label">RAM (занято)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-users-total">0</div><div class="label">Пользователей</div></div>
+                        <div class="admin-stat"><div class="num" id="load-requests-total">0</div><div class="label">Запросов (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-reads-total">0</div><div class="label">Чтений БД (всего)</div></div>
+                        <div class="admin-stat"><div class="num" id="load-db-writes-total">0</div><div class="label">Записей БД (всего)</div></div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;" class="chart-pair">
                         <div class="chart-box">
@@ -425,7 +425,7 @@
                         </div>
                         <div class="chart-box">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);">RAM (СЃРёСЃС‚РµРјР°, %)</div>
+                                <div style="font-size:13px;font-weight:700;color:var(--text-primary);">RAM (система, %)</div>
                             </div>
                             <canvas id="chart-ram" height="140"></canvas>
                         </div>
@@ -435,15 +435,15 @@
 
             <div class="admin-content-inner" data-content="users">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> РџРѕР»СЊР·РѕРІР°С‚РµР»Рё</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Пользователи</div>
                     <div class="admin-search-row">
-                        <input class="admin-input admin-search-input" id="admin-user-search" type="text" placeholder="РџРѕРёСЃРє РїРѕ @Username..." style="width:260px;">
-                        <button class="admin-btn" id="admin-user-search-clear">вњ•</button>
+                        <input class="admin-input admin-search-input" id="admin-user-search" type="text" placeholder="Поиск по @Username..." style="width:260px;">
+                        <button class="admin-btn" id="admin-user-search-clear">✕</button>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="admin-table">
                             <thead><tr>
-                                <th style="width:36px;"></th><th>ID</th><th>РРјСЏ</th><th>Username</th><th>РњРѕРЅРµС‚С‹</th><th>Robux</th><th>РЈСЂРѕРІРµРЅСЊ</th><th>Р РµС„РµСЂР°Р»С‹</th><th>РћР±РјРµРЅ СЃРµРі.</th><th>Р›РёРјРёС‚</th><th>РўРёС‚СѓР»</th><th>Р”РµР№СЃС‚РІРёСЏ</th>
+                                <th style="width:36px;"></th><th>ID</th><th>Имя</th><th>Username</th><th>Монеты</th><th>Robux</th><th>Уровень</th><th>Рефералы</th><th>Обмен сег.</th><th>Лимит</th><th>Титул</th><th>Действия</th>
                             </tr></thead>
                             <tbody id="admin-users-body"></tbody>
                         </table>
@@ -455,23 +455,23 @@
 
             <div class="admin-content-inner" data-content="vouchers">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> РЈРїСЂР°РІР»РµРЅРёРµ РІР°СѓС‡РµСЂР°РјРё</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-ticket"/></svg> Управление ваучерами</div>
                     <div class="admin-flex" style="margin-bottom:16px;">
-                        <input class="admin-input" id="voucher-amount" type="number" placeholder="РќРѕРјРёРЅР°Р» Robux" style="width:120px;">
-                        <input class="admin-input" id="voucher-code" placeholder="РљРѕРґ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)" style="width:200px;">
-                        <button class="admin-btn" id="add-voucher-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Р”РѕР±Р°РІРёС‚СЊ РІР°СѓС‡РµСЂ</button>
-                        <input class="admin-input" id="bulk-count" type="number" placeholder="РљРѕР»-РІРѕ" style="width:90px;">
-                        <input class="admin-input" id="bulk-amount" type="number" placeholder="РќРѕРјРёРЅР°Р»" style="width:90px;">
-                        <button class="admin-btn success" id="bulk-add-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> РњР°СЃСЃРѕРІРѕ</button>
+                        <input class="admin-input" id="voucher-amount" type="number" placeholder="Номинал Robux" style="width:120px;">
+                        <input class="admin-input" id="voucher-code" placeholder="Код (необязательно)" style="width:200px;">
+                        <button class="admin-btn" id="add-voucher-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить ваучер</button>
+                        <input class="admin-input" id="bulk-count" type="number" placeholder="Кол-во" style="width:90px;">
+                        <input class="admin-input" id="bulk-amount" type="number" placeholder="Номинал" style="width:90px;">
+                        <button class="admin-btn success" id="bulk-add-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Массово</button>
                     </div>
                     <div class="admin-flex" style="margin-bottom:8px;">
-                        <button class="admin-btn danger" id="delete-vouchers-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> РЈРґР°Р»РёС‚СЊ РІС‹Р±СЂР°РЅРЅС‹Рµ</button>
+                        <button class="admin-btn danger" id="delete-vouchers-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Удалить выбранные</button>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="admin-table">
                             <thead><tr>
                                 <th style="width:30px;"><input type="checkbox" id="voucher-select-all"></th>
-                                <th>ID</th><th>РљРѕРґ</th><th>РќРѕРјРёРЅР°Р»</th><th>РЎС‚Р°С‚СѓСЃ</th><th>РџРѕР»СѓС‡Р°С‚РµР»СЊ</th><th>Р”Р°С‚Р° РІС‹РґР°С‡Рё</th>
+                                <th>ID</th><th>Код</th><th>Номинал</th><th>Статус</th><th>Получатель</th><th>Дата выдачи</th>
                             </tr></thead>
                             <tbody id="admin-vouchers-body"></tbody>
                         </table>
@@ -481,59 +481,59 @@
 
             <div class="admin-content-inner" data-content="config">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> РќР°СЃС‚СЂРѕР№РєРё СЌРєРѕРЅРѕРјРёРєРё</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Настройки экономики</div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="admin-config-form"></div>
-                    <button class="admin-btn success" id="save-config-btn" style="margin-top:16px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ РЅР°СЃС‚СЂРѕР№РєРё</button>
+                    <button class="admin-btn success" id="save-config-btn" style="margin-top:16px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить настройки</button>
                 </div>
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg> Р›РёРјРёС‚ РѕР±РјРµРЅРѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-coin"/></svg> Лимит обменов пользователя</div>
                     <div class="admin-flex" style="margin-bottom:8px;">
                         <select class="admin-input" id="exc-user-select" style="width:100%;"></select>
                     </div>
                     <div class="admin-flex">
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <input class="admin-input" id="exc-count" type="number" value="0" style="width:90px;" placeholder="Р›РёРјРёС‚ РѕР±РјРµРЅРѕРІ">
-                            <button class="admin-btn success" id="exc-set-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Р—Р°РґР°С‚СЊ</button>
+                            <input class="admin-input" id="exc-count" type="number" value="0" style="width:90px;" placeholder="Лимит обменов">
+                            <button class="admin-btn success" id="exc-set-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Задать</button>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Р—Р°РґР°С‘С‚ СЃСѓС‚РѕС‡РЅС‹Р№ Р»РёРјРёС‚ РѕР±РјРµРЅРѕРІ Сѓ РІС‹Р±СЂР°РЅРЅРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ (РїРµСЂРµРѕРїСЂРµРґРµР»СЏРµС‚ РіР»РѕР±Р°Р»СЊРЅС‹Р№). РџРѕСЃС‚Р°РІСЊ 0 вЂ” С‡С‚РѕР±С‹ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РіР»РѕР±Р°Р»СЊРЅС‹Р№ Р»РёРјРёС‚.</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Задаёт суточный лимит обменов у выбранного пользователя (переопределяет глобальный). Поставь 0 — чтобы использовать глобальный лимит.</div>
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Р‘СѓСЃС‚С‹</span>
-                        <button class="admin-btn" id="add-boost-btn" style="padding:4px 12px;font-size:11px;">+ Р”РѕР±Р°РІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-lightning"/></svg> Бусты</span>
+                        <button class="admin-btn" id="add-boost-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
                     </div>
                     <div id="admin-boosts-list"></div>
-                    <button class="admin-btn success" id="save-boosts-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ Р±СѓСЃС‚С‹</button>
+                    <button class="admin-btn success" id="save-boosts-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить бусты</button>
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-arrow-up"/></svg> РЈР»СѓС‡С€РµРЅРёСЏ</span>
-                        <button class="admin-btn" id="add-upgrade-btn" style="padding:4px 12px;font-size:11px;">+ Р”РѕР±Р°РІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-arrow-up"/></svg> Улучшения</span>
+                        <button class="admin-btn" id="add-upgrade-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
                     </div>
                     <div id="admin-upgrades-list"></div>
-                    <button class="admin-btn success" id="save-upgrades-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ СѓР»СѓС‡С€РµРЅРёСЏ</button>
+                    <button class="admin-btn success" id="save-upgrades-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить улучшения</button>
                 </div>
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> РЈСЂРѕРІРЅРё</span>
-                        <button class="admin-btn" id="add-level-btn" style="padding:4px 12px;font-size:11px;">+ Р”РѕР±Р°РІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Уровни</span>
+                        <button class="admin-btn" id="add-level-btn" style="padding:4px 12px;font-size:11px;">+ Добавить</button>
                     </div>
                     <div id="admin-levels-list"></div>
-                    <button class="admin-btn success" id="save-levels-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРІРЅРё</button>
+                    <button class="admin-btn success" id="save-levels-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить уровни</button>
                 </div>
             </div>
 
             <div class="admin-content-inner" data-content="tasks">
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Р—Р°РґР°РЅРёСЏ</span>
-                        <button class="admin-btn" id="refresh-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-clipboard"/></svg> Задания</span>
+                        <button class="admin-btn" id="refresh-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                     </div>
                     <div id="admin-tasks-list"></div>
                     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-                        <button type="button" class="admin-btn" id="add-task-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Р”РѕР±Р°РІРёС‚СЊ Р·Р°РґР°РЅРёРµ</button>
-                        <button type="button" class="admin-btn success" id="save-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ Р·Р°РґР°РЅРёСЏ</button>
+                        <button type="button" class="admin-btn" id="add-task-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить задание</button>
+                        <button type="button" class="admin-btn success" id="save-tasks-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить задания</button>
                     </div>
                     <datalist id="task-boost-list"></datalist>
                 </div>
@@ -542,30 +542,30 @@
             <div class="admin-content-inner" data-content="cases">
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> РљРµР№СЃС‹</span>
-                        <button class="admin-btn" id="refresh-cases-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gift"/></svg> Кейсы</span>
+                        <button class="admin-btn" id="refresh-cases-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                     </div>
                     <div id="admin-cases-list"></div>
-                    <button class="admin-btn success" id="save-cases-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ РєРµР№СЃС‹</button>
+                    <button class="admin-btn success" id="save-cases-btn" style="margin-top:12px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить кейсы</button>
                 </div>
             </div>
 
             <div class="admin-content-inner" data-content="withdrawals">
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Р’С‹РІРѕРґ Robux</span>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Вывод Robux</span>
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <span style="font-size:12px;color:var(--text-secondary);" id="wd-toggle-label">Р’С‹РґР°С‡Р° РІС‹РєР»СЋС‡РµРЅР°</span>
-                            <button class="admin-btn" id="wd-toggle-btn" style="padding:6px 12px;font-size:11px;">Р’РєР»СЋС‡РёС‚СЊ</button>
-                            <button class="admin-btn" id="refresh-withdrawals-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ</button>
+                            <span style="font-size:12px;color:var(--text-secondary);" id="wd-toggle-label">Выдача выключена</span>
+                            <button class="admin-btn" id="wd-toggle-btn" style="padding:6px 12px;font-size:11px;">Включить</button>
+                            <button class="admin-btn" id="refresh-withdrawals-btn" style="padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                         </div>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="admin-table">
                             <thead><tr>
-                                <th>Р”Р°С‚Р°</th><th>ID</th><th>РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ</th><th>РќРёРє Roblox</th><th>РЎСѓРјРјР°</th><th>РЎС‚Р°С‚СѓСЃ</th><th>Р”РµР№СЃС‚РІРёСЏ</th>
+                                <th>Дата</th><th>ID</th><th>Пользователь</th><th>Ник Roblox</th><th>Сумма</th><th>Статус</th><th>Действия</th>
                             </tr></thead>
-                            <tbody id="admin-withdrawals-body"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Р—Р°РіСЂСѓР·РєР°...</td></tr></tbody>
+                            <tbody id="admin-withdrawals-body"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Загрузка...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -573,21 +573,21 @@
 
             <div class="admin-content-inner" data-content="messages">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РћС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить сообщение пользователю</div>
                     <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:520px;">
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Пользователь</div>
                             <select class="admin-input" id="msg-user-select" style="width:100%;"></select>
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РќР°Р·РІР°РЅРёРµ С‚РёС‚СѓР»Р° (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</div>
-                            <input class="admin-input" id="msg-title-img" placeholder="РЅР°РїСЂ. crown.png" style="width:100%;">
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Название титула (необязательно)</div>
+                            <input class="admin-input" id="msg-title-img" placeholder="напр. crown.png" style="width:100%;">
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РўРµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ</div>
-                            <textarea class="admin-input" id="msg-text" rows="3" placeholder="РўРµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ..."></textarea>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Текст сообщения</div>
+                            <textarea class="admin-input" id="msg-text" rows="3" placeholder="Текст сообщения..."></textarea>
                         </div>
-                        <button class="admin-btn success" id="send-msg-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РћС‚РїСЂР°РІРёС‚СЊ</button>
+                        <button class="admin-btn success" id="send-msg-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Отправить</button>
                     </div>
                 </div>
             </div>
@@ -595,82 +595,82 @@
             <div class="admin-content-inner" data-content="subscriptions">
                 <div class="admin-section">
                     <div class="admin-section-title" style="display:flex;justify-content:space-between;align-items:center;">
-                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> РџСЂРѕРІРµСЂРєР° РїРѕРґРїРёСЃРєРё (РІС…РѕРґ РІ РёРіСЂСѓ)</span>
-                        <button class="admin-btn" id="refresh-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РћР±РЅРѕРІРёС‚СЊ</button>
+                        <span><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Проверка подписки (вход в игру)</span>
+                        <button class="admin-btn" id="refresh-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Обновить</button>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:560px;">
                         <div class="admin-flex">
                             <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;">
-                                <input type="checkbox" id="gate-enabled" style="width:16px;height:16px;"> Р’РєР»СЋС‡РёС‚СЊ РїСЂРѕРІРµСЂРєСѓ РїРѕРґРїРёСЃРєРё
+                                <input type="checkbox" id="gate-enabled" style="width:16px;height:16px;"> Включить проверку подписки
                             </label>
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Р—Р°РіРѕР»РѕРІРѕРє РѕРєРЅР°</div>
-                            <input class="admin-input" id="gate-title" placeholder="РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚" style="width:100%;">
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Заголовок окна</div>
+                            <input class="admin-input" id="gate-title" placeholder="Подпишись на наш канал и чат" style="width:100%;">
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РћРїРёСЃР°РЅРёРµ</div>
-                            <textarea class="admin-input" id="gate-desc" rows="2" placeholder="Р§С‚РѕР±С‹ РёРіСЂР°С‚СЊ, РїРѕРґРїРёС€РёСЃСЊ..." style="width:100%;"></textarea>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Описание</div>
+                            <textarea class="admin-input" id="gate-desc" rows="2" placeholder="Чтобы играть, подпишись..." style="width:100%;"></textarea>
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РљР°РЅР°Р»С‹ / С‡Р°С‚С‹ РґР»СЏ РїСЂРѕРІРµСЂРєРё</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы / чаты для проверки</div>
                             <div id="gate-channels-editor"></div>
-                            <button class="admin-btn" id="add-gate-channel" style="margin-top:8px;padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Р”РѕР±Р°РІРёС‚СЊ РєР°РЅР°Р»</button>
+                            <button class="admin-btn" id="add-gate-channel" style="margin-top:8px;padding:6px 12px;font-size:11px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить канал</button>
                         </div>
-                        <button class="admin-btn success" id="save-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ РЅР°СЃС‚СЂРѕР№РєРё РїРѕРґРїРёСЃРєРё</button>
+                        <button class="admin-btn success" id="save-gate-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить настройки подписки</button>
                     </div>
                 </div>
 
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> РЎС‚Р°С‚РёСЃС‚РёРєР° РїРѕРґРїРёСЃС‡РёРєРѕРІ</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Статистика подписчиков</div>
                     <div class="admin-grid" id="gate-sub-stats">
-                        <div class="admin-stat"><div class="num">вЂ”</div><div class="label">РљР°РЅР°Р»С‹/С‡Р°С‚С‹ РµС‰С‘ РЅРµ РЅР°СЃС‚СЂРѕРµРЅС‹ РёР»Рё РЅРµРґРѕСЃС‚СѓРїРЅС‹</div></div>
+                        <div class="admin-stat"><div class="num">—</div><div class="label">Каналы/чаты ещё не настроены или недоступны</div></div>
                     </div>
                 </div>
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> РќРѕРІС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»Рё</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-people"/></svg> Новые пользователи</div>
                     <div class="admin-grid" id="gate-new-users">
-                        <div class="admin-stat"><div class="num" id="nu-today">0</div><div class="label">Р—Р° СЃРµРіРѕРґРЅСЏ</div></div>
-                        <div class="admin-stat"><div class="num" id="nu-week">0</div><div class="label">Р—Р° РЅРµРґРµР»СЋ</div></div>
-                        <div class="admin-stat"><div class="num" id="nu-month">0</div><div class="label">Р—Р° РјРµСЃСЏС†</div></div>
-                        <div class="admin-stat"><div class="num" id="nu-year">0</div><div class="label">Р—Р° РіРѕРґ</div></div>
-                        <div class="admin-stat"><div class="num" id="nu-all">0</div><div class="label">Р’СЃРµРіРѕ</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-today">0</div><div class="label">За сегодня</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-week">0</div><div class="label">За неделю</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-month">0</div><div class="label">За месяц</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-year">0</div><div class="label">За год</div></div>
+                        <div class="admin-stat"><div class="num" id="nu-all">0</div><div class="label">Всего</div></div>
                     </div>
                 </div>
             </div>
 
             <div class="admin-content-inner" data-content="posts">
                 <div class="admin-section">
-                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> РџСѓР±Р»РёРєР°С†РёСЏ РїРѕСЃС‚Р°</div>
+                    <div class="admin-section-title"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Публикация поста</div>
                     <div style="display:grid;grid-template-columns:1fr;gap:12px;max-width:640px;">
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РљР°РЅР°Р» РїСѓР±Р»РёРєР°С†РёРё (Р±РѕС‚ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј)</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Канал публикации (бот должен быть администратором)</div>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <select class="admin-input" id="post-channel" style="flex:1;min-width:0;"></select>
-                                <button class="admin-icon-btn green" id="post-add-channel" title="Р”РѕР±Р°РІРёС‚СЊ РєР°РЅР°Р»"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg></button>
-                                <button class="admin-icon-btn danger" id="post-remove-channel" title="РЈРґР°Р»РёС‚СЊ РєР°РЅР°Р»"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
+                                <button class="admin-icon-btn green" id="post-add-channel" title="Добавить канал"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg></button>
+                                <button class="admin-icon-btn danger" id="post-remove-channel" title="Удалить канал"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
                             </div>
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РўРµРєСЃС‚ РїРѕСЃС‚Р° (РјР°РєСЃ. 1024 СЃРёРјРІРѕР»Р°)</div>
-                            <textarea class="admin-input" id="post-text" rows="8" placeholder="рџ’Ћ Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ Robux Clicker..." style="width:100%;resize:vertical;"></textarea>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Текст поста (макс. 1024 символа)</div>
+                            <textarea class="admin-input" id="post-text" rows="8" placeholder="💎 Добро пожаловать в Robux Clicker..." style="width:100%;resize:vertical;"></textarea>
                             <div id="post-text-count" style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:4px;">0 / 1024</div>
                         </div>
                         <div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Р‘Р°РЅРЅРµСЂ (.png, РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Баннер (.png, необязательно)</div>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <input type="file" id="post-banner" accept="image/png" style="display:none;">
-                                <button class="admin-btn" id="post-banner-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Р’С‹Р±СЂР°С‚СЊ Р±Р°РЅРЅРµСЂ</button>
-                                <button class="admin-btn" id="post-banner-clear" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> РЈР±СЂР°С‚СЊ</button>
+                                <button class="admin-btn" id="post-banner-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Выбрать баннер</button>
+                                <button class="admin-btn" id="post-banner-clear" style="display:none;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-x"/></svg> Убрать</button>
                             </div>
                             <div id="post-banner-preview" style="margin-top:8px;display:none;border:1px solid var(--glass-border);border-radius:12px;overflow:hidden;max-width:280px;">
                                 <img id="post-banner-img" src="" alt="" style="width:100%;display:block;">
                             </div>
                         </div>
-                        <button class="admin-btn success" id="post-publish-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Р’С‹Р»РѕР¶РёС‚СЊ РїРѕСЃС‚</button>
+                        <button class="admin-btn success" id="post-publish-btn"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-send"/></svg> Выложить пост</button>
                         <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">
-                            РџРѕСЃС‚ Р±СѓРґРµС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅ РІ РІС‹Р±СЂР°РЅРЅРѕРј Telegram-РєР°РЅР°Р»Рµ СЃ РєРЅРѕРїРєРѕР№ В«рџљЂ РћС‚РєСЂС‹С‚СЊ РёРіСЂСѓВ» (РѕС‚РєСЂС‹РІР°РµС‚ Р±РѕС‚Р° СЃ Р·Р°РїСѓСЃРєРѕРј РёРіСЂС‹).
-                            РџСЂРёРјРµСЂ РєР°РЅР°Р»Р°: <code>@rbx_elite</code> (https://t.me/rbx_elite)
+                            Пост будет опубликован в выбранном Telegram-канале с кнопкой «🚀 Открыть игру» (открывает бота с запуском игры).
+                            Пример канала: <code>@rbx_elite</code> (https://t.me/rbx_elite)
                         </div>
                     </div>
                 </div>
@@ -678,10 +678,10 @@
         </div>
 
         <div id="admin-denied" style="display:none;text-align:center;padding:60px 20px;">
-            <div style="font-size:64px;margin-bottom:16px;">рџљ«</div>
-            <h2 style="font-size:24px;margin-bottom:8px;">Р”РѕСЃС‚СѓРї Р·Р°РїСЂРµС‰С‘РЅ</h2>
-            <p style="color:var(--text-secondary);">РЈ РІР°СЃ РЅРµС‚ РїСЂР°РІ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°</p>
-            <a href="/" class="auth-btn" style="margin-top:24px;display:inline-flex;">в†ђ Р’РµСЂРЅСѓС‚СЊСЃСЏ РЅР° СЃР°Р№С‚</a>
+            <div style="font-size:64px;margin-bottom:16px;">🚫</div>
+            <h2 style="font-size:24px;margin-bottom:8px;">Доступ запрещён</h2>
+            <p style="color:var(--text-secondary);">У вас нет прав администратора</p>
+            <a href="/" class="auth-btn" style="margin-top:24px;display:inline-flex;">← Вернуться на сайт</a>
         </div>
         </div>
     
@@ -689,8 +689,8 @@
     <div id="user-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px;">
         <div style="background:rgba(12,16,22,0.97);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:24px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> РџСЂРѕС„РёР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ</div>
-                <button id="user-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">вњ•</button>
+                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-chart"/></svg> Профиль пользователя</div>
+                <button id="user-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
             </div>
             <div id="user-modal-body"></div>
         </div>
@@ -700,12 +700,12 @@
     <div id="title-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px;">
         <div style="background:rgba(23,23,28,0.97);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Р’С‹Р±РѕСЂ С‚РёС‚СѓР»Р°</div>
-                <button id="title-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">вњ•</button>
+                <div style="font-size:16px;font-weight:700;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-image"/></svg> Выбор титула</div>
+                <button id="title-modal-close" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">✕</button>
             </div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Р’С‹Р±РµСЂРёС‚Рµ .png РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ С‚РёС‚СѓР»Р° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ <strong id="title-modal-user">вЂ”</strong></div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Выберите .png изображение для титула пользователя <strong id="title-modal-user">—</strong></div>
             <div id="title-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;"></div>
-            <button id="title-remove-btn" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:var(--danger);font-weight:600;cursor:pointer;font-family:var(--font);font-size:13px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg> РЈР±СЂР°С‚СЊ С‚РёС‚СѓР»</button>
+            <button id="title-remove-btn" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:var(--danger);font-weight:600;cursor:pointer;font-family:var(--font);font-size:13px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg> Убрать титул</button>
         </div>
     </div>
 
@@ -719,7 +719,7 @@
             return new Promise(resolve => {
                 const overlay = document.createElement('div');
                 overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
-                overlay.innerHTML = `<div style="background:rgba(23,23,28,0.95);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;"><div style="font-size:40px;margin-bottom:12px;">вљ пёЏ</div><div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">${msg}</div><div style="display:flex;gap:10px;justify-content:center;"><button id="custom-confirm-yes" style="padding:12px 28px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-family:var(--font);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Р”Р°</button><button id="custom-confirm-no" style="padding:12px 28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;font-family:var(--font);">вќЊ РќРµС‚</button></div></div>`;
+                overlay.innerHTML = `<div style="background:rgba(23,23,28,0.95);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">${msg}</div><div style="display:flex;gap:10px;justify-content:center;"><button id="custom-confirm-yes" style="padding:12px 28px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-family:var(--font);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Да</button><button id="custom-confirm-no" style="padding:12px 28px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--text-secondary);font-weight:600;cursor:pointer;font-family:var(--font);">❌ Нет</button></div></div>`;
                 document.body.appendChild(overlay);
                 overlay.querySelector('#custom-confirm-yes').onclick = () => { overlay.remove(); resolve(true); };
                 overlay.querySelector('#custom-confirm-no').onclick = () => { overlay.remove(); resolve(false); };
@@ -753,16 +753,16 @@
             API.init();
             const token = API.getToken();
             if (!token) {
-                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> РќРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ';
+                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Не авторизован';
                 return;
             }
             const check = await API.adminCheck();
             if (check.error || !check.is_admin) {
-                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Р”РѕСЃС‚СѓРї Р·Р°РїСЂРµС‰С‘РЅ';
+                document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Доступ запрещён';
                 document.getElementById('admin-denied').style.display = 'block';
                 return;
             }
-            document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Р”РѕСЃС‚СѓРї СЂР°Р·СЂРµС€С‘РЅ';
+            document.getElementById('admin-status').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступ разрешён';
             document.getElementById('admin-badge').style.display = 'flex';
             document.getElementById('admin-content').style.display = 'block';
 
@@ -806,27 +806,27 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const amount = parseInt(document.getElementById('voucher-amount').value) || 10;
                 const code = document.getElementById('voucher-code').value || '';
                 await API.adminAddVoucher(amount, code);
-                toast('Р’Р°СѓС‡РµСЂ РґРѕР±Р°РІР»РµРЅ', 'success');
+                toast('Ваучер добавлен', 'success');
                 loadVouchers();
             });
             document.getElementById('bulk-add-btn').addEventListener('click', async () => {
                 const count = parseInt(document.getElementById('bulk-count').value) || 10;
                 const amount = parseInt(document.getElementById('bulk-amount').value) || 10;
                 await API.adminAddVouchersBulk(count, amount);
-                toast(`Р”РѕР±Р°РІР»РµРЅРѕ ${count} РІР°СѓС‡РµСЂРѕРІ`, 'success');
+                toast(`Добавлено ${count} ваучеров`, 'success');
                 loadVouchers();
             });
             document.getElementById('delete-vouchers-btn').addEventListener('click', async () => {
                 const checks = document.querySelectorAll('#admin-vouchers-body input[type=checkbox]:checked');
                 const ids = Array.from(checks).map(c => c.value);
-                if (ids.length === 0) { toast('РќРµС‚ РІС‹Р±СЂР°РЅРЅС‹С… РІР°СѓС‡РµСЂРѕРІ', 'error'); return; }
-                if (!await customConfirm(`РЈРґР°Р»РёС‚СЊ ${ids.length} РІР°СѓС‡РµСЂ(РѕРІ)? Р­С‚Рѕ РґРµР№СЃС‚РІРёРµ РЅРµР»СЊР·СЏ РѕС‚РјРµРЅРёС‚СЊ.`)) return;
+                if (ids.length === 0) { toast('Нет выбранных ваучеров', 'error'); return; }
+                if (!await customConfirm(`Удалить ${ids.length} ваучер(ов)? Это действие нельзя отменить.`)) return;
                 const res = await API.post('/api/admin/delete_vouchers', { ids });
                 if (res.success) {
-                    toast(`РЈРґР°Р»РµРЅРѕ ${res.deleted} РІР°СѓС‡РµСЂРѕРІ`, 'success');
+                    toast(`Удалено ${res.deleted} ваучеров`, 'success');
                     loadVouchers();
                 } else {
-                    toast('РћС€РёР±РєР° СѓРґР°Р»РµРЅРёСЏ', 'error');
+                    toast('Ошибка удаления', 'error');
                 }
             });
             document.getElementById('voucher-select-all').addEventListener('change', function() {
@@ -837,7 +837,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const newConfig = { game: {} };
                 inputs.forEach(inp => { const val = inp.value; newConfig.game[inp.dataset.key] = isNaN(val) ? val : Number(val); });
                 await API.adminUpdateConfig(newConfig);
-                toast('РљРѕРЅС„РёРі СЃРѕС…СЂР°РЅС‘РЅ', 'success');
+                toast('Конфиг сохранён', 'success');
             });
             document.getElementById('save-levels-btn').addEventListener('click', async () => {
                 const configRes = await API.getConfig();
@@ -855,7 +855,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 });
                 currentConfig.levels = newLevels;
                 await API.adminUpdateConfig({ game: currentConfig.game, levels: newLevels });
-                toast('РЈСЂРѕРІРЅРё СЃРѕС…СЂР°РЅРµРЅС‹', 'success');
+                toast('Уровни сохранены', 'success');
             });
             document.getElementById('add-level-btn').addEventListener('click', () => {
                 const list = document.getElementById('admin-levels-list');
@@ -865,10 +865,10 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;';
                 div.innerHTML = `
                     <input class="admin-input" data-lfield="level" value="${idx + 1}" style="width:50px;" placeholder="LVL">
-                    <input class="admin-input" data-lfield="name" value="" style="flex:1;" placeholder="РќР°Р·РІР°РЅРёРµ">
-                    <input class="admin-input" data-lfield="coins_needed" value="0" style="width:80px;" placeholder="РњРѕРЅРµС‚">
+                    <input class="admin-input" data-lfield="name" value="" style="flex:1;" placeholder="Название">
+                    <input class="admin-input" data-lfield="coins_needed" value="0" style="width:80px;" placeholder="Монет">
                     <input class="admin-input" data-lfield="bonus" value="1" style="width:60px;" placeholder="x">
-                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">вњ•</button>
+                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
                 `;
                 list.appendChild(div);
             });
@@ -890,7 +890,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     });
                 });
                 await API.adminUpdateConfig({ boosts });
-                toast('Р‘СѓСЃС‚С‹ СЃРѕС…СЂР°РЅРµРЅС‹', 'success');
+                toast('Бусты сохранены', 'success');
                 loadConfigEdit();
             });
             document.getElementById('add-upgrade-btn').addEventListener('click', () => {
@@ -922,7 +922,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     };
                 });
                 await API.adminUpdateConfig({ upgrades });
-                toast('РЈР»СѓС‡С€РµРЅРёСЏ СЃРѕС…СЂР°РЅРµРЅС‹', 'success');
+                toast('Улучшения сохранены', 'success');
                 loadConfigEdit();
             });
             document.getElementById('save-tasks-btn').addEventListener('click', saveAdminTasks);
@@ -930,13 +930,13 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             document.getElementById('save-cases-btn').addEventListener('click', async () => {
                 const btn = document.getElementById('save-cases-btn');
                 const origHtml = btn.innerHTML;
-                btn.innerHTML = '<span style="opacity:0.7;">РЎРѕС…СЂР°РЅРµРЅРёРµ...</span>';
+                btn.innerHTML = '<span style="opacity:0.7;">Сохранение...</span>';
                 btn.disabled = true;
                 const res = await API.adminSaveCases(adminCases);
                 btn.innerHTML = origHtml;
                 btn.disabled = false;
-                if (res && res.success) { toast('РљРµР№СЃС‹ СЃРѕС…СЂР°РЅРµРЅС‹', 'success'); loadCasesEdit(); }
-                else toast('РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error');
+                if (res && res.success) { toast('Кейсы сохранены', 'success'); loadCasesEdit(); }
+                else toast('Ошибка сохранения: ' + (res.error || 'неизвестно'), 'error');
             });
             document.getElementById('refresh-cases-btn').addEventListener('click', loadCasesEdit);
 
@@ -945,31 +945,31 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const btn = document.getElementById('wd-toggle-btn');
                 const enabled = btn.dataset.enabled === '1';
                 await API.adminToggleRobuxWithdraw(!enabled);
-                toast(enabled ? 'Р’С‹РґР°С‡Р° Robux РІС‹РєР»СЋС‡РµРЅР°' : 'Р’С‹РґР°С‡Р° Robux РІРєР»СЋС‡РµРЅР°', 'success');
+                toast(enabled ? 'Выдача Robux выключена' : 'Выдача Robux включена', 'success');
                 loadWithdrawals();
             });
             document.getElementById('send-msg-btn').addEventListener('click', async () => {
                 const uid = document.getElementById('msg-user-select').value;
                 const text = document.getElementById('msg-text').value.trim();
                 const title = document.getElementById('msg-title-img').value.trim();
-                if (!uid) { toast('Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ', 'error'); return; }
-                if (!text) { toast('Р’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ', 'error'); return; }
+                if (!uid) { toast('Выберите пользователя', 'error'); return; }
+                if (!text) { toast('Введите текст сообщения', 'error'); return; }
                 const res = await API.adminSendMessage(uid, text, title);
                 if (res.success) {
-                    toast('РЎРѕРѕР±С‰РµРЅРёРµ РѕС‚РїСЂР°РІР»РµРЅРѕ', 'success');
+                    toast('Сообщение отправлено', 'success');
                     document.getElementById('msg-text').value = '';
                     document.getElementById('msg-title-img').value = '';
                 } else {
-                    toast('РћС€РёР±РєР° РѕС‚РїСЂР°РІРєРё', 'error');
+                    toast('Ошибка отправки', 'error');
                 }
             });
 
             document.getElementById('exc-set-btn').addEventListener('click', async () => {
                 const uid = document.getElementById('exc-user-select').value;
-                if (!uid) { toast('Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ', 'error'); return; }
+                if (!uid) { toast('Выберите пользователя', 'error'); return; }
                 const count = parseInt(document.getElementById('exc-count').value) || 0;
                 await API.adminSetUserFields(uid, { exchange_limit: count });
-                toast(`Р›РёРјРёС‚ РѕР±РјРµРЅРѕРІ РґР»СЏ ${uid}: ${count}`, 'success');
+                toast(`Лимит обменов для ${uid}: ${count}`, 'success');
             });
 
             // Refresh all button
@@ -982,7 +982,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 loadCasesEdit();
                 loadWithdrawals();
                 loadMessageUsers();
-                toast('Р’СЃРµ РґР°РЅРЅС‹Рµ РѕР±РЅРѕРІР»РµРЅС‹', 'success');
+                toast('Все данные обновлены', 'success');
             });
 
             // User modal close
@@ -1006,9 +1006,9 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             });
             document.getElementById('title-remove-btn').addEventListener('click', async () => {
                 const uid = document.getElementById('title-modal-user').textContent;
-                if (uid && uid !== 'вЂ”') {
+                if (uid && uid !== '—') {
                     await API.adminSetTitle(uid, '');
-                    toast('РўРёС‚СѓР» СѓР±СЂР°РЅ', 'success');
+                    toast('Титул убран', 'success');
                     document.getElementById('title-modal').style.display = 'none';
                     loadUsers();
                 }
@@ -1018,23 +1018,23 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             document.getElementById('admin-set-webhook-btn').addEventListener('click', async () => {
                 const res = await API.post('/api/admin/set_webhook', {});
                 if (res.success) {
-                    toast('Р’РµР±С…СѓРє СѓСЃС‚Р°РЅРѕРІР»РµРЅ!', 'success');
+                    toast('Вебхук установлен!', 'success');
                 } else {
-                    toast('РћС€РёР±РєР°: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error');
+                    toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
                 }
             });
 
             // Reset statistics button
             document.getElementById('admin-reset-stats-btn').addEventListener('click', async () => {
-                const ok = await customConfirm('РЎР±СЂРѕСЃРёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ Р’РЎР•РҐ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№?<br><small>РњРѕРЅРµС‚С‹, СѓСЂРѕРІРЅРё, РєР»РёРєРё, Р°РїРіСЂРµР№РґС‹, Р±СѓСЃС‚С‹, РєРµР№СЃС‹, РІС‹РІРѕРґС‹ Рё РѕР±РјРµРЅС‹ Р±СѓРґСѓС‚ РѕР±РЅСѓР»РµРЅС‹. РџРµСЂРµРґ СЃР±СЂРѕСЃРѕРј Р±СѓРґРµС‚ СЃРѕР·РґР°РЅ Р±СЌРєР°Рї. РЎРѕС†РёР°Р»СЊРЅС‹Рµ РґР°РЅРЅС‹Рµ (РёРјСЏ, Р°РІР°С‚Р°СЂ, СЂРµС„РµСЂР°Р»С‹) СЃРѕС…СЂР°РЅСЏС‚СЃСЏ.</small>');
+                const ok = await customConfirm('Сбросить статистику ВСЕХ пользователей?<br><small>Монеты, уровни, клики, апгрейды, бусты, кейсы, выводы и обмены будут обнулены. Перед сбросом будет создан бэкап. Социальные данные (имя, аватар, рефералы) сохранятся.</small>');
                 if (!ok) return;
                 const res = await API.post('/api/admin/reset_stats', {});
                 if (res.success) {
-                    toast(`РЎС‚Р°С‚РёСЃС‚РёРєР° СЃР±СЂРѕС€РµРЅР° (${res.reseted} РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№). Р‘СЌРєР°Рї: ${res.backup}`, 'success');
+                    toast(`Статистика сброшена (${res.reseted} пользователей). Бэкап: ${res.backup}`, 'success');
                     await loadDashboard();
                     loadUsers();
                 } else {
-                    toast('РћС€РёР±РєР°: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error');
+                    toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
                 }
             });
 
@@ -1291,7 +1291,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             set('load-db-writes-total', res.db_writes_total ?? 0);
             const up = res.uptime_sec || 0;
             const days = Math.floor(up / 86400), hours = Math.floor((up % 86400) / 3600), mins = Math.floor((up % 3600) / 60);
-            set('load-uptime', (days > 0 ? days + 'Рґ ' : '') + (hours > 0 ? hours + 'С‡ ' : '') + mins + 'Рј');
+            set('load-uptime', (days > 0 ? days + 'д ' : '') + (hours > 0 ? hours + 'ч ' : '') + mins + 'м');
             pushLoadSample(res);
             drawLoadChart('chart-cpu', loadHistory.cpu, 'CPU');
             drawLoadChart('chart-ram', loadHistory.ram, 'RAM');
@@ -1323,11 +1323,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             try { cfg = await API.getConfig(); } catch (e) {}
             const levels = (cfg && cfg.levels) || [];
             const lvlDef = levels.find(l => l.level === (u.level || 1)) || {};
-            const lvlName = lvlDef.name || ('РЈСЂРѕРІРµРЅСЊ ' + (u.level || 1));
+            const lvlName = lvlDef.name || ('Уровень ' + (u.level || 1));
             const titleImg = u.custom_title ? `<img src="/assets/title/${u.custom_title}" style="width:42px;height:42px;object-fit:contain;" alt="">` : '';
             const regDate = u.registered_at ? new Date(u.registered_at * 1000).toLocaleDateString('ru-RU') : '-';
-            const adminBadge = u.is_admin ? '<span style="font-size:10px;color:var(--gold);border:1px solid rgba(255,228,77,0.3);padding:2px 8px;border-radius:10px;"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-crown"/></svg> РђР”РњРРќ</span>' : '';
-            const blockedBadge = u.is_blocked ? '<span style="font-size:10px;color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:10px;">Р—РђР‘Р›РћРљРР РћР’РђРќ</span>' : '';
+            const adminBadge = u.is_admin ? '<span style="font-size:10px;color:var(--gold);border:1px solid rgba(255,228,77,0.3);padding:2px 8px;border-radius:10px;"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><use href="#icon-crown"/></svg> АДМИН</span>' : '';
+            const blockedBadge = u.is_blocked ? '<span style="font-size:10px;color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:10px;">ЗАБЛОКИРОВАН</span>' : '';
 
             body.innerHTML = `
                 <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
@@ -1337,73 +1337,73 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                             <strong style="font-size:17px;">${u.first_name || u.id}</strong>
                             ${adminBadge}${blockedBadge}
                         </div>
-                        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${u.username ? '@'+u.username : 'вЂ”'} В· ID ${u.id}</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${u.username ? '@'+u.username : '—'} · ID ${u.id}</div>
                         <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-                            ${titleImg || '<span style="color:var(--text-muted);font-size:12px;">Р‘РµР· С‚РёС‚СѓР»Р°</span>'}
+                            ${titleImg || '<span style="color:var(--text-muted);font-size:12px;">Без титула</span>'}
                         </div>
                     </div>
                     <div style="text-align:center;flex-shrink:0;">
                         <div style="font-size:24px;font-weight:800;color:var(--gold);">${u.level || 1}</div>
-                        <div style="font-size:10px;color:var(--text-secondary);">Р РђРќР“ В· ${lvlName}</div>
+                        <div style="font-size:10px;color:var(--text-secondary);">РАНГ · ${lvlName}</div>
                     </div>
                 </div>
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">РњРѕРЅРµС‚С‹</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Монеты</div>
                         <div id="um-coins" style="font-size:18px;font-weight:800;color:var(--gold);">${formatStat(u.coins || 0)}</div>
                     </div>
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">Р’СЃРµРіРѕ Р·Р°СЂР°Р±РѕС‚Р°РЅРѕ</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Всего заработано</div>
                         <div id="um-total-earned" style="font-size:18px;font-weight:800;color:var(--gold);">${formatStat(u.total_earned || 0)}</div>
                     </div>
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">Р РµС„РµСЂР°Р»С‹ (Р°РєС‚.)</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Рефералы (акт.)</div>
                         <div id="um-ref-stats" style="font-size:18px;font-weight:800;color:var(--cyan);">${u.referral_count || 0} (${u.referral_active_count || 0})</div>
                     </div>
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">Р—Р°СЂР°Р±РѕС‚Р°РЅРѕ СЂРµС„.</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Заработано реф.</div>
                         <div id="um-ref-earned" style="font-size:18px;font-weight:800;color:var(--cyan);">${formatStat(u.referral_earned || 0)}</div>
                     </div>
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">Р’СЃРµРіРѕ РєР»РёРєРѕРІ</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Всего кликов</div>
                         <div id="um-total-clicks" style="font-size:18px;font-weight:800;color:var(--accent);">${formatStat(u.total_clicks || 0)}</div>
                     </div>
                     <div class="chart-box" style="padding:10px 12px;border-radius:12px;">
-                        <div style="font-size:11px;color:var(--text-secondary);">РџСЂРёРіР»Р°С€С‘РЅ</div>
-                        <div id="um-referred-by" style="font-size:13px;font-weight:700;color:var(--text-primary);">${u.referred_by ? (adminUsersByName[String(u.referred_by)] ? adminUsersByName[String(u.referred_by)] + ' В· ' + u.referred_by : u.referred_by) : 'вЂ”'}</div>
-                        <div style="font-size:10px;color:var(--text-muted);">Р РµРіРёСЃС‚СЂР°С†РёСЏ: ${regDate}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);">Приглашён</div>
+                        <div id="um-referred-by" style="font-size:13px;font-weight:700;color:var(--text-primary);">${u.referred_by ? (adminUsersByName[String(u.referred_by)] ? adminUsersByName[String(u.referred_by)] + ' · ' + u.referred_by : u.referred_by) : '—'}</div>
+                        <div style="font-size:10px;color:var(--text-muted);">Регистрация: ${regDate}</div>
                     </div>
                 </div>
 
-                <div style="font-size:13px;font-weight:700;margin-bottom:8px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ</div>
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-gear"/></svg> Редактирование</div>
                 <div class="user-modal-inputs">
                     <div>
-                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Р‘Р°Р»Р°РЅСЃ</label>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Баланс</label>
                         <input class="admin-input" id="um-balance" type="number" value="${u.coins || 0}">
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">РЈСЂРѕРІРµРЅСЊ</label>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Уровень</label>
                         <input class="admin-input" id="um-level" type="number" value="${u.level || 1}">
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Р РµС„РµСЂР°Р»С‹</label>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Рефералы</label>
                         <input class="admin-input" id="um-referrals" type="number" value="${u.referral_count || 0}">
                     </div>
                     <div>
-                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">РђРєС‚РёРІРЅС‹Рµ СЂРµС„РµСЂР°Р»С‹</label>
+                        <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Активные рефералы</label>
                         <input class="admin-input" id="um-referrals-active" type="number" value="${u.referral_active_count || 0}">
                     </div>
                 </div>
-                <button class="admin-btn success" id="um-save-btn" style="width:100%;margin-top:10px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ</button>
+                <button class="admin-btn success" id="um-save-btn" style="width:100%;margin-top:10px;"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-save"/></svg> Сохранить изменения</button>
 
                 <div class="user-chart-panel">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-                        <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-chart"/></svg> РђРєС‚РёРІРЅРѕСЃС‚СЊ (Р·Р°С…РѕРґС‹)</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--text-primary);"><svg class="icon" viewBox="0 0 24 24" style="color:#00FF88;"><use href="#icon-chart"/></svg> Активность (заходы)</div>
                         <div class="chart-range">
-                            <button class="chart-range-btn active" data-uchart="user" data-range="day">Р”РµРЅСЊ</button>
-                            <button class="chart-range-btn" data-uchart="user" data-range="week">РќРµРґРµР»СЏ</button>
-                            <button class="chart-range-btn" data-uchart="user" data-range="month">РњРµСЃСЏС†</button>
+                            <button class="chart-range-btn active" data-uchart="user" data-range="day">День</button>
+                            <button class="chart-range-btn" data-uchart="user" data-range="week">Неделя</button>
+                            <button class="chart-range-btn" data-uchart="user" data-range="month">Месяц</button>
                         </div>
                     </div>
                     <div class="chart-value" id="user-chart-value">0</div>
@@ -1420,10 +1420,10 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     referral_active_count: parseInt(document.getElementById('um-referrals-active').value) || 0
                 });
                 if (res.success) {
-                    toast('Р”Р°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕР±РЅРѕРІР»РµРЅС‹', 'success');
+                    toast('Данные пользователя обновлены', 'success');
                     loadUsers();
                 } else {
-                    toast('РћС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error');
+                    toast('Ошибка обновления: ' + (res.error || 'неизвестно'), 'error');
                 }
             });
 
@@ -1454,7 +1454,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 set('um-ref-stats', `${fresh.referral_count || 0} (${fresh.referral_active_count || 0})`);
                 set('um-ref-earned', formatStat(fresh.referral_earned || 0));
                 set('um-total-clicks', formatStat(fresh.total_clicks || 0));
-                set('um-referred-by', fresh.referred_by ? (adminUsersByName[String(fresh.referred_by)] ? adminUsersByName[String(fresh.referred_by)] + ' В· ' + fresh.referred_by : fresh.referred_by) : 'вЂ”');
+                set('um-referred-by', fresh.referred_by ? (adminUsersByName[String(fresh.referred_by)] ? adminUsersByName[String(fresh.referred_by)] + ' · ' + fresh.referred_by : fresh.referred_by) : '—');
                 const st = await API.post('/api/admin/user_stats', { user_id: userModalState.uid });
                 if (st && st.logins_daily) {
                     userModalState.data = st;
@@ -1501,15 +1501,15 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     <td><strong style="color:var(--gold);">${u.level || 1}</strong></td>
                     <td><strong>${u.referral_count || 0}</strong></td>
                     <td><input class="admin-input" value="${u.exchange_count_today || 0}" style="width:60px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_count_today"></td>
-                    <td><input class="admin-input" value="${u.exchange_limit || 0}" style="width:70px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_limit" placeholder="РіР»РѕР±Р°Р»"></td>
+                    <td><input class="admin-input" value="${u.exchange_limit || 0}" style="width:70px;padding:6px 8px;" data-uid="${u.id}" data-field="exchange_limit" placeholder="глобал"></td>
                     <td>${u.custom_title ? '<span style="color:var(--gold);font-size:11px;">'+u.custom_title.replace('.png','')+'</span>' : '-'}</td>
                     <td>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start;">
-                            <button class="admin-icon-btn gold" title="РџСЂРѕС„РёР»СЊ Рё Р°РєС‚РёРІРЅРѕСЃС‚СЊ" data-action="view-user" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-chart"/></svg></button>
-                            <button class="admin-icon-btn green" title="РЎРѕС…СЂР°РЅРёС‚СЊ" data-action="save-fields" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-save"/></svg></button>
-                            <button class="admin-icon-btn gold" title="${u.is_admin ? 'РЎРЅСЏС‚СЊ Р°РґРјРёРЅР°' : 'Р”Р°С‚СЊ Р°РґРјРёРЅР°'}" data-action="toggle-admin" data-uid="${u.id}">${u.is_admin ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-crown"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-user"/></svg>'}</button>
-                            <button class="admin-icon-btn pink" title="РЈСЃС‚Р°РЅРѕРІРёС‚СЊ С‚РёС‚СѓР»" data-action="set-title" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-image"/></svg></button>
-                            <button class="admin-icon-btn ${u.is_blocked ? 'green' : 'danger'}" title="${u.is_blocked ? 'Р Р°Р·Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ' : 'Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ'}" data-action="toggle-block" data-uid="${u.id}">${u.is_blocked ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-unlock"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-lock"/></svg>'}</button>
+                            <button class="admin-icon-btn gold" title="Профиль и активность" data-action="view-user" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-chart"/></svg></button>
+                            <button class="admin-icon-btn green" title="Сохранить" data-action="save-fields" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-save"/></svg></button>
+                            <button class="admin-icon-btn gold" title="${u.is_admin ? 'Снять админа' : 'Дать админа'}" data-action="toggle-admin" data-uid="${u.id}">${u.is_admin ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-crown"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-user"/></svg>'}</button>
+                            <button class="admin-icon-btn pink" title="Установить титул" data-action="set-title" data-uid="${u.id}"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-image"/></svg></button>
+                            <button class="admin-icon-btn ${u.is_blocked ? 'green' : 'danger'}" title="${u.is_blocked ? 'Разблокировать' : 'Заблокировать'}" data-action="toggle-block" data-uid="${u.id}">${u.is_blocked ? '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-unlock"/></svg>' : '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><use href="#icon-lock"/></svg>'}</button>
                         </div>
                     </td>
                 `;
@@ -1518,7 +1518,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             tbody.querySelectorAll('[data-action="toggle-block"]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     await API.adminToggleBlock(btn.dataset.uid);
-                    toast('РЎС‚Р°С‚СѓСЃ РёР·РјРµРЅС‘РЅ', 'success');
+                    toast('Статус изменён', 'success');
                     loadUsers();
                 });
             });
@@ -1530,7 +1530,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     const exc = get('exchange_count_today');
                     const limit = get('exchange_limit');
                     await API.adminSetUserFields(btn.dataset.uid, { balance, robux_balance: robux, exchange_count_today: exc, exchange_limit: limit });
-                    toast('Р”Р°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РѕР±РЅРѕРІР»РµРЅС‹', 'success');
+                    toast('Данные пользователя обновлены', 'success');
                 });
             });
             tbody.querySelectorAll('[data-action="view-user"]').forEach(btn => {
@@ -1543,10 +1543,10 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 btn.addEventListener('click', async () => {
                     const res = await API.post('/api/admin/toggle_admin', { user_id: btn.dataset.uid });
                     if (res.success) {
-                        toast(res.is_admin ? '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-crown"/></svg> РђРґРјРёРЅ РґРѕР±Р°РІР»РµРЅ' : '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-user"/></svg> РђРґРјРёРЅ СѓРґР°Р»С‘РЅ', 'success');
+                        toast(res.is_admin ? '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-crown"/></svg> Админ добавлен' : '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-user"/></svg> Админ удалён', 'success');
                         loadUsers();
                     } else {
-                        toast('РћС€РёР±РєР°', 'error');
+                        toast('Ошибка', 'error');
                     }
                 });
             });
@@ -1556,11 +1556,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     modal.style.display = 'flex';
                     document.getElementById('title-modal-user').textContent = btn.dataset.uid;
                     const grid = document.getElementById('title-grid');
-                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;">Р—Р°РіСЂСѓР·РєР°...</div>';
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:20px;">Загрузка...</div>';
                     const res = await API.adminListTitles();
                     grid.innerHTML = '';
                     if (res.error) {
-                        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:20px;">РћС€РёР±РєР°: ${res.error}</div>`;
+                        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:20px;">Ошибка: ${res.error}</div>`;
                     } else if (res.titles && res.titles.length > 0) {
                         const titles = res.titles;
                         const BATCH = 6;
@@ -1572,11 +1572,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                             item.addEventListener('click', async () => {
                                 const r = await API.adminSetTitle(btn.dataset.uid, title);
                                 if (r.success) {
-                                    toast('РўРёС‚СѓР» СѓСЃС‚Р°РЅРѕРІР»РµРЅ: ' + title, 'success');
+                                    toast('Титул установлен: ' + title, 'success');
                                     modal.style.display = 'none';
                                     loadUsers();
                                 } else {
-                                    toast('РћС€РёР±РєР° СѓСЃС‚Р°РЅРѕРІРєРё С‚РёС‚СѓР»Р°', 'error');
+                                    toast('Ошибка установки титула', 'error');
                                 }
                             });
                             grid.appendChild(item);
@@ -1591,7 +1591,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                                     item.innerHTML = `<img src="/assets/title/${title}" style="width:100%;aspect-ratio:1;object-fit:contain;display:block;padding:4px;" title="${title}">`;
                                 };
                                 img.onerror = () => {
-                                    item.innerHTML = `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:11px;">РѕС€РёР±РєР°</div>`;
+                                    item.innerHTML = `<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--danger);font-size:11px;">ошибка</div>`;
                                 };
                                 img.src = `/assets/title/${title}`;
                             });
@@ -1599,7 +1599,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                         };
                         loadNext();
                     } else {
-                        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">РќРµС‚ .png С„Р°Р№Р»РѕРІ РІ assets/title/</div>';
+                        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">Нет .png файлов в assets/title/</div>';
                     }
                 });
             });
@@ -1607,28 +1607,28 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
 
         async function loadWithdrawals() {
             const res = await API.adminRobuxWithdraw();
-            if (res.error) { toast('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё РІС‹РІРѕРґРѕРІ', 'error'); return; }
+            if (res.error) { toast('Ошибка загрузки выводов', 'error'); return; }
             const btn = document.getElementById('wd-toggle-btn');
             const label = document.getElementById('wd-toggle-label');
             const enabled = !!res.enabled;
             btn.dataset.enabled = enabled ? '1' : '0';
-            btn.textContent = enabled ? 'Р’С‹РєР»СЋС‡РёС‚СЊ' : 'Р’РєР»СЋС‡РёС‚СЊ';
+            btn.textContent = enabled ? 'Выключить' : 'Включить';
             btn.classList.toggle('danger', enabled);
             btn.classList.toggle('success', !enabled);
-            label.textContent = enabled ? 'Р’С‹РґР°С‡Р° РІРєР»СЋС‡РµРЅР°' : 'Р’С‹РґР°С‡Р° РІС‹РєР»СЋС‡РµРЅР°';
+            label.textContent = enabled ? 'Выдача включена' : 'Выдача выключена';
             const tbody = document.getElementById('admin-withdrawals-body');
             tbody.innerHTML = '';
             if (!res.withdrawals || res.withdrawals.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">РќРµС‚ Р·Р°СЏРІРѕРє РЅР° РІС‹РІРѕРґ</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Нет заявок на вывод</td></tr>';
                 return;
             }
-            const statusMap = { pending: '<span style="color:var(--gold);">РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ</span>', approved: '<span style="color:var(--success);">РћРґРѕР±СЂРµРЅ</span>', rejected: '<span style="color:var(--danger);">РћС‚РєР»РѕРЅС‘РЅ</span>' };
+            const statusMap = { pending: '<span style="color:var(--gold);">Обрабатывается</span>', approved: '<span style="color:var(--success);">Одобрен</span>', rejected: '<span style="color:var(--danger);">Отклонён</span>' };
             res.withdrawals.forEach(w => {
                 const tr = document.createElement('tr');
                 const actions = w.status === 'approved' || w.status === 'rejected'
-                    ? '<span style="color:var(--text-muted);font-size:11px;">вЂ”</span>'
-                    : `<button class="admin-btn success" style="padding:4px 8px;font-size:11px;" data-wd-action="approve" data-uid="${w.user_id}" data-wid="${w.id}">РћРґРѕР±СЂРёС‚СЊ</button>
-                       <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" data-wd-action="reject" data-uid="${w.user_id}" data-wid="${w.id}">РћС‚РєР»РѕРЅРёС‚СЊ</button>`;
+                    ? '<span style="color:var(--text-muted);font-size:11px;">—</span>'
+                    : `<button class="admin-btn success" style="padding:4px 8px;font-size:11px;" data-wd-action="approve" data-uid="${w.user_id}" data-wid="${w.id}">Одобрить</button>
+                       <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" data-wd-action="reject" data-uid="${w.user_id}" data-wid="${w.id}">Отклонить</button>`;
                 tr.innerHTML = `
                     <td style="color:var(--text-muted);font-size:11px;white-space:nowrap;">${w.date || '-'}</td>
                     <td style="color:var(--text-muted);font-size:11px;">${w.id}</td>
@@ -1644,7 +1644,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 btn.addEventListener('click', async () => {
                     const status = btn.dataset.wdAction === 'approve' ? 'approved' : 'rejected';
                     await API.adminSetWithdrawal(btn.dataset.uid, btn.dataset.wid, status);
-                    toast(status === 'approved' ? 'Р’С‹РІРѕРґ РѕРґРѕР±СЂРµРЅ' : 'Р’С‹РІРѕРґ РѕС‚РєР»РѕРЅС‘РЅ', 'success');
+                    toast(status === 'approved' ? 'Вывод одобрен' : 'Вывод отклонён', 'success');
                     loadWithdrawals();
                 });
             });
@@ -1655,7 +1655,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (res.error) return;
             const sel = document.getElementById('msg-user-select');
             const cur = sel.value;
-            sel.innerHTML = '<option value="">вЂ” Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ вЂ”</option>';
+            sel.innerHTML = '<option value="">— Выберите пользователя —</option>';
             (res.users || []).forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.id;
@@ -1670,7 +1670,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (res.error) return;
             const sel = document.getElementById('exc-user-select');
             const cur = sel.value;
-            sel.innerHTML = '<option value="">вЂ” Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ вЂ”</option>';
+            sel.innerHTML = '<option value="">— Выберите пользователя —</option>';
             (res.users || []).forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.id;
@@ -1692,7 +1692,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     <td style="color:var(--text-muted);font-size:11px;">${v.id}</td>
                     <td style="font-family:monospace;color:var(--cyan);">${v.code}</td>
                     <td><strong>${v.amount}</strong> Robux</td>
-                    <td>${v.status === 'available' ? '<span style="color:var(--success);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Р”РѕСЃС‚СѓРїРµРЅ</span>' : '<span style="color:var(--text-secondary);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-sent"/></svg> Р’С‹РґР°РЅ</span>'}</td>
+                    <td>${v.status === 'available' ? '<span style="color:var(--success);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-check"/></svg> Доступен</span>' : '<span style="color:var(--text-secondary);"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-sent"/></svg> Выдан</span>'}</td>
                     <td style="color:var(--text-secondary);font-size:11px;">${v.claimed_by || '-'}</td>
                     <td style="color:var(--text-secondary);font-size:11px;">${v.claim_date || '-'}</td>
                 `;
@@ -1707,26 +1707,26 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const form = document.getElementById('admin-config-form');
             form.innerHTML = '';
             const fields = {
-                'base_click_reward': 'РњРѕРЅРµС‚ Р·Р° РєР»РёРє',
-                'base_max_energy': 'РњР°РєСЃ. СЌРЅРµСЂРіРёСЏ',
-                'energy_per_click': 'Р­РЅРµСЂРіРёРё Р·Р° РєР»РёРє',
-                'base_energy_regen': 'Р РµРіРµРЅРµСЂР°С†РёСЏ/СЃРµРє',
-                'exchange_rate': 'РљСѓСЂСЃ (РјРѕРЅРµС‚ Р·Р° 1 Robux)',
-                'max_exchange_per_day': 'РњР°РєСЃ. РѕР±РјРµРЅРѕРІ/РґРµРЅСЊ',
-                'subscription_reward_total': 'РќР°РіСЂР°РґР° Р·Р° РІСЃРµ РїРѕРґРїРёСЃРєРё',
-                'referral_bonus': 'Р‘РѕРЅСѓСЃ РЅРѕРІРёС‡РєСѓ Р·Р° СЂРµС„РµСЂР°Р»Р°',
-                'referral_ref_bonus': 'Р‘РѕРЅСѓСЃ СЂРµС„РµСЂРµСЂСѓ Р·Р° СЂРµС„РµСЂР°Р»Р°',
-                'referral_bonus_min': 'РњРёРЅ. Р±РѕРЅСѓСЃ РЅРѕРІРёС‡РєСѓ',
-                'referral_bonus_max': 'РњР°РєСЃ. Р±РѕРЅСѓСЃ РЅРѕРІРёС‡РєСѓ',
-                'referral_ref_bonus_min': 'РњРёРЅ. Р±РѕРЅСѓСЃ СЂРµС„РµСЂРµСЂСѓ',
-                'referral_ref_bonus_max': 'РњР°РєСЃ. Р±РѕРЅСѓСЃ СЂРµС„РµСЂРµСЂСѓ',
-                'referral_level_required': 'РЈСЂРѕРІРµРЅСЊ РґР»СЏ Р±РѕРЅСѓСЃР°',
-                'referral_coins_required': 'РњРѕРЅРµС‚ РґР»СЏ Р±РѕРЅСѓСЃР°',
-                'click_cooldown_ms': 'РљРґ РєР»РёРєР° (РјСЃ)',
-                'max_clicks_per_second': 'РњР°РєСЃ РєР»РёРєРѕРІ/СЃРµРє',
-                'passive_income_interval': 'РРЅС‚РµСЂРІР°Р» РґРѕС…РѕРґР° (РјСЃ)',
-                'auto_click_per_sec': 'РђРІС‚РѕРєР»РёРєРѕРІ/СЃРµРє',
-                'offline_cap_seconds': 'РњР°РєСЃ. РѕС„Р»Р°Р№РЅ (СЃРµРє)'
+                'base_click_reward': 'Монет за клик',
+                'base_max_energy': 'Макс. энергия',
+                'energy_per_click': 'Энергии за клик',
+                'base_energy_regen': 'Регенерация/сек',
+                'exchange_rate': 'Курс (монет за 1 Robux)',
+                'max_exchange_per_day': 'Макс. обменов/день',
+                'subscription_reward_total': 'Награда за все подписки',
+                'referral_bonus': 'Бонус новичку за реферала',
+                'referral_ref_bonus': 'Бонус рефереру за реферала',
+                'referral_bonus_min': 'Мин. бонус новичку',
+                'referral_bonus_max': 'Макс. бонус новичку',
+                'referral_ref_bonus_min': 'Мин. бонус рефереру',
+                'referral_ref_bonus_max': 'Макс. бонус рефереру',
+                'referral_level_required': 'Уровень для бонуса',
+                'referral_coins_required': 'Монет для бонуса',
+                'click_cooldown_ms': 'Кд клика (мс)',
+                'max_clicks_per_second': 'Макс кликов/сек',
+                'passive_income_interval': 'Интервал дохода (мс)',
+                'auto_click_per_sec': 'Автокликов/сек',
+                'offline_cap_seconds': 'Макс. офлайн (сек)'
             };
             Object.entries(fields).forEach(([key, label]) => {
                 const val = adminConfig.game[key] !== undefined ? adminConfig.game[key] : '';
@@ -1747,10 +1747,10 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;';
                 div.innerHTML = `
                     <input class="admin-input" data-lfield="level" value="${lvl.level}" style="width:50px;" placeholder="LVL">
-                    <input class="admin-input" data-lfield="name" value="${lvl.name}" style="flex:1;" placeholder="РќР°Р·РІР°РЅРёРµ">
-                    <input class="admin-input" data-lfield="coins_needed" value="${lvl.coins_needed}" style="width:80px;" placeholder="РњРѕРЅРµС‚">
+                    <input class="admin-input" data-lfield="name" value="${lvl.name}" style="flex:1;" placeholder="Название">
+                    <input class="admin-input" data-lfield="coins_needed" value="${lvl.coins_needed}" style="width:80px;" placeholder="Монет">
                     <input class="admin-input" data-lfield="bonus" value="${lvl.bonus}" style="width:60px;" placeholder="x" step="any">
-                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">вњ•</button>
+                    <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
                 `;
                 list.appendChild(div);
             });
@@ -1768,12 +1768,12 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;';
             div.innerHTML = `
                 <input class="admin-input" data-bfield="id" value="${esc(b.id || '')}" style="width:100px;" placeholder="id">
-                <input class="admin-input" data-bfield="name" value="${esc(b.name || '')}" style="flex:1;min-width:110px;" placeholder="РќР°Р·РІР°РЅРёРµ">
-                <input class="admin-input" data-bfield="duration" type="number" value="${esc(b.duration || 0)}" style="width:80px;" placeholder="СЃРµРє">
-                <input class="admin-input" data-bfield="price" type="number" value="${esc(b.price || 0)}" style="width:80px;" placeholder="Р¦РµРЅР°">
+                <input class="admin-input" data-bfield="name" value="${esc(b.name || '')}" style="flex:1;min-width:110px;" placeholder="Название">
+                <input class="admin-input" data-bfield="duration" type="number" value="${esc(b.duration || 0)}" style="width:80px;" placeholder="сек">
+                <input class="admin-input" data-bfield="price" type="number" value="${esc(b.price || 0)}" style="width:80px;" placeholder="Цена">
                 <input class="admin-input" data-bfield="multiplier" type="number" step="any" value="${esc(b.multiplier || 1)}" style="width:70px;" placeholder="x">
-                <input class="admin-input" data-bfield="daily_limit" type="number" value="${esc(b.daily_limit || 0)}" style="width:70px;" placeholder="Р›РёРјРёС‚/РґРµРЅСЊ">
-                <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">вњ•</button>
+                <input class="admin-input" data-bfield="daily_limit" type="number" value="${esc(b.daily_limit || 0)}" style="width:70px;" placeholder="Лимит/день">
+                <button class="admin-btn danger" style="padding:4px 8px;font-size:11px;" onclick="this.parentElement.remove()">✕</button>
             `;
             return div;
         }
@@ -1792,44 +1792,44 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             div.dataset.key = key;
             div.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
-                    <input class="admin-input" data-ufield="key" value="${esc(key)}" style="width:auto;max-width:200px;font-size:11px;font-weight:700;color:var(--accent);background:transparent;border-color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;" placeholder="РљР»СЋС‡">
-                    <button class="admin-btn danger" style="padding:3px 8px;font-size:11px;" onclick="this.closest('.upgrade-entry').remove()">РЈРґР°Р»РёС‚СЊ</button>
+                    <input class="admin-input" data-ufield="key" value="${esc(key)}" style="width:auto;max-width:200px;font-size:11px;font-weight:700;color:var(--accent);background:transparent;border-color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;" placeholder="Ключ">
+                    <button class="admin-btn danger" style="padding:3px 8px;font-size:11px;" onclick="this.closest('.upgrade-entry').remove()">Удалить</button>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РќР°Р·РІР°РЅРёРµ</div>
-                        <input class="admin-input" data-ufield="name" value="${esc(u.name || '')}" placeholder="РЎРёР»Р° РєР»РёРєР°" style="width:100%;">
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Название</div>
+                        <input class="admin-input" data-ufield="name" value="${esc(u.name || '')}" placeholder="Сила клика" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РћРїРёСЃР°РЅРёРµ</div>
-                        <input class="admin-input" data-ufield="description" value="${esc(u.description || '')}" placeholder="+0.5 Рє РЅР°РіСЂР°РґРµ Р·Р° РєР»РёРє" style="width:100%;">
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Описание</div>
+                        <input class="admin-input" data-ufield="description" value="${esc(u.description || '')}" placeholder="+0.5 к награде за клик" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Р’РµС‚РєР° (click/energy/passive)</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Ветка (click/energy/passive)</div>
                         <input class="admin-input" data-ufield="branch" value="${esc(u.branch || '')}" placeholder="click" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РРєРѕРЅРєР°</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Иконка</div>
                         <input class="admin-input" data-ufield="icon" value="${esc(u.icon || '')}" placeholder="icon-click" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Р‘Р°Р·РѕРІР°СЏ С†РµРЅР°</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Базовая цена</div>
                         <input class="admin-input" data-ufield="base_cost" type="number" value="${esc(u.base_cost || 0)}" placeholder="60" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РњРЅРѕР¶РёС‚РµР»СЊ С†РµРЅС‹</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Множитель цены</div>
                         <input class="admin-input" data-ufield="cost_multiplier" type="number" step="any" value="${esc(u.cost_multiplier || 1)}" placeholder="1.38" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РњР°РєСЃ. СѓСЂРѕРІРµРЅСЊ</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Макс. уровень</div>
                         <input class="admin-input" data-ufield="max_level" type="number" value="${esc(u.max_level || 0)}" placeholder="20" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Р‘РѕРЅСѓСЃ Р·Р° СѓСЂРѕРІРµРЅСЊ</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Бонус за уровень</div>
                         <input class="admin-input" data-ufield="effect_per_level" type="number" step="any" value="${esc(u.effect_per_level || 0)}" placeholder="0.5" style="width:100%;">
                     </div>
                     <div>
-                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">РўСЂРµР±РѕРІР°РЅРёСЏ</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">Требования</div>
                         <input class="admin-input" data-ufield="requires" value="${esc(requires)}" placeholder='{"upgr": 5}' style="width:100%;">
                     </div>
                 </div>
@@ -1840,11 +1840,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
         const TASK_TYPES = ['telegram', 'referral', 'level', 'clicks', 'earn', 'purchase_case', 'upgrade_count', 'daily'];
         const REWARD_TYPES = ['coins', 'boost', 'voucher'];
         const TASK_TYPE_LABELS = {
-            telegram: 'РџРѕРґРїРёСЃРєР° РЅР° РєР°РЅР°Р»', referral: 'РџСЂРёРіР»Р°С€РµРЅРёРµ РґСЂСѓР·РµР№', level: 'Р”РѕСЃС‚РёР¶РµРЅРёРµ СѓСЂРѕРІРЅСЏ',
-            clicks: 'РљРѕР»-РІРѕ РєР»РёРєРѕРІ', earn: 'Р—Р°СЂР°Р±РѕС‚РѕРє РјРѕРЅРµС‚', purchase_case: 'РџРѕРєСѓРїРєР° РєРµР№СЃР°',
-            upgrade_count: 'РљРѕР»-РІРѕ СѓР»СѓС‡С€РµРЅРёР№', daily: 'Р•Р¶РµРґРЅРµРІРЅС‹Р№ Р±РѕРЅСѓСЃ'
+            telegram: 'Подписка на канал', referral: 'Приглашение друзей', level: 'Достижение уровня',
+            clicks: 'Кол-во кликов', earn: 'Заработок монет', purchase_case: 'Покупка кейса',
+            upgrade_count: 'Кол-во улучшений', daily: 'Ежедневный бонус'
         };
-        const REWARD_TYPE_LABELS = { coins: 'РњРѕРЅРµС‚С‹', boost: 'Р‘СѓСЃС‚', voucher: 'Р’Р°СѓС‡РµСЂ (Robux)' };
+        const REWARD_TYPE_LABELS = { coins: 'Монеты', boost: 'Буст', voucher: 'Ваучер (Robux)' };
 
         function el(markup) {
             const t = document.createElement('template');
@@ -1857,9 +1857,9 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
         function blankTask() {
             return {
                 id: 'task_' + Date.now(),
-                title: 'РќРѕРІРѕРµ Р·Р°РґР°РЅРёРµ', description: '', type: 'telegram', enabled: true, icon: 'telegram',
+                title: 'Новое задание', description: '', type: 'telegram', enabled: true, icon: 'telegram',
                 reward: { type: 'coins', coins: 100 },
-                channels: [{ label: 'Telegram-РєР°РЅР°Р»', url: '', chat_id: '' }],
+                channels: [{ label: 'Telegram-канал', url: '', chat_id: '' }],
                 channel_mode: 'all'
             };
         }
@@ -1886,7 +1886,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (task.type === 'telegram') {
                 if (!Array.isArray(task.channels) || !task.channels.length) {
                     const u = task.link || '';
-                    task.channels = [{ label: 'Telegram-РєР°РЅР°Р»', url: u, chat_id: task.chat_id || '' }];
+                    task.channels = [{ label: 'Telegram-канал', url: u, chat_id: task.chat_id || '' }];
                 }
                 task.channel_mode = task.channel_mode || 'all';
             }
@@ -1898,50 +1898,50 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (rt === 'boost') {
                 return `
                     <input class="admin-input" data-r="boost_id" list="task-boost-list" value="${esc(task.reward.boost_id)}" style="flex:1;min-width:130px;" placeholder="boost_id">
-                    <input class="admin-input" data-r="duration" type="number" value="${esc(task.reward.duration || 0)}" style="width:90px;" placeholder="СЃРµРє">
+                    <input class="admin-input" data-r="duration" type="number" value="${esc(task.reward.duration || 0)}" style="width:90px;" placeholder="сек">
                 `;
             }
             if (rt === 'voucher') {
                 return `<input class="admin-input" data-r="amount" type="number" value="${esc(task.reward.amount || 0)}" style="width:110px;" placeholder="Robux">`;
             }
             return `
-                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">РѕС‚</span>
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">от</span>
                 <input class="admin-input" data-r="min" type="number" value="${esc(task.reward.min ?? task.reward.coins ?? 0)}" style="width:80px;" placeholder="5">
-                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">РґРѕ</span>
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">до</span>
                 <input class="admin-input" data-r="max" type="number" value="${esc(task.reward.max ?? task.reward.coins ?? 0)}" style="width:80px;" placeholder="500">
-                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">РјРѕРЅРµС‚</span>
+                <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">монет</span>
             `;
         }
         function channelsHtml(task) {
             const rows = (task.channels || []).map((c, i) => `
                 <div data-role="channel" data-ci="${i}" style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
-                    <input class="admin-input" data-c="label" value="${esc(c.label)}" style="flex:1;min-width:90px;" placeholder="РќР°Р·РІР°РЅРёРµ">
+                    <input class="admin-input" data-c="label" value="${esc(c.label)}" style="flex:1;min-width:90px;" placeholder="Название">
                     <input class="admin-input" data-c="url" value="${esc(c.url)}" style="flex:1.4;min-width:130px;" placeholder="https://t.me/...">
-                    <input class="admin-input" data-c="chat_id" value="${esc(c.chat_id)}" style="flex:.8;min-width:80px;" placeholder="chat_id вЂ” РѕСЃС‚Р°РІСЊ РїСѓСЃС‚С‹Рј, РѕРїСЂРµРґРµР»РёС‚СЃСЏ РёР· url">
-                    <button class="admin-btn danger" data-role="remch" style="padding:4px 8px;font-size:11px;">вњ•</button>
+                    <input class="admin-input" data-c="chat_id" value="${esc(c.chat_id)}" style="flex:.8;min-width:80px;" placeholder="chat_id — оставь пустым, определится из url">
+                    <button class="admin-btn danger" data-role="remch" style="padding:4px 8px;font-size:11px;">✕</button>
                 </div>`).join('');
             return `
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">РљР°РЅР°Р»С‹ (РїРѕРґРїРёСЃРєР° РЅР° Telegram-РєР°РЅР°Р»)</div>
-                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Р”Р»СЏ РїСЂРѕРІРµСЂРєРё РїРѕРґРїРёСЃРєРё Р±РѕС‚ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂРѕРј РєР°Р¶РґРѕРіРѕ РєР°РЅР°Р»Р°. РџРѕР»Рµ chat_id РјРѕР¶РЅРѕ РЅРµ Р·Р°РїРѕР»РЅСЏС‚СЊ вЂ” РѕРЅРѕ РІС‹РІРµРґРµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёР· СЃСЃС‹Р»РєРё.</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Каналы (подписка на Telegram-канал)</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Для проверки подписки бот должен быть администратором каждого канала. Поле chat_id можно не заполнять — оно выведется автоматически из ссылки.</div>
                 <div data-role="channels">${rows || ''}</div>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <button type="button" class="admin-btn" data-role="addch" style="padding:4px 10px;font-size:11px;">+ РљР°РЅР°Р»</button>
+                    <button type="button" class="admin-btn" data-role="addch" style="padding:4px 10px;font-size:11px;">+ Канал</button>
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
-                        РџСЂРѕРІРµСЂРєР°:
+                        Проверка:
                         <select class="admin-input" data-f="channel_mode" style="width:80px;">
-                            <option value="all" ${task.channel_mode === 'all' ? 'selected' : ''}>РІСЃРµС…</option>
-                            <option value="any" ${task.channel_mode === 'any' ? 'selected' : ''}>Р»СЋР±РѕРіРѕ</option>
+                            <option value="all" ${task.channel_mode === 'all' ? 'selected' : ''}>всех</option>
+                            <option value="any" ${task.channel_mode === 'any' ? 'selected' : ''}>любого</option>
                         </select>
                     </label>
                 </div>`;
         }
         function requireFieldsHtml(task) {
             let extra = '';
-            if (task.type === 'referral') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Р РµС„РµСЂР°Р»РѕРІ">`;
-            else if (task.type === 'level') extra += `<input class="admin-input" data-f="required_level" type="number" value="${esc(task.required_level || 0)}" style="width:110px;" placeholder="РЈСЂРѕРІРµРЅСЊ">`;
-            else if (task.type === 'clicks') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="РљР»РёРєРѕРІ">`;
-            else if (task.type === 'earn') extra += `<input class="admin-input" data-f="required_amount" type="number" value="${esc(task.required_amount || 0)}" style="width:110px;" placeholder="Р—Р°СЂР°Р±РѕС‚Р°РЅРѕ">`;
-            else if (task.type === 'upgrade_count') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="РђРїРіСЂРµР№РґРѕРІ">`;
+            if (task.type === 'referral') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Рефералов">`;
+            else if (task.type === 'level') extra += `<input class="admin-input" data-f="required_level" type="number" value="${esc(task.required_level || 0)}" style="width:110px;" placeholder="Уровень">`;
+            else if (task.type === 'clicks') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Кликов">`;
+            else if (task.type === 'earn') extra += `<input class="admin-input" data-f="required_amount" type="number" value="${esc(task.required_amount || 0)}" style="width:110px;" placeholder="Заработано">`;
+            else if (task.type === 'upgrade_count') extra += `<input class="admin-input" data-f="required_count" type="number" value="${esc(task.required_count || 0)}" style="width:110px;" placeholder="Апгрейдов">`;
             return extra ? `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">${extra}</div>` : '';
         }
 
@@ -1953,24 +1953,24 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const card = el(`
                     <div data-idx="${i}" style="background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;">
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <input class="admin-input" data-f="title" value="${esc(task.title)}" style="flex:2;min-width:120px;" placeholder="РќР°Р·РІР°РЅРёРµ">
+                            <input class="admin-input" data-f="title" value="${esc(task.title)}" style="flex:2;min-width:120px;" placeholder="Название">
                             <select class="admin-input" data-f="type" style="width:130px;">
                                 ${TASK_TYPES.map(t => `<option value="${t}" ${task.type === t ? 'selected' : ''}>${TASK_TYPE_LABELS[t] || t}</option>`).join('')}
                             </select>
                             <label style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
-                                <input type="checkbox" data-f="enabled" ${task.enabled ? 'checked' : ''}> Р’РєР»
+                                <input type="checkbox" data-f="enabled" ${task.enabled ? 'checked' : ''}> Вкл
                             </label>
-                            <button type="button" class="admin-btn danger" data-role="rm" style="padding:4px 8px;font-size:11px;">вњ•</button>
+                            <button type="button" class="admin-btn danger" data-role="rm" style="padding:4px 8px;font-size:11px;">✕</button>
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
-                            <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">РќР°РіСЂР°РґР°</span>
+                            <span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">Награда</span>
                             <select class="admin-input" data-f="reward_type" style="width:110px;">
                                 ${REWARD_TYPES.map(t => `<option value="${t}" ${task.reward.type === t ? 'selected' : ''}>${REWARD_TYPE_LABELS[t] || t}</option>`).join('')}
                             </select>
                             <div data-role="reward" style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">${rewardFieldsHtml(task)}</div>
                         </div>
                         <div data-role="extra">${requireFieldsHtml(task)}${task.type === 'telegram' ? channelsHtml(task) : ''}</div>
-                        <input class="admin-input" data-f="description" value="${esc(task.description)}" style="margin-top:6px;" placeholder="РћРїРёСЃР°РЅРёРµ">
+                        <input class="admin-input" data-f="description" value="${esc(task.description)}" style="margin-top:6px;" placeholder="Описание">
                     </div>`);
 
                 card.querySelectorAll('[data-f]').forEach(el2 => {
@@ -2043,7 +2043,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
         }
         async function saveAdminTasks() {
             await API.adminSaveTasks(buildSaveTasksPayload());
-            toast('Р—Р°РґР°РЅРёСЏ СЃРѕС…СЂР°РЅРµРЅС‹', 'success');
+            toast('Задания сохранены', 'success');
         }
 
         function setupTasksListDelegation() {
@@ -2088,7 +2088,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
         let caseBoosts = [];
         const CASE_RARITIES = ['common', 'rare', 'epic', 'legendary'];
         const CASE_ITEM_TYPES = ['coins', 'energy', 'boost', 'background', 'title'];
-        const CASE_TYPE_LABELS = { coins: 'РњРѕРЅРµС‚С‹', energy: 'Р­РЅРµСЂРіРёСЏ', boost: 'Р‘СѓСЃС‚', background: 'Р¤РѕРЅ', title: 'РўРёС‚СѓР»' };
+        const CASE_TYPE_LABELS = { coins: 'Монеты', energy: 'Энергия', boost: 'Буст', background: 'Фон', title: 'Титул' };
 
         async function loadCasesEdit() {
             const configRes = await API.getConfig();
@@ -2098,7 +2098,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
         }
 
         function blankCaseItem(type) {
-            const base = { type: type || 'coins', name: 'РќРѕРІС‹Р№ РїСЂРµРґРјРµС‚', probability: 0.1 };
+            const base = { type: type || 'coins', name: 'Новый предмет', probability: 0.1 };
             if (type === 'boost') { base.boost_id = 'coins_x2'; base.duration = 300; }
             else if (type === 'background') { base.bg_rarity = 'legendary'; }
             else if (type === 'title') { base.title_file = ''; base.title_rarity = 'common'; }
@@ -2117,7 +2117,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             item.type = newType;
             const fresh = blankCaseItem(newType);
             Object.keys(fresh).forEach(k => { item[k] = fresh[k]; });
-            if (newType === 'coins' || newType === 'energy') item.name = 'РќРѕРІС‹Р№ РїСЂРµРґРјРµС‚';
+            if (newType === 'coins' || newType === 'energy') item.name = 'Новый предмет';
         }
 
         function renderCaseItemRow(ci, item, ii) {
@@ -2127,7 +2127,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (type === 'coins' || type === 'energy') {
                 extraCols = `
                     <div>
-                        <input class="admin-input" type="number" min="0" value="${esc(item.amount || 0)}" placeholder="РљРѕР»-РІРѕ" data-ci="${ci}" data-ii="${ii}" data-ifield="amount" title="РљРѕР»РёС‡РµСЃС‚РІРѕ">
+                        <input class="admin-input" type="number" min="0" value="${esc(item.amount || 0)}" placeholder="Кол-во" data-ci="${ci}" data-ii="${ii}" data-ifield="amount" title="Количество">
                     </div>
                     <div></div>`;
             } else if (type === 'boost') {
@@ -2136,10 +2136,10 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const curId = item.boost_id;
                 if (curId && !caseBoosts.some(b => b.id === curId)) {
                     extraCols = `<div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="boost_id">${boostOpts}<option value="${esc(curId)}" selected>${esc(curId)}</option></select></div>
-                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="РЎРµРє" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ (СЃРµРє)"></div>`;
+                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="Сек" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Длительность (сек)"></div>`;
                 } else {
                     extraCols = `<div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="boost_id">${boostOpts}</select></div>
-                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="РЎРµРє" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ (СЃРµРє)"></div>`;
+                                 <div><input class="admin-input" type="number" min="0" value="${esc(item.duration || 0)}" placeholder="Сек" data-ci="${ci}" data-ii="${ii}" data-ifield="duration" title="Длительность (сек)"></div>`;
                 }
             } else if (type === 'background') {
                 extraCols = `<div>
@@ -2148,14 +2148,14 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     </select>
                 </div><div></div>`;
             } else if (type === 'title') {
-                extraCols = `<div><input class="admin-input" value="${esc(item.title_file || '')}" placeholder="Р¤Р°Р№Р» С‚РёС‚СѓР»Р°" data-ci="${ci}" data-ii="${ii}" data-ifield="title_file" title="РќР°Р·РІР°РЅРёРµ С„Р°Р№Р»Р° РІ /assets/title/"></div>
+                extraCols = `<div><input class="admin-input" value="${esc(item.title_file || '')}" placeholder="Файл титула" data-ci="${ci}" data-ii="${ii}" data-ifield="title_file" title="Название файла в /assets/title/"></div>
                     <div><select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="title_rarity">
                         ${CASE_RARITIES.map(r => `<option value="${r}" ${item.title_rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select></div>`;
             }
             return `<div class="case-item-row" data-item-row="${ci}-${ii}">
                 <div class="case-item-name-wrap">
-                    <input class="admin-input" value="${esc(item.name || '')}" placeholder="РќР°Р·РІР°РЅРёРµ" data-ci="${ci}" data-ii="${ii}" data-ifield="name">
+                    <input class="admin-input" value="${esc(item.name || '')}" placeholder="Название" data-ci="${ci}" data-ii="${ii}" data-ifield="name">
                 </div>
                 <div>
                     <select class="admin-input" data-ci="${ci}" data-ii="${ii}" data-ifield="type">
@@ -2164,9 +2164,9 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 </div>
                 ${extraCols}
                 <div>
-                    <input class="admin-input" type="number" min="0" max="100" step="0.01" value="${pct}" placeholder="РЁР°РЅСЃ%" data-ci="${ci}" data-ii="${ii}" data-ifield="probability" title="РЁР°РЅСЃ РІ %">
+                    <input class="admin-input" type="number" min="0" max="100" step="0.01" value="${pct}" placeholder="Шанс%" data-ci="${ci}" data-ii="${ii}" data-ifield="probability" title="Шанс в %">
                 </div>
-                <button class="admin-btn danger" onclick="removeCaseItem(${ci},${ii})" title="РЈРґР°Р»РёС‚СЊ РїСЂРµРґРјРµС‚"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-close"/></svg></button>
+                <button class="admin-btn danger" onclick="removeCaseItem(${ci},${ii})" title="Удалить предмет"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-close"/></svg></button>
             </div>`;
         }
 
@@ -2174,7 +2174,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const div = document.getElementById('admin-cases-list');
             div.innerHTML = '';
             if (!adminCases.length) {
-                div.innerHTML = '<div class="case-empty">РљРµР№СЃРѕРІ РїРѕРєР° РЅРµС‚ вЂ” РЅР°Р¶РјРё В«+ Р”РѕР±Р°РІРёС‚СЊ РєРµР№СЃВ», С‡С‚РѕР±С‹ СЃРѕР·РґР°С‚СЊ РїРµСЂРІС‹Р№.</div>';
+                div.innerHTML = '<div class="case-empty">Кейсов пока нет — нажми «+ Добавить кейс», чтобы создать первый.</div>';
             }
             adminCases.forEach((c, ci) => {
                 const card = document.createElement('div');
@@ -2185,40 +2185,40 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const sumPct = (sum * 100).toFixed(1);
                 const sumOk = Math.abs(sum - 1) < 0.001;
                 const itemsHtml = items.map((item, ii) => renderCaseItemRow(ci, item, ii)).join('') ||
-                    '<div class="case-empty" style="padding:14px;margin-bottom:8px;">Р’ РєРµР№СЃРµ РЅРµС‚ РїСЂРµРґРјРµС‚РѕРІ</div>';
+                    '<div class="case-empty" style="padding:14px;margin-bottom:8px;">В кейсе нет предметов</div>';
                 card.innerHTML = `
                     <div class="case-card-header">
-                        <input class="admin-input case-name-input" value="${esc(c.name)}" data-cfield="name" data-ci="${ci}" placeholder="РќР°Р·РІР°РЅРёРµ РєРµР№СЃР°">
+                        <input class="admin-input case-name-input" value="${esc(c.name)}" data-cfield="name" data-ci="${ci}" placeholder="Название кейса">
                         <span class="case-id-badge">${esc(c.id || '')}</span>
-                        <button class="admin-icon-btn danger" onclick="removeCase(${ci})" title="РЈРґР°Р»РёС‚СЊ РєРµР№СЃ"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
+                        <button class="admin-icon-btn danger" onclick="removeCase(${ci})" title="Удалить кейс"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-trash"/></svg></button>
                     </div>
                     <div class="case-card-meta">
                         <div class="case-meta-field">
-                            <label>Р¦РµРЅР° (РјРѕРЅРµС‚С‹)</label>
+                            <label>Цена (монеты)</label>
                             <input class="admin-input" value="${esc(c.price || 0)}" data-cfield="price" data-ci="${ci}" type="number" min="0">
                         </div>
                         <div class="case-meta-field">
-                            <label>РњРёРЅ. РІС‹РёРіСЂС‹С€</label>
+                            <label>Мин. выигрыш</label>
                             <input class="admin-input" value="${esc(c.min_win || 0)}" data-cfield="min_win" data-ci="${ci}" type="number" min="0">
                         </div>
                         <div class="case-meta-field">
-                            <label>Р РµРґРєРѕСЃС‚СЊ</label>
+                            <label>Редкость</label>
                             <select class="admin-input" data-cfield="rarity" data-ci="${ci}">
                                 ${CASE_RARITIES.map(r => `<option value="${r}" ${c.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
                             </select>
                         </div>
                         <div class="case-meta-field">
-                            <label>Р¦РІРµС‚ РєРµР№СЃР°</label>
-                            <input class="admin-input" type="color" value="${esc(c.color || '#3b82f6')}" data-cfield="color" data-ci="${ci}" title="Р¦РІРµС‚ Р°РєС†РµРЅС‚Р° РєР°СЂС‚РѕС‡РєРё">
+                            <label>Цвет кейса</label>
+                            <input class="admin-input" type="color" value="${esc(c.color || '#3b82f6')}" data-cfield="color" data-ci="${ci}" title="Цвет акцента карточки">
                         </div>
                     </div>
                     <div class="case-items-head">
-                        <span class="case-items-title">РџСЂРµРґРјРµС‚С‹</span>
-                        <span class="case-prob-sum ${sumOk ? '' : 'bad'}">РЁР°РЅСЃС‹: ${sumPct}%${sumOk ? '' : ' вЂ” РЅРµ 100%'}</span>
+                        <span class="case-items-title">Предметы</span>
+                        <span class="case-prob-sum ${sumOk ? '' : 'bad'}">Шансы: ${sumPct}%${sumOk ? '' : ' — не 100%'}</span>
                     </div>
                     ${itemsHtml}
                     <div class="case-actions">
-                        <button class="admin-btn" onclick="addCaseItem(${ci})"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Р”РѕР±Р°РІРёС‚СЊ РїСЂРµРґРјРµС‚</button>
+                        <button class="admin-btn" onclick="addCaseItem(${ci})"><svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить предмет</button>
                     </div>
                 `;
                 card.querySelectorAll('[data-cfield]').forEach(inp => {
@@ -2264,9 +2264,9 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const addBtn = document.createElement('button');
             addBtn.className = 'admin-btn success';
             addBtn.style.cssText = 'margin-top:8px;padding:10px 18px;font-size:13px;';
-            addBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Р”РѕР±Р°РІРёС‚СЊ РєРµР№СЃ';
+            addBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-plus"/></svg> Добавить кейс';
             addBtn.onclick = () => {
-                adminCases.push({ id: 'case_' + Date.now(), name: 'РќРѕРІС‹Р№ РєРµР№СЃ', price: 1000, rarity: 'common', color: '#3b82f6', min_win: 0, items: [blankCaseItem('coins')] });
+                adminCases.push({ id: 'case_' + Date.now(), name: 'Новый кейс', price: 1000, rarity: 'common', color: '#3b82f6', min_win: 0, items: [blankCaseItem('coins')] });
                 renderCasesEditor();
             };
             div.appendChild(addBtn);
@@ -2282,7 +2282,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const badge = card.querySelector('.case-prob-sum');
             if (badge) {
                 badge.className = 'case-prob-sum' + (sumOk ? '' : ' bad');
-                badge.textContent = `РЁР°РЅСЃС‹: ${sumPct}%${sumOk ? '' : ' вЂ” РЅРµ 100%'}`;
+                badge.textContent = `Шансы: ${sumPct}%${sumOk ? '' : ' — не 100%'}`;
             }
         }
 
@@ -2306,11 +2306,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const div = document.getElementById('gate-channels-editor');
             div.innerHTML = gateChannels.map((ch, i) => `
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:8px;margin-bottom:8px;align-items:center;">
-                    <input class="admin-input" data-gch-label value="${esc(ch.label)}" placeholder="РќР°Р·РІР°РЅРёРµ" style="padding:6px 8px;font-size:11px;">
+                    <input class="admin-input" data-gch-label value="${esc(ch.label)}" placeholder="Название" style="padding:6px 8px;font-size:11px;">
                     <input class="admin-input" data-gch-url value="${esc(ch.url)}" placeholder="https://t.me/..." style="padding:6px 8px;font-size:11px;">
                     <input class="admin-input" data-gch-chat value="${esc(ch.chat_id)}" placeholder="@channel" style="padding:6px 8px;font-size:11px;">
-                    <button class="admin-btn danger" style="padding:4px 6px;font-size:11px;" onclick="removeGateChannel(${i})">вњ•</button>
-                </div>`).join('') || '<div style="font-size:12px;color:var(--text-muted);">РљР°РЅР°Р»С‹ РЅРµ РґРѕР±Р°РІР»РµРЅС‹</div>';
+                    <button class="admin-btn danger" style="padding:4px 6px;font-size:11px;" onclick="removeGateChannel(${i})">✕</button>
+                </div>`).join('') || '<div style="font-size:12px;color:var(--text-muted);">Каналы не добавлены</div>';
             div.querySelectorAll('[data-gch-label]').forEach((inp, i) => {
                 inp.addEventListener('input', () => gateChannels[i].label = inp.value);
             });
@@ -2331,7 +2331,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const configRes = await API.getConfig();
             const gate = (configRes.subscription_gate) || (configRes.config && configRes.config.subscription_gate) || {};
             document.getElementById('gate-enabled').checked = !!gate.enabled;
-            document.getElementById('gate-title').value = gate.title || 'РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚';
+            document.getElementById('gate-title').value = gate.title || 'Подпишись на наш канал и чат';
             document.getElementById('gate-desc').value = gate.description || '';
             gateChannels = (gate.channels || []).map(c => ({
                 label: c.label || 'Telegram',
@@ -2353,13 +2353,13 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 saveBtn.addEventListener('click', async () => {
                     const payload = {
                         enabled: document.getElementById('gate-enabled').checked,
-                        title: document.getElementById('gate-title').value.trim() || 'РџРѕРґРїРёС€РёСЃСЊ РЅР° РЅР°С€ РєР°РЅР°Р» Рё С‡Р°С‚',
+                        title: document.getElementById('gate-title').value.trim() || 'Подпишись на наш канал и чат',
                         description: document.getElementById('gate-desc').value.trim(),
                         channels: gateChannels
                     };
                     const res = await API.post('/api/admin/update_subscription_gate', { subscription_gate: payload });
-                    if (res.success) { toast('РќР°СЃС‚СЂРѕР№РєРё РїРѕРґРїРёСЃРєРё СЃРѕС…СЂР°РЅРµРЅС‹', 'success'); loadSubscriptionsTab(); }
-                    else { toast('РћС€РёР±РєР°: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error'); }
+                    if (res.success) { toast('Настройки подписки сохранены', 'success'); loadSubscriptionsTab(); }
+                    else { toast('Ошибка: ' + (res.error || 'неизвестно'), 'error'); }
                 });
             }
             const refreshBtn = document.getElementById('refresh-gate-btn');
@@ -2375,7 +2375,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             const grid = document.getElementById('gate-sub-stats');
             const channels = (res.channels || []);
             if (!channels.length) {
-                grid.innerHTML = '<div class="admin-stat"><div class="num">вЂ”</div><div class="label">РљР°РЅР°Р»С‹/С‡Р°С‚С‹ РµС‰С‘ РЅРµ РЅР°СЃС‚СЂРѕРµРЅС‹ РёР»Рё РЅРµРґРѕСЃС‚СѓРїРЅС‹</div></div>';
+                grid.innerHTML = '<div class="admin-stat"><div class="num">—</div><div class="label">Каналы/чаты ещё не настроены или недоступны</div></div>';
             } else {
                 grid.innerHTML = channels.map(c => `
                     <div class="admin-stat"><div class="num">${c.count}</div><div class="label">${esc(c.label)} ${c.chat_id}</div></div>
@@ -2398,9 +2398,9 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 if (!sel) return;
                 const prev = sel.value;
                 sel.innerHTML = postChannels.map((c, i) =>
-                    `<option value="${i}">${esc(c.label)} вЂ” ${esc(c.chat_id)}</option>`
+                    `<option value="${i}">${esc(c.label)} — ${esc(c.chat_id)}</option>`
                 ).join('');
-                if (!postChannels.length) sel.innerHTML = '<option value="-1">РљР°РЅР°Р»С‹ РЅРµ РґРѕР±Р°РІР»РµРЅС‹</option>';
+                if (!postChannels.length) sel.innerHTML = '<option value="-1">Каналы не добавлены</option>';
                 else if (postChannels[prev] !== undefined) sel.value = prev;
             };
             renderChannels();
@@ -2409,19 +2409,19 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
             if (addBtn && !addBtn.dataset.bound) {
                 addBtn.dataset.bound = '1';
                 addBtn.addEventListener('click', async () => {
-                    const label = prompt('РќР°Р·РІР°РЅРёРµ РєР°РЅР°Р»Р°:');
+                    const label = prompt('Название канала:');
                     if (label == null) return;
-                    const chat = prompt('ID РєР°РЅР°Р»Р° (РЅР°РїСЂРёРјРµСЂ @rbx_elite):');
+                    const chat = prompt('ID канала (например @rbx_elite):');
                     if (chat == null) return;
-                    if (!String(chat).trim()) { toast('Р’РІРµРґРёС‚Рµ ID РєР°РЅР°Р»Р°', 'error'); return; }
+                    if (!String(chat).trim()) { toast('Введите ID канала', 'error'); return; }
                     postChannels.push({ label: label.trim() || 'Telegram', chat_id: chat.trim() });
                     const saved = await API.post('/api/admin/save_post_channels', { channels: postChannels });
                     if (saved.success) {
                         postChannels = saved.channels || postChannels;
                         renderChannels();
                         sel.value = String(postChannels.length - 1);
-                        toast('РљР°РЅР°Р» РґРѕР±Р°РІР»РµРЅ', 'success');
-                    } else { toast('РћС€РёР±РєР°: ' + (saved.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error'); }
+                        toast('Канал добавлен', 'success');
+                    } else { toast('Ошибка: ' + (saved.error || 'неизвестно'), 'error'); }
                 });
             }
 
@@ -2431,14 +2431,14 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 removeBtn.addEventListener('click', async () => {
                     const i = parseInt(sel.value, 10);
                     if (isNaN(i) || !postChannels[i]) return;
-                    if (!await customConfirm('РЈРґР°Р»РёС‚СЊ РєР°РЅР°Р» ' + postChannels[i].chat_id + '?')) return;
+                    if (!await customConfirm('Удалить канал ' + postChannels[i].chat_id + '?')) return;
                     postChannels.splice(i, 1);
                     const saved = await API.post('/api/admin/save_post_channels', { channels: postChannels });
                     if (saved.success) {
                         postChannels = saved.channels || postChannels;
                         renderChannels();
-                        toast('РљР°РЅР°Р» СѓРґР°Р»С‘РЅ', 'success');
-                    } else { toast('РћС€РёР±РєР°: ' + (saved.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error'); }
+                        toast('Канал удалён', 'success');
+                    } else { toast('Ошибка: ' + (saved.error || 'неизвестно'), 'error'); }
                 });
             }
 
@@ -2450,8 +2450,8 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 fileInput.addEventListener('change', () => {
                     const f = fileInput.files && fileInput.files[0];
                     if (!f) return;
-                    if (!/\.png$/i.test(f.name)) { toast('РњРѕР¶РЅРѕ Р·Р°РіСЂСѓР¶Р°С‚СЊ С‚РѕР»СЊРєРѕ .png', 'error'); return; }
-                    if (f.size > 8 * 1024 * 1024) { toast('Р¤Р°Р№Р» Р±РѕР»СЊС€Рµ 8MB', 'error'); return; }
+                    if (!/\.png$/i.test(f.name)) { toast('Можно загружать только .png', 'error'); return; }
+                    if (f.size > 8 * 1024 * 1024) { toast('Файл больше 8MB', 'error'); return; }
                     const reader = new FileReader();
                     reader.onload = () => {
                         postBannerData = reader.result;
@@ -2495,11 +2495,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                     const i = parseInt(sel.value, 10);
                     const channel = (!isNaN(i) && postChannels[i]) ? postChannels[i].chat_id : '';
                     const text = (textEl ? textEl.value : '').trim();
-                    if (!channel) { toast('РЎРЅР°С‡Р°Р»Р° РґРѕР±Р°РІСЊС‚Рµ Рё РІС‹Р±РµСЂРёС‚Рµ РєР°РЅР°Р»', 'error'); return; }
-                    if (!text) { toast('Р’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ РїРѕСЃС‚Р°', 'error'); return; }
+                    if (!channel) { toast('Сначала добавьте и выберите канал', 'error'); return; }
+                    if (!text) { toast('Введите текст поста', 'error'); return; }
                     publishBtn.disabled = true;
                     const orig = publishBtn.innerHTML;
-                    publishBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> РџСѓР±Р»РёРєСѓРµРј...';
+                    publishBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><use href="#icon-refresh"/></svg> Публикуем...';
                     try {
                         const res = await API.post('/api/admin/publish_post', {
                             channel: channel,
@@ -2507,12 +2507,12 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                             banner: postBannerData || ''
                         }, 30000);
                         if (res.success) {
-                            toast('РџРѕСЃС‚ РѕРїСѓР±Р»РёРєРѕРІР°РЅ РІ ' + channel + '!', 'success');
+                            toast('Пост опубликован в ' + channel + '!', 'success');
                             if (textEl) textEl.value = '';
                             if (countEl) countEl.textContent = '0 / 1024';
                             clearBtn && clearBtn.click();
                         } else {
-                            toast('РћС€РёР±РєР°: ' + (res.error || 'РЅРµРёР·РІРµСЃС‚РЅРѕ'), 'error');
+                            toast('Ошибка: ' + (res.error || 'неизвестно'), 'error');
                         }
                     } finally {
                         publishBtn.disabled = false;

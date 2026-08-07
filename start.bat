@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul 2>&1
 setlocal EnableExtensions EnableDelayedExpansion
 
@@ -16,7 +16,7 @@ title Robux Clicker - Server and tunnel
 
 echo.
 echo %B%%CYN%====================================================%R%
-echo %B%%CYN%            Robux Clicker - LAUNCHER             %R%
+echo %B%%CYN%            ROBUX CLICKER - LAUNCHER             %R%
 echo %B%%CYN%====================================================%R%
 echo.
 

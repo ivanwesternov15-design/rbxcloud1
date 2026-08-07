@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-ticket-redesign-appname-1"
+BUILD_VERSION = "20260807-admin-encoding-ticket-photo-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -130,6 +130,9 @@ E_MEGAPHONE = "5260268501515377807"  # 📣 Ответ по тикету
 E_ADMIN = "5256143829672672750"      # 👤 Ответ администратора
 E_PEACH = "5258330865674494479"      # 🍑 Оцени решение
 E_CHAT_TICKET = "5260535596941582167"  # 💬 Тикет закрыт
+
+# Button icon custom-emoji ids.
+E_WRITE = "5258331647358540449"      # ✍️ Обратиться в поддержку
 
 def ce(char, emoji_id):
     """Wrap a (Premium) emoji into its Telegram HTML entity."""
@@ -1457,9 +1460,8 @@ def bot_support_buttons():
     kb = []
     if BASE_URL:
         support_url = BASE_URL.rstrip("/") + "/?startapp=support"
-        kb.append([{"text": "🆘 Обратиться в поддержку", "web_app": True, "url": support_url}])
-        kb.append([{"text": "📮 Не пришёл Robux или случилась ошибка? Напиши нам", "web_app": True, "url": support_url}])
-    kb.append([{"text": "🚪 Назад", "callback_data": "main"}])
+        kb.append([{"text": "Обратиться в поддержку", "icon_custom_emoji_id": E_WRITE, "web_app": True, "url": support_url}])
+    kb.append([{"text": "Назад", "icon_custom_emoji_id": E_DOOR, "callback_data": "main"}])
     return kb
 
 def bot_profile_caption(chat_id):
@@ -1476,7 +1478,7 @@ def bot_profile_caption(chat_id):
     )
 
 def bot_profile_buttons():
-    return [{"text": "🚪 Назад", "callback_data": "main"}]
+    return [{"text": "Назад", "icon_custom_emoji_id": E_DOOR, "callback_data": "main"}]
 
 def bot_referral_caption(uname, bonus):
     return (
@@ -1516,9 +1518,9 @@ def bot_ticket_reply_caption(ticket, message_text):
         + ce("🍑", E_PEACH) + " Оцени решение в разделе «Обратная связь» в игре — это помогает нам стать лучше!"
     )
 
-def bot_ticket_closed_caption(ticket):
+def bot_ticket_closed_caption(ticket, note="Тикет закрыт администратором"):
     return (
-        ce("👀", E_EYE) + " Тикет закрыт администратором\n\n"
+        ce("👀", E_EYE) + " " + esc_html(note) + "\n\n"
         + bot_ticket_info_block(ticket) + "\n\n"
         + ce("💬", E_CHAT_TICKET) + " Если у тебя остались вопросы — создай новый тикет в разделе «Обратная связь»."
     )
@@ -1542,8 +1544,8 @@ def bot_withdraw_good_caption(amount, roblox_user):
 
 def bot_withdraw_good_buttons(wid):
     kb = [[
-        {"text": "🙂 Положительно", "callback_data": f"wdfb_{wid}_1"},
-        {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
+        {"text": "Положительно", "icon_custom_emoji_id": E_SMILE, "callback_data": f"wdfb_{wid}_1"},
+        {"text": "Отрицательно", "icon_custom_emoji_id": E_STOP, "callback_data": f"wdfb_{wid}_0"},
     ]]
     if BASE_URL:
         kb.append([{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}])
@@ -1561,8 +1563,8 @@ def bot_withdraw_bad_caption(amount, roblox_user):
 
 def bot_withdraw_bad_buttons(wid):
     return [[
-        {"text": "🙂 Положительно", "callback_data": f"wdfb_{wid}_1"},
-        {"text": "⛔️ Отрицательно", "callback_data": f"wdfb_{wid}_0"},
+        {"text": "Положительно", "icon_custom_emoji_id": E_SMILE, "callback_data": f"wdfb_{wid}_1"},
+        {"text": "Отрицательно", "icon_custom_emoji_id": E_STOP, "callback_data": f"wdfb_{wid}_0"},
     ]]
 
 def handle_bot_callback(cq):
@@ -4032,10 +4034,12 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 save_tickets(tdata)
                 audit_admin(telegram_id, "ticket_status", f"#{number} {status}")
                 try:
-                    send_telegram_message(
+                    buttons = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": BASE_URL}}] if BASE_URL else []
+                    send_bot_photo(
                         ticket.get("user_id"),
-                        bot_ticket_closed_caption(ticket),
-                        web_app_button=True,
+                        "ticket_false.png",
+                        bot_ticket_closed_caption(ticket, note),
+                        buttons,
                     )
                 except Exception:
                     pass

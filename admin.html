@@ -1957,8 +1957,11 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                             <select class="admin-input" data-f="type" style="width:130px;">
                                 ${TASK_TYPES.map(t => `<option value="${t}" ${task.type === t ? 'selected' : ''}>${TASK_TYPE_LABELS[t] || t}</option>`).join('')}
                             </select>
-                            <label style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">
                                 <input type="checkbox" data-f="enabled" ${task.enabled ? 'checked' : ''}> Вкл
+                            </label>
+                            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);white-space:nowrap;" title="Задание никогда не становится «Выполнено», выдаёт награду заново (для админа/владельца)">
+                                <input type="checkbox" data-f="always_repeat" ${task.always_repeat ? 'checked' : ''}> Многораз
                             </label>
                             <button type="button" class="admin-btn danger" data-role="rm" style="padding:4px 8px;font-size:11px;">✕</button>
                         </div>
@@ -1978,6 +1981,7 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                         const idx = parseInt(card.dataset.idx);
                         const f = el2.dataset.f;
                         if (f === 'enabled') adminTasks[idx].enabled = el2.checked;
+                        else if (f === 'always_repeat') adminTasks[idx].always_repeat = el2.checked;
                         else if (f === 'type') { adminTasks[idx].type = el2.value; adminTasks[idx].icon = el2.value; }
                         else if (f === 'reward_type') { adminTasks[idx].reward.type = el2.value; }
                         else if (f === 'channel_mode') { adminTasks[idx].channel_mode = el2.value; }

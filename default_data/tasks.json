@@ -145,6 +145,18 @@
     "icon": "coin"
   },
   {
+    "id": "task_earn_3000_video",
+    "title": "Заработай 3000 монет",
+    "description": "Заработай в сумме 3000 монет",
+    "reward": 5000,
+    "type": "earn",
+    "required_amount": 3000,
+    "enabled": true,
+    "expires": null,
+    "icon": "coin",
+    "always_repeat": true
+  },
+  {
     "id": "task_buy_case",
     "title": "Купи кейс",
     "description": "Купи любой кейс в магазине",

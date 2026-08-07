@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-fix-button-icons-passthrough-1"
+BUILD_VERSION = "20260807-repeatable-earn-task-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -637,6 +637,7 @@ def normalize_task(task, index=0):
         "expires": task.get("expires") or None,
         "icon": str(task.get("icon", task_type)).strip()[:40],
         "reward": normalize_task_reward(task.get("reward", 0)),
+        "always_repeat": bool(task.get("always_repeat", False)),
     }
     for key in ("required_count", "required_level", "required_amount"):
         if key in task:
@@ -3513,13 +3514,19 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             accrue_passive_income(user, load_config())
             
-            if task_id in user.get("completed_tasks", []):
+            # Repeatable tasks (always_repeat) never lock for admins/owner: the
+            # button stays "Выполнить" and keeps granting the reward every time.
+            is_repeatable = bool(task_def.get("always_repeat")) and is_admin_telegram_id(telegram_id)
+            
+            if not is_repeatable and task_id in user.get("completed_tasks", []):
                 self.send_json(400, {"error": "Задание уже выполнено"})
                 return
             
             # Check task conditions
             can_complete = False
-            if task_def["type"] == "telegram":
+            if is_repeatable:
+                can_complete = True
+            elif task_def["type"] == "telegram":
                 passed, verify_error, internal = verify_telegram_task_channels(task_def, str(telegram_id))
                 if not passed:
                     if internal and not is_admin_telegram_id(telegram_id):
@@ -3555,7 +3562,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             if "completed_tasks" not in user:
                 user["completed_tasks"] = []
-            user["completed_tasks"].append(task_id)
+            if not is_repeatable:
+                user["completed_tasks"].append(task_id)
             user["last_active"] = int(time.time())
 
             config = load_config()

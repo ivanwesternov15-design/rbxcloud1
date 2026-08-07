@@ -2025,7 +2025,8 @@ if (tab.dataset.tab === 'posts') loadPostsTab();
                 const clean = {
                     id: t.id, title: t.title, description: t.description,
                     type: t.type, enabled: !!t.enabled, icon: t.icon || t.type,
-                    reward: reward
+                    reward: reward,
+                    always_repeat: !!t.always_repeat
                 };
                 if (t.type === 'telegram') {
                     clean.channels = (t.channels || []).map(c => ({ label: c.label, url: c.url, chat_id: c.chat_id || '' }));

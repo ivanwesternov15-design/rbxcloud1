@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-admin-encoding-ticket-photo-1"
+BUILD_VERSION = "20260807-fix-button-icons-passthrough-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -140,7 +140,8 @@ def ce(char, emoji_id):
 
 def build_inline_keyboard(buttons, web_app_button=True, base_url=None):
     """Build a Telegram inline_keyboard from a list of button rows/dicts.
-    Supports url / web_app / callback_data button types."""
+    Supports url / web_app / callback_data button types and preserves
+    icon_custom_emoji_id (Premium button icons)."""
     keyboard = []
     if web_app_button and base_url:
         keyboard.append([{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "web_app": {"url": base_url}}])
@@ -152,16 +153,18 @@ def build_inline_keyboard(buttons, web_app_button=True, base_url=None):
             if row:
                 keyboard.append(row)
             continue
-        row = []
+        d = {}
+        if btn.get("icon_custom_emoji_id"):
+            d["icon_custom_emoji_id"] = btn["icon_custom_emoji_id"]
+        d["text"] = btn.get("text", "")
         if btn.get("callback_data"):
-            row.append({"text": btn["text"], "callback_data": btn["callback_data"]})
+            d["callback_data"] = btn["callback_data"]
         elif btn.get("web_app") and base_url:
-            btn_url = btn.get("url") or base_url
-            row.append({"text": btn["text"], "web_app": {"url": btn_url}})
+            d["web_app"] = {"url": btn.get("url") or base_url}
         elif btn.get("url"):
-            row.append({"text": btn["text"], "url": btn["url"]})
-        if row:
-            keyboard.append(row)
+            d["url"] = btn["url"]
+        if d.get("callback_data") or d.get("web_app") or d.get("url"):
+            keyboard.append([d])
     return keyboard
 
 # --- Color Logging ---
@@ -4575,7 +4578,7 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
                 # для постов в канал используем обычную url-кнопку на бота.
                 bot_uname = get_bot_username()
                 open_url = f"https://t.me/{bot_uname}?startapp" if bot_uname else BASE_URL
-                open_btn = [{"text": "Открыть игру", "icon_custom_emoji_id": E_GAME, "url": open_url}]
+                open_btn = [{"text": "Открыть игру", "url": open_url}]
                 try:
                     if banner:
                         if "," in banner:

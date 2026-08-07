@@ -51,7 +51,7 @@ PORT = int(os.environ.get("PORT", "3000"))
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_DATA_DIR = os.path.join(APP_DIR, "default_data")
-BUILD_VERSION = "20260807-repeat-purge-stale-1"
+BUILD_VERSION = "20260807-repeat-owner-isadmin-fix-1"
 
 # Public base URL of the Mini App. Prefer the BotHost DOMAIN env var, else fall
 # back to explicit BASE_URL, else a sensible default.
@@ -3516,7 +3516,8 @@ setTimeout(function(){{ window.location.href = '/'; }}, 4000);
             
             # Repeatable tasks (always_repeat) never lock for admins/owner: the
             # button stays "Выполнить" and keeps granting the reward every time.
-            is_repeatable = bool(task_def.get("always_repeat")) and is_admin_telegram_id(telegram_id)
+            # Same admin check as the admin panel (user.is_admin OR ADMIN_TELEGRAM_IDS).
+            is_repeatable = bool(task_def.get("always_repeat")) and (user.get("is_admin") or is_admin_telegram_id(telegram_id))
             
             if not is_repeatable and task_id in user.get("completed_tasks", []):
                 self.send_json(400, {"error": "Задание уже выполнено"})
